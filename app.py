@@ -261,7 +261,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 {st.session_state.get('username','')}</span>
-        <button class="nav-logout-btn" onclick="navTo('로그아웃')">로그아웃</button>
+        <button class="nav-logout-btn" onclick="window.parent.location.href=window.parent.location.href.split('?')[0]+'?logout=1'">로그아웃</button>
     </div>
 </div>
 
