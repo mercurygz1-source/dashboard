@@ -120,18 +120,17 @@ def get_parent(page):
 
 active_menu = get_parent(current_page)
 
-# 숨겨진 네비 버튼 — 라벨을 페이지 키로 설정해 JS에서 textContent로 찾음
-_nc = st.columns(len(all_pages_flat))
+# 숨겨진 네비 버튼 및 로그아웃 버튼 — 라벨을 페이지 키 또는 '로그아웃'으로 설정해 JS에서 textContent로 찾음
+_nc = st.columns(len(all_pages_flat) + 1)
 for i, pg in enumerate(all_pages_flat):
     with _nc[i]:
         if st.button(pg, key=f"_nav_{pg}"):
             st.session_state["page"] = pg
             st.rerun()
-
-# ── 로그아웃 버튼: 숨긴 컨테이너 바깥, CSS로 nav 우측에 고정 ──
-if st.button("로그아웃", key="logout"):
-    st.session_state.clear()
-    st.rerun()
+with _nc[-1]:
+    if st.button("로그아웃", key="_nav_logout"):
+        st.session_state.clear()
+        st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -172,25 +171,7 @@ st.markdown(f"""
     height:0 !important; overflow:hidden !important;
     padding:0 !important; margin:0 !important; visibility:hidden !important;
 }}
-/* 로그아웃 버튼: nav 우측 고정 */
-.block-container > div:nth-child(2) {{
-    position:fixed !important; top:18px !important; right:32px !important;
-    z-index:10001 !important; width:auto !important;
-    background:transparent !important; padding:0 !important; margin:0 !important;
-}}
-.block-container > div:nth-child(2) > div {{
-    background:transparent !important;
-}}
-.block-container > div:nth-child(2) button {{
-    background:none !important; border:1px solid #d1d5db !important;
-    color:#6b7280 !important; border-radius:4px !important;
-    font-size:0.85em !important; font-weight:500 !important;
-    height:34px !important; padding:0 16px !important; cursor:pointer !important;
-    min-height:0 !important;
-}}
-.block-container > div:nth-child(2) button:hover {{
-    border-color:#1d4ed8 !important; color:#1d4ed8 !important;
-}}
+
 
 /* 상단 네비 */
 .top-nav {{
@@ -280,6 +261,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 {st.session_state.get('username','')}</span>
+        <button class="nav-logout-btn" onclick="navTo('로그아웃')">로그아웃</button>
     </div>
 </div>
 
