@@ -198,7 +198,7 @@ button[title^="goto:"] {{
 .nav-menu {{ display:flex; list-style:none; margin:0; padding:0; height:70px; align-items:center; flex:1; justify-content:center; gap:0; }}
 .nav-item {{ position:relative; height:70px; display:flex; align-items:center; }}
 .nav-link {{
-    display:flex; align-items:center; height:70px; padding:0 36px;
+    display:flex; align-items:center; height:70px; padding:0 56px;
     color:#333; font-size:1.15em; font-weight:600;
     cursor:pointer; white-space:nowrap; text-decoration:none !important;
     transition:color 0.18s; user-select:none; border:none !important;
