@@ -1,9 +1,11 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import base64
+import os
 from data_loader import get_available_years, get_available_months, load_factory_data
 
-st.set_page_config(page_title="건재사업본부 손익", page_icon="📊", layout="wide")
+st.set_page_config(page_title="동양 건재사업본부 손익", page_icon="📊", layout="wide")
 
 # ══════════════════════════════════════════════════════════════
 # 세션 초기화
@@ -14,6 +16,19 @@ if "page" not in st.session_state:
     st.session_state["page"] = "건재손익_총괄"
 
 USERS = st.secrets.get("users", {"tongyang": "6150"})
+
+# ══════════════════════════════════════════════════════════════
+# 로고 로드 (base64)
+# ══════════════════════════════════════════════════════════════
+def get_logo_b64():
+    logo_path = os.path.join(os.path.dirname(__file__), "tongyang_logo.png")
+    if os.path.exists(logo_path):
+        with open(logo_path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    return None
+
+LOGO_B64 = get_logo_b64()
+LOGO_HTML = f'<img src="data:image/png;base64,{LOGO_B64}" style="height:38px;object-fit:contain;" />' if LOGO_B64 else '<span style="font-size:1.3em;font-weight:900;color:#0f2044;">동양</span>'
 
 # ══════════════════════════════════════════════════════════════
 # 로그인 페이지
@@ -60,12 +75,13 @@ if not st.session_state["logged_in"]:
 
     _, mid, _ = st.columns([1, 1.1, 1])
     with mid:
-        st.markdown("""
+        logo_img = f'<img src="data:image/png;base64,{LOGO_B64}" style="height:60px;object-fit:contain;margin-bottom:16px;" />' if LOGO_B64 else ''
+        st.markdown(f"""
         <div style="text-align:center; margin-bottom:32px;">
-            <div style="color:rgba(255,255,255,0.35);font-size:0.72em;letter-spacing:5px;margin-bottom:12px;">EUGENE GROUP</div>
+            {logo_img}
             <div style="color:white;font-size:2em;font-weight:900;line-height:1.3;">건재사업본부<br>손익 대시보드</div>
             <div style="width:36px;height:2px;background:#1d4ed8;margin:18px auto;"></div>
-            <div style="color:rgba(255,255,255,0.3);font-size:0.78em;letter-spacing:2px;">PROFIT & LOSS DASHBOARD</div>
+            <div style="color:rgba(255,255,255,0.3);font-size:0.78em;letter-spacing:2px;">PROFIT &amp; LOSS DASHBOARD</div>
         </div>
         <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:36px 32px 28px;">
         """, unsafe_allow_html=True)
@@ -84,7 +100,7 @@ if not st.session_state["logged_in"]:
         st.markdown("""
         </div>
         <div style="text-align:center;color:rgba(255,255,255,0.18);font-size:0.72em;margin-top:24px;">
-            © 2026 Eugene Group · Confidential
+            © 2026 Tongyang · Confidential
         </div>
         """, unsafe_allow_html=True)
     st.stop()
@@ -102,26 +118,22 @@ st.markdown("""
 [data-testid="stSidebar"] { display: none; }
 .block-container { padding: 0 !important; max-width: 100% !important; }
 
-/* ── 네비게이션 버튼 스타일 ── */
-div[data-testid="stHorizontalBlock"].nav-row button {
+/* ── Streamlit 요소 숨기기 ── */
+[data-testid="stHorizontalBlock"] { gap: 0 !important; }
+
+/* ── 로그아웃 버튼 ── */
+.logout-btn button {
     background: none !important;
-    border: none !important;
-    border-bottom: 3px solid transparent !important;
-    color: #374151 !important;
-    font-weight: 600 !important;
-    font-size: 0.93em !important;
-    height: 64px !important;
-    border-radius: 0 !important;
-    padding: 0 20px !important;
-    width: 100% !important;
-    transition: all 0.2s !important;
+    border: 1px solid #d1d5db !important;
+    color: #6b7280 !important;
+    border-radius: 4px !important;
+    font-size: 0.82em !important;
+    font-weight: 500 !important;
+    height: 34px !important;
+    padding: 0 14px !important;
     letter-spacing: 0 !important;
 }
-div[data-testid="stHorizontalBlock"].nav-row button:hover {
-    color: #1d4ed8 !important;
-    border-bottom-color: #1d4ed8 !important;
-    background: none !important;
-}
+.logout-btn button:hover { border-color: #1d4ed8 !important; color: #1d4ed8 !important; }
 
 /* ── 서브메뉴 버튼 ── */
 div[data-testid="stHorizontalBlock"].subnav-row button {
@@ -142,46 +154,124 @@ div[data-testid="stHorizontalBlock"].subnav-row button:hover {
     background: #eff6ff !important;
 }
 
-/* ── 로그아웃 버튼 ── */
-.logout-btn button {
-    background: none !important;
-    border: 1px solid #d1d5db !important;
-    color: #6b7280 !important;
-    border-radius: 4px !important;
-    font-size: 0.82em !important;
-    font-weight: 500 !important;
-    height: 34px !important;
-    padding: 0 14px !important;
-    letter-spacing: 0 !important;
-}
-.logout-btn button:hover { border-color: #1d4ed8 !important; color: #1d4ed8 !important; }
-
 /* ── 기타 selectbox ── */
 [data-testid="stSelectbox"] label { display: none !important; }
 
-/* ── 페이지 헤더 ── */
-.page-hero {
-    background: linear-gradient(135deg, #0f2044 0%, #1a3a6c 100%);
-    padding: 32px 40px;
-    color: white;
+/* ── 상단 네비게이션 바 전체 ── */
+.top-navbar {
+    background: white;
+    border-bottom: 1px solid #e8eaed;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 64px;
+}
+.top-navbar .logo-area {
+    flex-shrink: 0;
+    margin-right: 32px;
+}
+.top-navbar .nav-links {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    height: 100%;
+}
+.top-navbar .nav-item {
     position: relative;
-    overflow: hidden;
+    height: 100%;
+    display: flex;
+    align-items: center;
 }
-.page-hero::after {
-    content: '';
+.top-navbar .nav-link {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 18px;
+    font-size: 0.93em;
+    font-weight: 600;
+    color: #374151;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+    gap: 4px;
+}
+.top-navbar .nav-link:hover,
+.top-navbar .nav-link.active {
+    color: #1d4ed8;
+    border-bottom-color: #1d4ed8;
+}
+.top-navbar .nav-item .dropdown {
+    display: none;
     position: absolute;
-    right: 60px; top: -50px;
-    width: 260px; height: 260px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #e8eaed;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    min-width: 160px;
+    z-index: 10000;
+    padding: 6px 0;
 }
-.page-hero-sub  { color: rgba(255,255,255,0.4); font-size:0.78em; letter-spacing:2px; margin-bottom:6px; }
-.page-hero-title{ font-size:1.8em; font-weight:900; line-height:1.2; }
-.page-hero-badge{
-    display:inline-block; background:rgba(255,255,255,0.12);
-    color:rgba(255,255,255,0.85); padding:3px 13px; border-radius:20px;
-    font-size:0.78em; margin-top:10px; border:1px solid rgba(255,255,255,0.2);
+.top-navbar .nav-item:hover .dropdown {
+    display: block;
+}
+.top-navbar .dropdown-item {
+    display: block;
+    padding: 10px 20px;
+    font-size: 0.87em;
+    font-weight: 500;
+    color: #374151;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+.top-navbar .dropdown-item:hover,
+.top-navbar .dropdown-item.active {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+.top-navbar .chevron {
+    font-size: 0.7em;
+    opacity: 0.5;
+}
+.top-navbar .user-area {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+.top-navbar .user-name {
+    color: #6b7280;
+    font-size: 0.85em;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.top-navbar .logout-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    font-size: 0.82em;
+    font-weight: 500;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+}
+.top-navbar .logout-link:hover {
+    color: #1d4ed8;
+    border-color: #1d4ed8;
 }
 
 /* ── 컨텐츠 영역 ── */
@@ -248,7 +338,7 @@ NAV_STRUCTURE = {
     "임대":     ["임대_손익"],
 }
 PAGE_LABELS = {
-    "건재손익_총괄":   "손익 총괄",
+    "건재손익_총괄":   "손익총괄",
     "건재손익_공장별": "공장별 손익",
     "레미콘_공헌이익": "공헌이익 분석",
     "레미콘_공장별":   "공장별 손익",
@@ -268,37 +358,93 @@ def get_parent(page):
 active_menu = get_parent(current_page)
 
 # ══════════════════════════════════════════════════════════════
-# 상단 헤더 (로고 + 유저)
+# 상단 네비게이션 바 (HTML) + Streamlit 로그아웃 버튼
 # ══════════════════════════════════════════════════════════════
-st.markdown(f"""
-<div style="background:white;border-bottom:1px solid #e8eaed;padding:0 32px;
-            display:flex;align-items:center;justify-content:space-between;height:64px;
-            position:sticky;top:0;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-    <div style="display:flex;align-items:center;gap:10px;">
-        <div>
-            <div style="font-size:1.1em;font-weight:900;color:#0f2044;letter-spacing:-0.5px;line-height:1;">EUGENE</div>
-            <div style="font-size:0.6em;color:#9ca3af;font-weight:400;letter-spacing:0.5px;">건재사업본부</div>
+
+# 각 메뉴 아이템의 HTML 생성
+nav_items_html = ""
+for menu, pages in NAV_STRUCTURE.items():
+    is_active = (menu == active_menu)
+    active_cls = "active" if is_active else ""
+    has_sub = len(pages) > 1
+
+    if has_sub:
+        sub_items_html = ""
+        for pg in pages:
+            pg_active = "active" if pg == current_page else ""
+            # Streamlit 네비게이션은 쿼리 파라미터로 처리 불가 → JavaScript로 form submit 사용
+            sub_items_html += f"""
+            <form method="get" action="" style="margin:0;padding:0;">
+                <input type="hidden" name="_nav_page" value="{pg}" />
+                <button type="submit" class="dropdown-item {pg_active}" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;">
+                    {PAGE_LABELS[pg]}
+                </button>
+            </form>
+            """
+        chevron = "▾"
+        nav_items_html += f"""
+        <div class="nav-item">
+            <span class="nav-link {active_cls}">{menu} <span class="chevron">{chevron}</span></span>
+            <div class="dropdown">
+                {sub_items_html}
+            </div>
         </div>
+        """
+    else:
+        nav_items_html += f"""
+        <div class="nav-item">
+            <form method="get" action="" style="height:100%;margin:0;">
+                <input type="hidden" name="_nav_page" value="{pages[0]}" />
+                <button type="submit" class="nav-link {active_cls}" style="background:none;border:none;cursor:pointer;height:100%;">
+                    {menu}
+                </button>
+            </form>
+        </div>
+        """
+
+# 상단 바 렌더링 (로고 + 네비 + 유저명)
+username_display = st.session_state.get('username', '')
+st.markdown(f"""
+<div class="top-navbar">
+    <div class="logo-area">
+        {LOGO_HTML}
     </div>
-    <div style="color:#6b7280;font-size:0.85em;font-weight:500;">👤 {st.session_state['username']}</div>
+    <nav class="nav-links">
+        {nav_items_html}
+    </nav>
+    <div class="user-area">
+        <span class="user-name">👤 {username_display}</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════
-# 메인 네비게이션 (Streamlit 버튼)
-# ══════════════════════════════════════════════════════════════
-st.markdown('<div class="nav-row" style="background:white;border-bottom:2px solid #e8eaed;padding:0 20px;">', unsafe_allow_html=True)
-nav_cols = st.columns([1,1,1,1,1,3])  # 메뉴 5개 + 여백
-menus = list(NAV_STRUCTURE.keys())
-for i, menu in enumerate(menus):
-    with nav_cols[i]:
-        label = f"**{menu}**" if menu == active_menu else menu
-        if st.button(label, key=f"menu_{menu}", use_container_width=True):
-            st.session_state["page"] = NAV_STRUCTURE[menu][0]
-            st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
+# Streamlit 네이티브 로그아웃 버튼 (오른쪽 정렬)
+col_spacer, col_logout = st.columns([0.93, 0.07])
+with col_logout:
+    st.markdown('<div class="logout-btn">', unsafe_allow_html=True)
+    if st.button("로그아웃", key="logout"):
+        st.session_state["logged_in"] = False
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# 서브 네비게이션
+# ── JavaScript로 네비게이션 처리 (쿼리 파라미터 방식) ──
+# Streamlit에서는 HTML form으로 직접 페이지 이동이 안 되므로
+# JavaScript + session_state를 통해 네비게이션을 처리
+
+# URL 쿼리 파라미터 확인 후 페이지 전환
+qp = st.query_params
+if "_nav_page" in qp:
+    nav_target = qp["_nav_page"]
+    if nav_target in [p for pages in NAV_STRUCTURE.values() for p in pages]:
+        st.session_state["page"] = nav_target
+        st.query_params.clear()
+        st.rerun()
+
+# 현재 페이지 다시 읽기 (rerun 후 업데이트)
+current_page = st.session_state["page"]
+active_menu = get_parent(current_page)
+
+# 서브 네비게이션 (건재손익 및 레미콘용 - 호버 드롭다운으로 대체되었지만 추가 편의를 위해 유지)
 sub_pages = NAV_STRUCTURE[active_menu]
 if len(sub_pages) > 1:
     st.markdown('<div class="subnav-row" style="background:#f8fafc;border-bottom:1px solid #e8eaed;padding:0 32px;">', unsafe_allow_html=True)
@@ -311,27 +457,8 @@ if len(sub_pages) > 1:
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# 필터 + 로그아웃
-fc0, fc1, fc2, fc3 = st.columns([0.07, 0.1, 0.1, 0.73])
-with fc0:
-    st.markdown('<div style="padding-top:9px;padding-left:32px;color:#6b7280;font-size:0.82em;font-weight:600;">기간</div>', unsafe_allow_html=True)
-years = get_available_years()
-selected_year  = fc1.selectbox("연도", years, label_visibility="collapsed")
-months         = get_available_months(selected_year)
-selected_month = fc2.selectbox("월", months, format_func=lambda x: f"{x}월", label_visibility="collapsed")
-with fc3:
-    _, lc = st.columns([0.9, 0.1])
-    with lc:
-        st.markdown('<div class="logout-btn">', unsafe_allow_html=True)
-        if st.button("로그아웃", key="logout"):
-            st.session_state["logged_in"] = False
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown('<hr style="margin:0;border:none;border-top:1px solid #e8eaed;">', unsafe_allow_html=True)
-
 # ══════════════════════════════════════════════════════════════
-# 데이터 로드
+# 데이터 로드 (기간 선택 없이 최신 데이터 자동 사용)
 # ══════════════════════════════════════════════════════════════
 REMICON_FACTORIES = ['안양','인천','파주','김포','부산','서부산','김해',
                      '정관','양산','창원','대구','울산','아산','전주','군산','원주','제주']
@@ -339,6 +466,19 @@ REMICON_FACTORIES = ['안양','인천','파주','김포','부산','서부산','�
 @st.cache_data
 def get_data(year, month):
     return load_factory_data(year, month)
+
+# 최신 연도/월 자동 선택
+years = get_available_years()
+if not years:
+    st.error("데이터를 찾을 수 없습니다.")
+    st.stop()
+
+selected_year = years[0]
+months = get_available_months(selected_year)
+if not months:
+    st.error(f"{selected_year}년 데이터를 찾을 수 없습니다.")
+    st.stop()
+selected_month = months[-1]  # 가장 최신 월
 
 df_all = get_data(selected_year, selected_month)
 if df_all is None:
@@ -386,21 +526,10 @@ def td_d(val, d=0):
     arr = "▲" if val >= 0 else "▼"
     return f'<td class="{cls}">{arr}&nbsp;{f(abs(val),d)}</td>'
 
-def hero(title, badge=None):
-    b = badge or f"{selected_year}년 {selected_month}월"
-    st.markdown(f"""
-    <div class="page-hero">
-        <div class="page-hero-sub">EUGENE GROUP · 건재사업본부</div>
-        <div class="page-hero-title">{title}</div>
-        <span class="page-hero-badge">{b}</span>
-    </div>
-    """, unsafe_allow_html=True)
-
 # ══════════════════════════════════════════════════════════════
 # 페이지: 건재손익 총괄
 # ══════════════════════════════════════════════════════════════
 if current_page == "건재손익_총괄":
-    hero("손익 총괄")
     total  = df_summary[df_summary['공장명'] == '합계']
     rc_row = df_summary[df_summary['공장명'] == '레미콘 계']
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
@@ -471,7 +600,6 @@ if current_page == "건재손익_총괄":
 # 페이지: 건재손익 공장별
 # ══════════════════════════════════════════════════════════════
 elif current_page == "건재손익_공장별":
-    hero("공장별 손익")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
     metric = st.selectbox("조회 지표", ['매출','영업이익','물량'],
@@ -514,7 +642,6 @@ elif current_page == "건재손익_공장별":
 # 페이지: 레미콘 공헌이익
 # ══════════════════════════════════════════════════════════════
 elif current_page == "레미콘_공헌이익":
-    hero("레미콘 공헌이익 분석", f"{selected_year}년 {selected_month}월 · 단위: 원/㎥")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
     rc_sum = df_all[df_all['공장명'] == '레미콘 계']
@@ -586,7 +713,6 @@ elif current_page == "레미콘_공헌이익":
 # 페이지: 레미콘 공장별
 # ══════════════════════════════════════════════════════════════
 elif current_page == "레미콘_공장별":
-    hero("레미콘 공장별 손익")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
     rc_sum = df_all[df_all['공장명'] == '레미콘 계']
@@ -626,7 +752,6 @@ elif current_page == "레미콘_공장별":
 # ══════════════════════════════════════════════════════════════
 elif current_page in ["건자재_손익","골재_손익","임대_손익"]:
     nm = {"건자재_손익":"건자재","골재_손익":"골재","임대_손익":"임대"}[current_page]
-    hero(f"{nm} 손익")
     st.markdown(f"""
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;">
         <div style="font-size:3.5em;margin-bottom:20px;opacity:0.35;">🚧</div>
