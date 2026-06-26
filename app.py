@@ -11,6 +11,13 @@ if "logged_in" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state["page"] = "건재손익_총괄"
 
+# 로그아웃 처리 (URL 쿼리 파라미터 방식)
+if st.query_params.get("action") == "logout":
+    st.session_state["logged_in"] = False
+    st.session_state["username"] = ""
+    st.query_params.clear()
+    st.rerun()
+
 USERS = st.secrets.get("users", {"tongyang": "6150"})
 
 def get_logo_b64():
@@ -114,16 +121,12 @@ def get_parent(page):
 active_menu = get_parent(current_page)
 
 # 숨겨진 네비 버튼 (JS에서 title 속성으로 클릭)
-_nc = st.columns(len(all_pages_flat) + 1)
+_nc = st.columns(len(all_pages_flat))
 for i, pg in enumerate(all_pages_flat):
     with _nc[i]:
         if st.button("·", key=f"_nav_{pg}", help=f"goto:{pg}"):
             st.session_state["page"] = pg
             st.rerun()
-with _nc[-1]:
-    if st.button("·", key="_logout_h", help="logout"):
-        st.session_state["logged_in"] = False
-        st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -167,16 +170,17 @@ button[title^="goto:"], button[title="logout"] {{
     display:flex; align-items:center; padding:0 32px;
 }}
 .nav-logo {{ flex-shrink:0; cursor:pointer; line-height:1; }}
-.nav-menu {{ display:flex; list-style:none; margin:0; padding:0; height:70px; align-items:center; flex:1; justify-content:center; gap:8px; }}
+.nav-menu {{ display:flex; list-style:none; margin:0; padding:0; height:70px; align-items:center; flex:1; justify-content:center; gap:0; }}
 .nav-item {{ position:relative; height:70px; display:flex; align-items:center; }}
 .nav-link {{
-    display:flex; align-items:center; height:70px; padding:0 28px;
-    color:#333; font-size:1.05em; font-weight:600;
-    cursor:pointer; white-space:nowrap; text-decoration:none;
-    transition:color 0.18s; user-select:none; border:none;
+    display:flex; align-items:center; height:70px; padding:0 36px;
+    color:#333; font-size:1.15em; font-weight:600;
+    cursor:pointer; white-space:nowrap; text-decoration:none !important;
+    transition:color 0.18s; user-select:none; border:none !important;
+    outline:none; background:none;
 }}
-.nav-link:hover {{ color:#1d4ed8; }}
-.nav-link.active {{ color:#1d4ed8; font-weight:700; }}
+.nav-link:hover {{ color:#1d4ed8; text-decoration:none !important; }}
+.nav-link.active {{ color:#1d4ed8; font-weight:700; text-decoration:none !important; }}
 
 /* 드롭다운 */
 .dropdown {{
@@ -256,12 +260,7 @@ function navTo(page) {{
     }}
 }}
 function doLogout() {{
-    var btn = window.parent.document.querySelector('button[title="logout"]');
-    if (btn) {{ btn.click(); return; }}
-    var all = window.parent.document.querySelectorAll('button');
-    for (var i=0;i<all.length;i++) {{
-        if (all[i].getAttribute('title')==='logout') {{ all[i].click(); return; }}
-    }}
+    window.parent.location.href = window.parent.location.pathname + '?action=logout';
 }}
 </script>
 """, unsafe_allow_html=True)
