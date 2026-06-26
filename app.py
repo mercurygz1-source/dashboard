@@ -160,10 +160,12 @@ st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
 * {{ font-family:'Noto Sans KR',sans-serif !important; box-sizing:border-box; }}
-[data-testid="stAppViewContainer"] {{ background:#f0f2f5 !important; padding-top:70px !important; }}
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+.main {{ background:#f0f2f5 !important; }}
 [data-testid="stHeader"] {{ display:none; }}
 [data-testid="stSidebar"] {{ display:none; }}
-.block-container {{ padding:0 !important; max-width:100% !important; }}
+.block-container {{ padding-top:82px !important; padding-left:0 !important; padding-right:0 !important; padding-bottom:0 !important; max-width:100% !important; }}
 
 /* 숨겨진 네비 버튼 행 */
 .block-container > div:first-child {{
