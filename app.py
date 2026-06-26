@@ -21,66 +21,91 @@ def login():
     }
     [data-testid="stHeader"] { display:none; }
     [data-testid="stSidebar"] { display:none; }
-    .block-container { padding: 0 !important; max-width: 100% !important; }
-    .stTextInput > label { color: rgba(255,255,255,0.6) !important; font-size:0.85em !important; letter-spacing:1px; }
+    .block-container { padding: 60px 0 0 0 !important; max-width: 100% !important; }
+    .login-title {
+        text-align: center;
+        margin-bottom: 36px;
+        padding: 0 20px;
+    }
+    .stTextInput > label {
+        color: rgba(255,255,255,0.55) !important;
+        font-size: 0.8em !important;
+        font-weight: 600 !important;
+        letter-spacing: 1.5px !important;
+        text-transform: uppercase;
+    }
     .stTextInput > div > div > input {
-        background: rgba(255,255,255,0.06) !important;
-        border: 1px solid rgba(255,255,255,0.15) !important;
+        background: rgba(255,255,255,0.07) !important;
+        border: 1px solid rgba(255,255,255,0.18) !important;
         color: white !important;
-        border-radius: 4px !important;
+        border-radius: 6px !important;
         padding: 14px 16px !important;
         font-size: 0.95em !important;
     }
+    .stTextInput > div > div > input::placeholder { color: rgba(255,255,255,0.25) !important; }
     .stTextInput > div > div > input:focus {
         border-color: #4a90d9 !important;
-        box-shadow: 0 0 0 1px #4a90d9 !important;
+        box-shadow: 0 0 0 2px rgba(74,144,217,0.25) !important;
     }
     .stButton > button {
-        background: #1d4ed8 !important;
+        background: linear-gradient(90deg,#1d4ed8,#2563eb) !important;
         color: white !important;
         border: none !important;
-        border-radius: 4px !important;
+        border-radius: 6px !important;
         font-weight: 700 !important;
         font-size: 0.9em !important;
         height: 52px !important;
         letter-spacing: 3px !important;
-        margin-top: 12px;
-        width: 100%;
+        margin-top: 8px !important;
+        width: 100% !important;
+        transition: opacity 0.2s !important;
+    }
+    .stButton > button:hover { opacity: 0.85 !important; }
+    .login-box {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 36px 32px 28px;
+        backdrop-filter: blur(10px);
+    }
+    .login-footer {
+        text-align: center;
+        color: rgba(255,255,255,0.18);
+        font-size: 0.72em;
+        margin-top: 24px;
+        letter-spacing: 1px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;">
-      <div style="width:100%;max-width:420px;">
-        <div style="text-align:center;margin-bottom:48px;">
-          <div style="color:rgba(255,255,255,0.4);font-size:0.75em;letter-spacing:5px;margin-bottom:14px;font-weight:300;">EUGENE GROUP</div>
-          <div style="color:white;font-size:2.2em;font-weight:900;line-height:1.25;margin-bottom:10px;">건재사업본부<br>손익 대시보드</div>
-          <div style="width:40px;height:2px;background:#1d4ed8;margin:20px auto;"></div>
-          <div style="color:rgba(255,255,255,0.35);font-size:0.82em;letter-spacing:2px;">PROFIT & LOSS DASHBOARD</div>
+    # 컬럼으로 중앙 정렬
+    _, mid, _ = st.columns([1, 1.1, 1])
+    with mid:
+        st.markdown("""
+        <div class="login-title">
+          <div style="color:rgba(255,255,255,0.35);font-size:0.72em;letter-spacing:5px;margin-bottom:12px;font-weight:300;">EUGENE GROUP</div>
+          <div style="color:white;font-size:2em;font-weight:900;line-height:1.3;">건재사업본부<br>손익 대시보드</div>
+          <div style="width:36px;height:2px;background:#1d4ed8;margin:18px auto 10px;"></div>
+          <div style="color:rgba(255,255,255,0.3);font-size:0.78em;letter-spacing:2px;">PROFIT & LOSS DASHBOARD</div>
         </div>
-        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:40px 36px;">
-    """, unsafe_allow_html=True)
+        <div class="login-box">
+        """, unsafe_allow_html=True)
 
-    username = st.text_input("ID", placeholder="아이디를 입력하세요")
-    password = st.text_input("PASSWORD", type="password", placeholder="패스워드를 입력하세요")
+        username = st.text_input("ID", placeholder="아이디를 입력하세요")
+        password = st.text_input("PASSWORD", type="password", placeholder="패스워드를 입력하세요")
 
-    if st.button("L O G I N", use_container_width=True):
-        if username in USERS and USERS[username] == password:
-            st.session_state["logged_in"] = True
-            st.session_state["username"] = username
-            st.rerun()
-        else:
-            st.error("아이디 또는 패스워드가 올바르지 않습니다.")
+        if st.button("L O G I N", use_container_width=True):
+            if username in USERS and USERS[username] == password:
+                st.session_state["logged_in"] = True
+                st.session_state["username"] = username
+                st.rerun()
+            else:
+                st.error("아이디 또는 패스워드가 올바르지 않습니다.")
 
-    st.markdown("""
+        st.markdown("""
         </div>
-        <div style="text-align:center;color:rgba(255,255,255,0.2);font-size:0.72em;margin-top:28px;letter-spacing:1px;">
-          © 2026 Eugene Group · Confidential
-        </div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+        <div class="login-footer">© 2026 Eugene Group · Confidential</div>
+        """, unsafe_allow_html=True)
 
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
