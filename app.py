@@ -140,7 +140,7 @@ st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
 * {{ font-family:'Noto Sans KR',sans-serif !important; box-sizing:border-box; }}
-[data-testid="stAppViewContainer"] {{ background:#f0f2f5 !important; padding-top:70px; }}
+[data-testid="stAppViewContainer"] {{ background:#f0f2f5 !important; padding-top:70px !important; }}
 [data-testid="stHeader"] {{ display:none; }}
 [data-testid="stSidebar"] {{ display:none; }}
 .block-container {{ padding:0 !important; max-width:100% !important; }}
@@ -197,27 +197,23 @@ button[title^="goto:"], button[title="logout"] {{
 .nav-right {{ margin-left:auto; display:flex; align-items:center; gap:14px; flex-shrink:0; }}
 .nav-user {{ color:#6b7280; font-size:0.85em; font-weight:500; }}
 
-/* 진짜 Streamlit 로그아웃 버튼을 nav 위에 고정 */
-.block-container > div:nth-child(3) {{
-    position:fixed !important; top:0 !important; right:32px !important;
-    height:70px !important; display:flex !important; align-items:center !important;
-    z-index:10001 !important; background:transparent !important; width:auto !important;
-    padding:0 !important; margin:0 !important;
+/* 유저/로그아웃 바 */
+.user-bar {{
+    background:white; border-bottom:1px solid #e8eaed;
+    padding:0 32px; height:44px;
+    display:flex; align-items:center; justify-content:flex-end; gap:16px;
 }}
-.block-container > div:nth-child(3) > div {{
-    display:flex !important; align-items:center !important; height:70px !important;
-    background:transparent !important;
-}}
-.block-container > div:nth-child(3) button {{
+.user-bar-name {{ color:#6b7280; font-size:0.85em; font-weight:500; }}
+/* 로그아웃 버튼 스타일 */
+div[data-testid="stHorizontalBlock"].logout-row {{  gap:0 !important; }}
+div[data-testid="stHorizontalBlock"].logout-row button {{
     background:none !important; border:1px solid #d1d5db !important;
     color:#6b7280 !important; border-radius:4px !important;
-    font-size:0.85em !important; font-weight:500 !important;
-    height:34px !important; padding:0 16px !important; cursor:pointer !important;
-    white-space:nowrap !important;
+    font-size:0.83em !important; font-weight:500 !important;
+    padding:0 14px !important; height:32px !important;
 }}
-.block-container > div:nth-child(3) button:hover {{
-    border-color:#1d4ed8 !important; color:#1d4ed8 !important;
-    background:none !important;
+div[data-testid="stHorizontalBlock"].logout-row button:hover {{
+    border-color:#1d4ed8 !important; color:#1d4ed8 !important; background:none !important;
 }}
 
 /* 컨텐츠 */
@@ -255,9 +251,6 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 <div class="top-nav">
     <div class="nav-logo" onclick="navTo('건재손익_총괄')">{logo_html}</div>
     <ul class="nav-menu">{menu_html}</ul>
-    <div class="nav-right">
-        <span class="nav-user">👤 {st.session_state['username']}</span>
-    </div>
 </div>
 
 <script>
@@ -272,11 +265,22 @@ function navTo(page) {{
 </script>
 """, unsafe_allow_html=True)
 
-# 진짜 Streamlit 로그아웃 버튼 (CSS로 nav 우측에 고정됨)
-if st.button("로그아웃", key="real_logout"):
-    for k in list(st.session_state.keys()):
-        del st.session_state[k]
-    st.rerun()
+# ── 유저명 + 로그아웃 버튼 (실제 Streamlit 버튼) ──
+_u1, _u2, _u3 = st.columns([7.5, 1.5, 0.8])
+with _u2:
+    st.markdown(
+        f'<div style="height:44px;display:flex;align-items:center;justify-content:flex-end;">'
+        f'<span style="color:#6b7280;font-size:0.85em;font-weight:500;">👤 {st.session_state.get("username","")}</span>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+with _u3:
+    st.markdown('<div style="height:44px;display:flex;align-items:center;">', unsafe_allow_html=True)
+    if st.button("로그아웃", key="logout_btn"):
+        for k in list(st.session_state.keys()):
+            del st.session_state[k]
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
