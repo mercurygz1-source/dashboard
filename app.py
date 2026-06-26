@@ -209,13 +209,13 @@ button[title^="goto:"] {{
 
 /* 드롭다운 */
 .dropdown {{
-    position:absolute; top:70px; left:0; background:white; min-width:168px;
+    position:absolute; top:70px; left:50%; background:white; min-width:168px;
     border-top:3px solid #1d4ed8;
     box-shadow:0 8px 28px rgba(0,0,0,0.12);
-    opacity:0; visibility:hidden; transform:translateY(-6px);
+    opacity:0; visibility:hidden; transform:translateX(-50%) translateY(-6px);
     transition:opacity 0.18s,transform 0.18s,visibility 0.18s; z-index:10000;
 }}
-.nav-item:hover .dropdown {{ opacity:1; visibility:visible; transform:translateY(0); }}
+.nav-item:hover .dropdown {{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }}
 .dd-item {{
     padding:13px 20px; color:#374151; font-size:0.88em; font-weight:500;
     border-bottom:1px solid #f3f4f6; cursor:pointer;
@@ -223,7 +223,7 @@ button[title^="goto:"] {{
 }}
 .dd-item:last-child {{ border-bottom:none; }}
 .dd-item:hover {{ background:#eff6ff; color:#1d4ed8; padding-left:26px; }}
-.dd-item.active {{ background:#eff6ff; color:#1d4ed8; font-weight:700; border-left:3px solid #1d4ed8; }}
+.dd-item.active {{ background:#eff6ff; color:#1d4ed8; font-weight:700; }}
 
 .nav-right {{ margin-left:auto; display:flex; align-items:center; gap:14px; flex-shrink:0; }}
 .nav-user {{ color:#6b7280; font-size:0.85em; font-weight:500; }}
