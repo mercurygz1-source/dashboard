@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import base64, os
-from data_loader import get_available_years, get_available_months, load_factory_data
+from data_loader import get_available_years, get_available_months, load_factory_data, load_overview
 
 st.set_page_config(page_title="동양 건재사업본부 손익", page_icon="📊", layout="wide")
 
@@ -379,38 +379,24 @@ if current_page == "건재손익_총괄":
     stitle("손익 총괄")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
-    nm_map = {'레미콘 계':'레미콘','골재 계':'골재'}
-    disp_order = ['레미콘 계','건자재','골재 계','기타','합계']
-    disp_labels = {k: nm_map.get(k, k) for k in disp_order}
+    @st.cache_data
+    def get_overview(year, month):
+        return load_overview(year, month)
 
-    def oir(매출, 영업이익):
+    df_ov = get_overview(selected_year, selected_month)
+
+    def oir(sale, oi):
         try:
-            v = float(영업이익) / float(매출) * 100
+            v = float(oi) / float(sale) * 100
             return f"{v:.1f}%"
         except:
             return "-"
 
-    # ── KPI 카드 (합계 기준) ──
-    total = df_summary[df_summary['공장명']=='합계']
-    rc_row = df_summary[df_summary['공장명']=='레미콘 계']
-    c1,c2,c3,c4,c5 = st.columns(5)
-    if not total.empty:
-        r = total.iloc[0]
-        c1.markdown(kpi("매출 실적",f(r.get('매출_실적')),"백만원",r.get('매출_차이'),"계획"), unsafe_allow_html=True)
-        c2.markdown(kpi("영업이익 실적",f(r.get('영업이익_실적')),"백만원",r.get('영업이익_차이'),"계획","green" if (r.get('영업이익_실적') or 0)>=0 else "red"), unsafe_allow_html=True)
-        oir_val = f"{float(r.get('영업이익_실적',0))/float(r.get('매출_실적',1))*100:.1f}" if r.get('매출_실적') else "-"
-        c3.markdown(kpi("영업이익률",oir_val,"%"), unsafe_allow_html=True)
-        c4.markdown(kpi("매출 전년",f(r.get('매출_전년')),"백만원",r.get('매출_실적',0)-r.get('매출_전년',0) if pd.notna(r.get('매출_전년')) else None,"전년"), unsafe_allow_html=True)
-        c5.markdown(kpi("영업이익 전년",f(r.get('영업이익_전년')),"백만원",r.get('영업이익_실적',0)-r.get('영업이익_전년',0) if pd.notna(r.get('영업이익_전년')) else None,"전년","purple"), unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # ── 탭: 당월 / 누계 ──
-    tab1, tab2 = st.tabs(["📅 당월", "📊 누계"])
-
-    def build_summary_table(df_src, suffix=""):
-        rs = df_src[df_src['공장명'].isin(disp_order)].copy()
-        rs = rs.set_index('공장명').reindex(disp_order).reset_index()
+    def build_overview_table(df_src, sfx=""):
+        """sfx='' → 당월, sfx='누계' → 누계"""
+        p = lambda col: col + (f'_누계계획' if sfx else '_계획')
+        r_col = lambda col: col + (f'_누계실적' if sfx else '_실적')
+        d_col = lambda col: col + (f'_누계차이' if sfx else '_차이')
         html = """<table class="pl-table">
         <thead>
         <tr>
@@ -418,38 +404,50 @@ if current_page == "건재손익_총괄":
           <th colspan="3">물량 (천㎥)</th>
           <th colspan="3">매출액 (백만원)</th>
           <th colspan="3">영업이익 (백만원)</th>
-          <th colspan="2">영업이익률 (%)</th>
+          <th colspan="2">영업이익률</th>
         </tr>
         <tr>
           <th>계획</th><th>실적</th><th>차이</th>
           <th>계획</th><th>실적</th><th>차이</th>
           <th>계획</th><th>실적</th><th>차이</th>
           <th>계획</th><th>실적</th>
-        </tr>
-        </thead><tbody>"""
-        for _, r in rs.iterrows():
-            name = r['공장명']
-            label = disp_labels.get(name, name)
+        </tr></thead><tbody>"""
+        for _, row in df_src.iterrows():
+            name = row['구분']
             tc = ' class="total"' if name == '합계' else ''
-            m_p = r.get('물량_계획'); m_r = r.get('물량_실적'); m_d = r.get('물량_차이')
-            s_p = r.get('매출_계획'); s_r = r.get('매출_실적'); s_d = r.get('매출_차이')
-            o_p = r.get('영업이익_계획'); o_r = r.get('영업이익_실적'); o_d = r.get('영업이익_차이')
-            oir_p = oir(s_p, o_p); oir_r = oir(s_r, o_r)
+            m_p = row.get(p('물량')); m_r = row.get(r_col('물량')); m_d = row.get(d_col('물량'))
+            s_p = row.get(p('매출')); s_r = row.get(r_col('매출')); s_d = row.get(d_col('매출'))
+            o_p = row.get(p('영업이익')); o_r = row.get(r_col('영업이익')); o_d = row.get(d_col('영업이익'))
             html += f"""<tr{tc}>
-              <td>{label}</td>
+              <td>{name}</td>
               <td>{f(m_p,1)}</td><td>{f(m_r,1)}</td>{td_d(m_d,1)}
               <td>{f(s_p)}</td><td>{f(s_r)}</td>{td_d(s_d)}
               <td>{f(o_p)}</td><td>{f(o_r)}</td>{td_d(o_d)}
-              <td>{oir_p}</td><td>{oir_r}</td>
+              <td>{oir(s_p,o_p)}</td><td>{oir(s_r,o_r)}</td>
             </tr>"""
         html += "</tbody></table>"
         return html
 
-    with tab1:
+    if df_ov is not None:
+        total_row = df_ov[df_ov['구분']=='합계'].iloc[0] if not df_ov[df_ov['구분']=='합계'].empty else None
+        rc_row_ov = df_ov[df_ov['구분']=='레미콘'].iloc[0] if not df_ov[df_ov['구분']=='레미콘'].empty else None
+
+        # ── KPI 카드 ──
+        c1,c2,c3,c4,c5 = st.columns(5)
+        if total_row is not None:
+            c1.markdown(kpi("매출 실적",f(total_row.get('매출_실적')),"백만원",total_row.get('매출_차이'),"계획"), unsafe_allow_html=True)
+            c2.markdown(kpi("영업이익",f(total_row.get('영업이익_실적')),"백만원",total_row.get('영업이익_차이'),"계획",
+                            "green" if (total_row.get('영업이익_실적') or 0)>=0 else "red"), unsafe_allow_html=True)
+            c3.markdown(kpi("영업이익률",oir(total_row.get('매출_실적'),total_row.get('영업이익_실적')),"%"), unsafe_allow_html=True)
+            c4.markdown(kpi("매출 전년",f(total_row.get('매출_전년')),"백만원",
+                            total_row.get('매출_실적',0)-(total_row.get('매출_전년') or 0) if total_row.get('매출_전년') else None,"전년"), unsafe_allow_html=True)
+        if rc_row_ov is not None:
+            c5.markdown(kpi("레미콘 물량",f(rc_row_ov.get('물량_실적'),1),"천㎥",rc_row_ov.get('물량_차이'),"계획","amber"), unsafe_allow_html=True)
+
         st.markdown("<br>", unsafe_allow_html=True)
-        # 차트
-        df_chart = df_summary[df_summary['공장명'].isin(['레미콘 계','건자재','골재 계','기타'])].copy()
-        df_chart['구분'] = df_chart['공장명'].map(lambda x: nm_map.get(x,x))
+
+        # ── 차트 ──
+        df_chart = df_ov[df_ov['구분'].isin(['레미콘','건자재','골재','기타'])].copy()
         cc1, cc2 = st.columns(2)
         with cc1:
             st.markdown('<div class="card"><div class="card-title">사업부문별 매출액 (백만원)</div>', unsafe_allow_html=True)
@@ -466,28 +464,17 @@ if current_page == "건재손익_총괄":
                 fig2.add_bar(name=lb,x=df_chart['구분'],y=df_chart[col],marker_color=clr)
             bc(fig2); fig2.update_layout(barmode='group')
             st.plotly_chart(fig2,use_container_width=True); st.markdown('</div>', unsafe_allow_html=True)
-        # 상세 테이블
-        st.markdown('<div class="card"><div class="card-title">사업부문별 손익 상세 (당월)</div><div class="tbl-wrap">', unsafe_allow_html=True)
-        st.markdown(build_summary_table(df_summary) + "</div></div>", unsafe_allow_html=True)
 
-    with tab2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        # 누계 컬럼이 있으면 사용, 없으면 안내
-        cum_cols = [c for c in df_all.columns if '누계' in c]
-        if cum_cols:
-            df_cum = df_all.copy()
-            # 누계 컬럼을 일반 컬럼명으로 매핑해 재사용
-            col_map = {c: c.replace('누계_','').replace('_누계','') for c in cum_cols}
-            df_cum2 = df_cum[['공장명'] + cum_cols].copy()
-            df_cum2 = df_cum2.rename(columns=col_map)
-            st.markdown('<div class="card"><div class="card-title">사업부문별 손익 상세 (누계)</div><div class="tbl-wrap">', unsafe_allow_html=True)
-            st.markdown(build_summary_table(df_cum2) + "</div></div>", unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div class="card" style="text-align:center;padding:48px;">
-              <div style="font-size:2em;opacity:0.3;margin-bottom:12px;">📊</div>
-              <div style="color:#6b7280;font-size:0.95em;">누계 데이터는 데이터 파일에 <b>누계</b> 컬럼이 있을 때 표시됩니다.</div>
-            </div>""", unsafe_allow_html=True)
+        # ── 당월/누계 탭 ──
+        tab1, tab2 = st.tabs(["📅 당월", "📊 누계"])
+        with tab1:
+            st.markdown('<div class="card"><div class="card-title">사업부문별 손익 상세 — 당월</div><div class="tbl-wrap">', unsafe_allow_html=True)
+            st.markdown(build_overview_table(df_ov, "") + "</div></div>", unsafe_allow_html=True)
+        with tab2:
+            st.markdown('<div class="card"><div class="card-title">사업부문별 손익 상세 — 누계</div><div class="tbl-wrap">', unsafe_allow_html=True)
+            st.markdown(build_overview_table(df_ov, "누계") + "</div></div>", unsafe_allow_html=True)
+    else:
+        st.error("손익총괄 데이터를 불러올 수 없습니다.")
 
     st.markdown('</div>', unsafe_allow_html=True)
 

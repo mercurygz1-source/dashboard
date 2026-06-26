@@ -103,3 +103,67 @@ def load_summary_data(year, month):
         return None
     summary_names = ['레미콘 계', '건자재', '골재 계', '기타', '합계']
     return df[df['공장명'].isin(summary_names)].copy()
+
+
+def load_overview(year, month):
+    """손익총괄 시트에서 레미콘/건자재/골재/기타/합계 당월+누계 데이터를 읽어 반환."""
+    filepath = find_report_file(year, month)
+    if not filepath:
+        return None
+
+    wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
+    if '손익총괄' not in wb.sheetnames:
+        wb.close()
+        return None
+
+    ws = wb['손익총괄']
+    rows = {i: row for i, row in enumerate(ws.iter_rows(min_row=1, values_only=True), start=1)}
+    wb.close()
+
+    def v(row_idx, col_idx):
+        r = rows.get(row_idx)
+        if r is None or col_idx >= len(r):
+            return None
+        val = r[col_idx]
+        return float(val) if val is not None else None
+
+    # 컬럼 인덱스: [4]=당월계획 [5]=당월실적 [6]=당월차이 [7]=당월전년
+    #              [9]=누계계획 [10]=누계실적 [11]=누계차이 [12]=누계전년
+    items = []
+    for name, r_vol, r_sale, r_oi in [
+        ('레미콘', 7,  9, 25),
+        ('골재',   8, 10, 27),
+        ('건자재', None, 33, 36),
+        ('기타',   None, 11, 28),
+        ('합계',   None, 12, 29),
+    ]:
+        row = {
+            '구분': name,
+            '물량_계획':   v(r_vol, 4) if r_vol else None,
+            '물량_실적':   v(r_vol, 5) if r_vol else None,
+            '물량_차이':   v(r_vol, 6) if r_vol else None,
+            '물량_전년':   v(r_vol, 7) if r_vol else None,
+            '물량_누계계획': v(r_vol, 9) if r_vol else None,
+            '물량_누계실적': v(r_vol, 10) if r_vol else None,
+            '물량_누계차이': v(r_vol, 11) if r_vol else None,
+            '물량_누계전년': v(r_vol, 12) if r_vol else None,
+            '매출_계획':   v(r_sale, 4),
+            '매출_실적':   v(r_sale, 5),
+            '매출_차이':   v(r_sale, 6),
+            '매출_전년':   v(r_sale, 7),
+            '매출_누계계획': v(r_sale, 9),
+            '매출_누계실적': v(r_sale, 10),
+            '매출_누계차이': v(r_sale, 11),
+            '매출_누계전년': v(r_sale, 12),
+            '영업이익_계획':   v(r_oi, 4),
+            '영업이익_실적':   v(r_oi, 5),
+            '영업이익_차이':   v(r_oi, 6),
+            '영업이익_전년':   v(r_oi, 7),
+            '영업이익_누계계획': v(r_oi, 9),
+            '영업이익_누계실적': v(r_oi, 10),
+            '영업이익_누계차이': v(r_oi, 11),
+            '영업이익_누계전년': v(r_oi, 12),
+        }
+        items.append(row)
+
+    return pd.DataFrame(items)
