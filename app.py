@@ -19,21 +19,107 @@ USERS = {
 }
 
 def login():
-    st.markdown("<br><br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1, 1])
+    st.markdown("""
+    <style>
+    [data-testid="stAppViewContainer"] {
+        background: linear-gradient(135deg, #0a1628 0%, #1a3a5c 50%, #0d2137 100%);
+    }
+    [data-testid="stHeader"] { background: transparent; }
+    .login-left {
+        color: white;
+        padding: 60px 40px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .login-left h1 {
+        font-size: 3em;
+        font-weight: 900;
+        line-height: 1.2;
+        margin-bottom: 30px;
+        color: white;
+    }
+    .login-left p {
+        font-size: 1.1em;
+        color: rgba(255,255,255,0.8);
+        line-height: 2;
+    }
+    .login-right {
+        background: #1e2d3d;
+        border-radius: 16px;
+        padding: 50px 40px;
+        margin: 40px 0;
+    }
+    .login-right h2 {
+        color: white;
+        font-size: 1.5em;
+        font-weight: 700;
+        letter-spacing: 2px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .stTextInput > label { color: rgba(255,255,255,0.7) !important; }
+    .stTextInput > div > div > input {
+        background: #2a3f55 !important;
+        border: 1px solid #3a5f80 !important;
+        color: white !important;
+        border-radius: 8px !important;
+    }
+    .stButton > button {
+        background: #1a56db !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: 700 !important;
+        font-size: 1em !important;
+        padding: 12px !important;
+        letter-spacing: 2px !important;
+        margin-top: 10px;
+    }
+    .stButton > button:hover {
+        background: #1e40af !important;
+    }
+    .company-name {
+        color: white;
+        font-size: 0.9em;
+        font-weight: 700;
+        letter-spacing: 3px;
+        margin-bottom: 5px;
+        opacity: 0.6;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1.2, 0.8])
+
+    with col1:
+        st.markdown("""
+        <div class="login-left">
+            <p class="company-name">EUGENE GROUP</p>
+            <h1>Your Dream is<br>Our Passion</h1>
+            <p>
+                당신의 가능성을 응원합니다.<br>
+                당신의 꿈이 우리의 미래입니다.<br>
+                당신의 가능성은 세계보다 넓습니다.<br>
+                당신의 꿈을 맘껏 펼치세요.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
     with col2:
-        st.title("건재사업본부 손익 대시보드")
-        st.markdown("---")
-        st.subheader("로그인")
-        username = st.text_input("아이디")
-        password = st.text_input("패스워드", type="password")
-        if st.button("로그인", use_container_width=True):
+        st.markdown('<div class="login-right">', unsafe_allow_html=True)
+        st.markdown('<h2>건재사업본부 손익 대시보드</h2>', unsafe_allow_html=True)
+        username = st.text_input("아이디", placeholder="아이디를 입력하세요")
+        password = st.text_input("패스워드", type="password", placeholder="패스워드를 입력하세요")
+        if st.button("LOGIN", use_container_width=True):
             if username in USERS and USERS[username] == password:
                 st.session_state["logged_in"] = True
                 st.session_state["username"] = username
                 st.rerun()
             else:
                 st.error("아이디 또는 패스워드가 틀렸습니다.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
