@@ -22,7 +22,7 @@ def login():
     st.markdown("<br><br><br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
-        st.title("🔐 건재사업본부 손익 대시보드")
+        st.title("건재사업본부 손익 대시보드")
         st.markdown("---")
         st.subheader("로그인")
         username = st.text_input("아이디")
