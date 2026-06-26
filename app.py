@@ -11,6 +11,12 @@ if "logged_in" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state["page"] = "건재손익_총괄"
 
+# 로그아웃 처리
+if st.query_params.get("logout") == "1":
+    st.session_state.clear()
+    st.query_params.clear()
+    st.rerun()
+
 
 USERS = st.secrets.get("users", {"tongyang": "6150"})
 
@@ -197,24 +203,15 @@ button[title^="goto:"], button[title="logout"] {{
 .nav-right {{ margin-left:auto; display:flex; align-items:center; gap:14px; flex-shrink:0; }}
 .nav-user {{ color:#6b7280; font-size:0.85em; font-weight:500; }}
 
-/* 유저/로그아웃 바 */
-.user-bar {{
-    background:white; border-bottom:1px solid #e8eaed;
-    padding:0 32px; height:44px;
-    display:flex; align-items:center; justify-content:flex-end; gap:16px;
+.nav-right {{ margin-left:auto; display:flex; align-items:center; gap:14px; flex-shrink:0; }}
+.nav-user {{ color:#6b7280; font-size:0.85em; font-weight:500; }}
+.nav-logout-btn {{
+    background:none; border:1px solid #d1d5db; color:#6b7280;
+    padding:0 16px; border-radius:4px; font-size:0.85em; cursor:pointer;
+    font-weight:500; height:34px; transition:all 0.15s;
+    font-family:'Noto Sans KR',sans-serif;
 }}
-.user-bar-name {{ color:#6b7280; font-size:0.85em; font-weight:500; }}
-/* 로그아웃 버튼 스타일 */
-div[data-testid="stHorizontalBlock"].logout-row {{  gap:0 !important; }}
-div[data-testid="stHorizontalBlock"].logout-row button {{
-    background:none !important; border:1px solid #d1d5db !important;
-    color:#6b7280 !important; border-radius:4px !important;
-    font-size:0.83em !important; font-weight:500 !important;
-    padding:0 14px !important; height:32px !important;
-}}
-div[data-testid="stHorizontalBlock"].logout-row button:hover {{
-    border-color:#1d4ed8 !important; color:#1d4ed8 !important; background:none !important;
-}}
+.nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8; }}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 32px; max-width:1500px; margin:0 auto; }}
@@ -251,6 +248,10 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 <div class="top-nav">
     <div class="nav-logo" onclick="navTo('건재손익_총괄')">{logo_html}</div>
     <ul class="nav-menu">{menu_html}</ul>
+    <div class="nav-right">
+        <span class="nav-user">👤 {st.session_state.get('username','')}</span>
+        <button class="nav-logout-btn" onclick="window.location.href='?logout=1'">로그아웃</button>
+    </div>
 </div>
 
 <script>
@@ -264,23 +265,6 @@ function navTo(page) {{
 }}
 </script>
 """, unsafe_allow_html=True)
-
-# ── 유저명 + 로그아웃 버튼 (실제 Streamlit 버튼) ──
-_u1, _u2, _u3 = st.columns([7.5, 1.5, 0.8])
-with _u2:
-    st.markdown(
-        f'<div style="height:44px;display:flex;align-items:center;justify-content:flex-end;">'
-        f'<span style="color:#6b7280;font-size:0.85em;font-weight:500;">👤 {st.session_state.get("username","")}</span>'
-        f'</div>',
-        unsafe_allow_html=True
-    )
-with _u3:
-    st.markdown('<div style="height:44px;display:flex;align-items:center;">', unsafe_allow_html=True)
-    if st.button("로그아웃", key="logout_btn"):
-        for k in list(st.session_state.keys()):
-            del st.session_state[k]
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
