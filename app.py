@@ -127,6 +127,9 @@ st.markdown("""
 [data-testid="stSidebar"] { display: none; }
 .block-container { padding: 0 !important; max-width: 100% !important; }
 
+/* 숨겨진 nav 버튼 행 감추기 */
+.block-container > div:first-child { display: none !important; }
+
 /* ─── 상단 네비게이션 ─── */
 .top-nav-wrapper {
     position: fixed;
@@ -405,10 +408,19 @@ table.pl-table tbody tr.total td { background: #eff6ff; font-weight: 900; color:
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
-# 페이지 상태 (쿼리 파라미터)
+# 페이지 상태 (세션 상태 기반 - 로그인 유지를 위해 query_params 대신 사용)
 # ══════════════════════════════════════════════════════════════
-params = st.query_params
-current_page = params.get("page", "건재손익_총괄")
+# query_params에서 페이지 읽기 (최초 접근 시)
+_qp = st.query_params.get("page", "")
+if _qp:
+    st.session_state["page"] = _qp
+    # query_params 초기화 (이후엔 session_state로만 관리)
+    st.query_params.clear()
+
+if "page" not in st.session_state:
+    st.session_state["page"] = "건재손익_총괄"
+
+current_page = st.session_state["page"]
 
 NAV_STRUCTURE = {
     "건재손익": ["건재손익_총괄", "건재손익_공장별"],
@@ -438,6 +450,14 @@ active_menu = get_parent(current_page)
 # ══════════════════════════════════════════════════════════════
 # 네비게이션
 # ══════════════════════════════════════════════════════════════
+# 숨겨진 네비게이션 버튼 (session_state 기반 페이지 이동)
+all_pages_flat = [pg for pages in NAV_STRUCTURE.values() for pg in pages]
+for pg in all_pages_flat:
+    if st.button(pg, key=f"__nav__{pg}"):
+        st.session_state["page"] = pg
+        st.rerun()
+
+# 숨김 처리 CSS + 네비게이션 HTML
 items_html = ""
 for menu, pages in NAV_STRUCTURE.items():
     is_active = (menu == active_menu)
@@ -445,19 +465,28 @@ for menu, pages in NAV_STRUCTURE.items():
 
     if len(pages) > 1:
         dd_items = "".join(
-            f'<a class="dropdown-link{"  active" if pg == current_page else ""}" href="?page={pg}">{PAGE_LABELS[pg]}</a>'
+            f'<a class="dropdown-link{"  active" if pg == current_page else ""}" onclick="navTo(\'{pg}\')" href="#">{PAGE_LABELS[pg]}</a>'
             for pg in pages
         )
         dd = f'<div class="dropdown">{dd_items}</div>'
     else:
         dd = ""
 
-    items_html += f'<li class="nav-item"><a class="{lc}" href="?page={pages[0]}">{menu}</a>{dd}</li>'
+    items_html += f'<li class="nav-item"><a class="{lc}" onclick="navTo(\'{pages[0]}\')" href="#">{menu}</a>{dd}</li>'
 
 st.markdown(f"""
+<style>
+/* 숨겨진 nav 버튼들 완전 제거 */
+div[data-testid="stHorizontalBlock"]:has(button[kind="secondary"]) {{
+    display: none !important;
+}}
+/* 혹시 위가 안 먹히면 아래 방식으로 */
+.nav-hidden-btns {{ display: none !important; }}
+</style>
+
 <div class="top-nav-wrapper">
   <div class="top-nav-inner">
-    <a class="nav-logo" href="?page=건재손익_총괄">
+    <a class="nav-logo" onclick="navTo('건재손익_총괄')" href="#">
       <div>
         <div class="nav-logo-text">EUGENE</div>
         <div class="nav-logo-sub">건재사업본부</div>
@@ -469,6 +498,19 @@ st.markdown(f"""
     </div>
   </div>
 </div>
+
+<script>
+function navTo(page) {{
+    // Streamlit의 숨겨진 버튼을 찾아서 클릭
+    var buttons = window.parent.document.querySelectorAll('button');
+    for (var i = 0; i < buttons.length; i++) {{
+        if (buttons[i].innerText.trim() === page) {{
+            buttons[i].click();
+            return;
+        }}
+    }}
+}}
+</script>
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
