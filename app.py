@@ -14,9 +14,7 @@ st.set_page_config(
 )
 
 # ── 로그인 ────────────────────────────────────────────────────
-USERS = {
-    "tongyang": "6150",
-}
+USERS = st.secrets.get("users", {"tongyang": "6150"})
 
 def login():
     st.markdown("""
