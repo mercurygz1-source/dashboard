@@ -167,22 +167,6 @@ st.markdown(f"""
     height:0 !important; overflow:hidden !important;
     padding:0 !important; margin:0 !important; visibility:hidden !important;
 }}
-/* 로그아웃 버튼 — nav 우측 고정 */
-.block-container > div:nth-child(3) {{
-    position:fixed !important; top:17px !important; right:32px !important;
-    z-index:10001 !important; width:auto !important;
-    background:transparent !important; padding:0 !important; margin:0 !important;
-}}
-.block-container > div:nth-child(3) button {{
-    background:none !important; border:1px solid #d1d5db !important;
-    color:#6b7280 !important; border-radius:4px !important;
-    font-size:0.85em !important; font-weight:500 !important;
-    height:34px !important; padding:0 16px !important; min-height:0 !important;
-    cursor:pointer !important;
-}}
-.block-container > div:nth-child(3) button:hover {{
-    border-color:#1d4ed8 !important; color:#1d4ed8 !important;
-}}
 
 
 /* 상단 네비 */
@@ -273,6 +257,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 {st.session_state.get('username','')}</span>
+        <a href="https://dashboard-bg6hejp722dsvjqufwum3j.streamlit.app/?logout=1" target="_top" class="nav-logout-btn">로그아웃</a>
     </div>
 </div>
 
@@ -290,10 +275,6 @@ function navTo(page) {{
 </script>
 """, unsafe_allow_html=True)
 
-# 진짜 Streamlit 로그아웃 버튼 (CSS로 nav 우측에 고정)
-if st.button("로그아웃", key="logout_btn"):
-    st.session_state.clear()
-    st.rerun()
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
