@@ -120,11 +120,11 @@ def get_parent(page):
 
 active_menu = get_parent(current_page)
 
-# 숨겨진 네비 버튼 (JS에서 title 속성으로 클릭)
+# 숨겨진 네비 버튼 — 라벨을 페이지 키로 설정해 JS에서 textContent로 찾음
 _nc = st.columns(len(all_pages_flat))
 for i, pg in enumerate(all_pages_flat):
     with _nc[i]:
-        if st.button("·", key=f"_nav_{pg}", help=f"goto:{pg}"):
+        if st.button(pg, key=f"_nav_{pg}"):
             st.session_state["page"] = pg
             st.rerun()
 
@@ -166,15 +166,9 @@ st.markdown(f"""
 .block-container {{ padding:0 !important; max-width:100% !important; }}
 
 /* 숨겨진 네비 버튼 행 */
-button[title^="goto:"] {{
-    position:absolute !important; opacity:0 !important;
-    width:1px !important; height:1px !important;
-    min-height:0 !important; padding:0 !important; border:none !important;
-    overflow:hidden !important; pointer-events:none !important;
-}}
 .block-container > div:first-child {{
     height:0 !important; overflow:hidden !important;
-    padding:0 !important; margin:0 !important;
+    padding:0 !important; margin:0 !important; visibility:hidden !important;
 }}
 /* 로그아웃 버튼: nav 우측 고정 */
 .block-container > div:nth-child(2) {{
@@ -290,11 +284,12 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 <script>
 function navTo(page) {{
     var doc = (window.parent && window.parent.document) ? window.parent.document : document;
-    var btn = doc.querySelector('button[title="goto:' + page + '"]');
-    if (btn) {{ btn.click(); return; }}
-    var all = doc.querySelectorAll('button');
-    for (var i=0;i<all.length;i++) {{
-        if (all[i].getAttribute('title')==='goto:'+page) {{ all[i].click(); return; }}
+    var btns = doc.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++) {{
+        if (btns[i].textContent.trim() === page) {{
+            btns[i].click();
+            return;
+        }}
     }}
 }}
 </script>
