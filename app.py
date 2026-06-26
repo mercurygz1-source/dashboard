@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import base64, os
@@ -540,3 +540,4 @@ elif current_page in ["건자재_손익","골재_손익","임대_손익"]:
     nm={"건자재_손익":"건자재","골재_손익":"골재","임대_손익":"임대"}[current_page]
     stitle(f"{nm} 손익")
     st.markdown(f'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;"><div style="font-size:3.5em;margin-bottom:20px;opacity:0.35;">🚧</div><div style="font-size:1.3em;font-weight:700;color:#374151;margin-bottom:8px;">{nm} 손익 페이지</div><div style="color:#9ca3af;">준비 중입니다.</div></div>', unsafe_allow_html=True)
+
