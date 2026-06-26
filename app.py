@@ -13,6 +13,35 @@ st.set_page_config(
     layout="wide"
 )
 
+# ── 로그인 ────────────────────────────────────────────────────
+USERS = {
+    "admin": "1234",
+    "manager": "5678",
+}
+
+def login():
+    st.title("🔐 건재사업본부 손익 대시보드")
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        st.subheader("로그인")
+        username = st.text_input("아이디")
+        password = st.text_input("패스워드", type="password")
+        if st.button("로그인", use_container_width=True):
+            if username in USERS and USERS[username] == password:
+                st.session_state["logged_in"] = True
+                st.session_state["username"] = username
+                st.rerun()
+            else:
+                st.error("아이디 또는 패스워드가 틀렸습니다.")
+
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+
+if not st.session_state["logged_in"]:
+    login()
+    st.stop()
+
 st.markdown("""
 <style>
     .metric-card {
@@ -28,6 +57,10 @@ st.markdown("""
 
 # ── 사이드바 ──────────────────────────────────────────────────
 st.sidebar.title("📊 건재사업본부")
+st.sidebar.markdown(f"👤 **{st.session_state['username']}** 님")
+if st.sidebar.button("로그아웃"):
+    st.session_state["logged_in"] = False
+    st.rerun()
 st.sidebar.markdown("---")
 
 years = get_available_years()
