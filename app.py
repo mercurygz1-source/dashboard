@@ -15,15 +15,15 @@ st.set_page_config(
 
 # ── 로그인 ────────────────────────────────────────────────────
 USERS = {
-    "admin": "1234",
-    "manager": "5678",
+    "tongyang": "6150",
 }
 
 def login():
-    st.title("🔐 건재사업본부 손익 대시보드")
-    st.markdown("---")
+    st.markdown("<br><br><br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
+        st.title("🔐 건재사업본부 손익 대시보드")
+        st.markdown("---")
         st.subheader("로그인")
         username = st.text_input("아이디")
         password = st.text_input("패스워드", type="password")
