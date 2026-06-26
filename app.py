@@ -120,10 +120,9 @@ def get_parent(page):
 
 active_menu = get_parent(current_page)
 
-# 숨겨진 네비 버튼 — 라벨을 페이지 키로 설정해 JS에서 textContent로 찾음
-_nc = st.columns(len(all_pages_flat))
-for i, pg in enumerate(all_pages_flat):
-    with _nc[i]:
+# 숨겨진 네비 버튼 — sidebar에 배치 (sidebar는 CSS로 display:none, JS로는 접근 가능)
+with st.sidebar:
+    for pg in all_pages_flat:
         if st.button(pg, key=f"_nav_{pg}"):
             st.session_state["page"] = pg
             st.rerun()
@@ -161,13 +160,6 @@ st.markdown(f"""
 [data-testid="stHeader"] {{ display:none; }}
 [data-testid="stSidebar"] {{ display:none; }}
 .block-container {{ padding-top:82px !important; padding-left:0 !important; padding-right:0 !important; padding-bottom:0 !important; max-width:100% !important; }}
-
-/* 숨겨진 네비 버튼 행 */
-.block-container > div:first-child {{
-    height:0 !important; overflow:hidden !important;
-    padding:0 !important; margin:0 !important; visibility:hidden !important;
-}}
-
 
 /* 상단 네비 */
 .top-nav {{
@@ -257,6 +249,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 {st.session_state.get('username','')}</span>
+        <button class="nav-logout-btn" onclick="doLogout()">로그아웃</button>
     </div>
 </div>
 
@@ -271,6 +264,10 @@ function navTo(page) {{
         }}
     }}
 }}
+function doLogout() {{
+    var loc = (window.parent && window.parent.location) ? window.parent.location : window.location;
+    loc.href = loc.href.split('?')[0] + '?logout=1';
+}}
 </script>
 """, unsafe_allow_html=True)
 
@@ -283,16 +280,12 @@ if not years:
     st.error("데이터 폴더에 연도 폴더가 없습니다.")
     st.stop()
 
-_s, _y, _m, _lo = st.columns([0.73, 0.09, 0.09, 0.09])
+_s, _y, _m = st.columns([0.82, 0.09, 0.09])
 with _y:
     selected_year = st.selectbox("연도", years, label_visibility="collapsed")
 with _m:
     months = get_available_months(selected_year)
     selected_month = st.selectbox("월", months, format_func=lambda x: f"{x}월", label_visibility="collapsed")
-with _lo:
-    if st.button("로그아웃", key="logout_btn"):
-        st.session_state.clear()
-        st.rerun()
 st.markdown('<hr style="margin:0;border:none;border-top:1px solid #e8eaed;">', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
