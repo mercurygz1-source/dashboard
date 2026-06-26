@@ -166,18 +166,17 @@ button[title^="goto:"], button[title="logout"] {{
     box-shadow:0 2px 10px rgba(0,0,0,0.06); z-index:9999;
     display:flex; align-items:center; padding:0 32px;
 }}
-.nav-logo {{ flex-shrink:0; margin-right:50px; cursor:pointer; line-height:1; }}
-.nav-menu {{ display:flex; list-style:none; margin:0; padding:0; height:70px; align-items:center; }}
+.nav-logo {{ flex-shrink:0; cursor:pointer; line-height:1; }}
+.nav-menu {{ display:flex; list-style:none; margin:0; padding:0; height:70px; align-items:center; flex:1; justify-content:center; gap:8px; }}
 .nav-item {{ position:relative; height:70px; display:flex; align-items:center; }}
 .nav-link {{
-    display:flex; align-items:center; height:70px; padding:0 22px;
-    color:#333; font-size:0.93em; font-weight:600;
-    border-bottom:3px solid transparent; cursor:pointer;
-    white-space:nowrap; text-decoration:none;
-    transition:color 0.18s,border-color 0.18s; user-select:none;
+    display:flex; align-items:center; height:70px; padding:0 28px;
+    color:#333; font-size:1.05em; font-weight:600;
+    cursor:pointer; white-space:nowrap; text-decoration:none;
+    transition:color 0.18s; user-select:none; border:none;
 }}
-.nav-link:hover {{ color:#1d4ed8; border-bottom-color:#1d4ed8; }}
-.nav-link.active {{ color:#1d4ed8; border-bottom-color:#1d4ed8; }}
+.nav-link:hover {{ color:#1d4ed8; }}
+.nav-link.active {{ color:#1d4ed8; font-weight:700; }}
 
 /* 드롭다운 */
 .dropdown {{
@@ -258,7 +257,11 @@ function navTo(page) {{
 }}
 function doLogout() {{
     var btn = window.parent.document.querySelector('button[title="logout"]');
-    if (btn) btn.click();
+    if (btn) {{ btn.click(); return; }}
+    var all = window.parent.document.querySelectorAll('button');
+    for (var i=0;i<all.length;i++) {{
+        if (all[i].getAttribute('title')==='logout') {{ all[i].click(); return; }}
+    }}
 }}
 </script>
 """, unsafe_allow_html=True)
