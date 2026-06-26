@@ -3,7 +3,7 @@ import glob
 import openpyxl
 import pandas as pd
 
-BASE_PATH = r"D:\원가손익"
+BASE_PATH = os.path.join(os.path.dirname(__file__), "data")
 
 REMICON_FACTORIES = [
     '안양', '인천', '파주', '김포', '부산', '서부산', '김해',
@@ -16,40 +16,33 @@ SUMMARY_ROWS = ['건자재', '골재 계', '기타', '합계']
 
 
 def get_available_years():
-    folders = []
+    years = []
     for name in os.listdir(BASE_PATH):
         full = os.path.join(BASE_PATH, name)
-        if os.path.isdir(full) and name[:4].isdigit() and len(name) >= 6:
-            year = name[:4]
-            if year not in folders:
-                folders.append(year)
-    return sorted(set(folders), reverse=True)
+        if os.path.isdir(full) and name.isdigit() and len(name) == 4:
+            years.append(name)
+    return sorted(years, reverse=True)
 
 
 def get_available_months(year):
     months = []
-    for name in os.listdir(BASE_PATH):
-        full = os.path.join(BASE_PATH, name)
-        if os.path.isdir(full) and name.startswith(year) and len(name) >= 6:
-            # 월별 폴더 찾기
-            report_folder = os.path.join(full, '00_보고서')
-            if os.path.exists(report_folder):
-                for f in os.listdir(report_folder):
-                    if f.startswith('손익보고서(') and f.endswith('.xlsx') and not f.startswith('~$'):
-                        # 손익보고서(2024-12).xlsx 형태에서 월 추출
-                        try:
-                            month = f.split('-')[1].replace(').xlsx', '')
-                            months.append(int(month))
-                        except:
-                            pass
+    year_folder = os.path.join(BASE_PATH, str(year))
+    if not os.path.exists(year_folder):
+        return months
+    for f in os.listdir(year_folder):
+        if f.startswith('손익보고서(') and f.endswith('.xlsx') and not f.startswith('~$'):
+            try:
+                month = f.split('-')[1].replace(').xlsx', '')
+                months.append(int(month))
+            except:
+                pass
     return sorted(set(months))
 
 
 def find_report_file(year, month):
     month_str = f"{int(month):02d}"
-    pattern = os.path.join(BASE_PATH, f"{year}*", "00_보고서", f"손익보고서({year}-{month_str}).xlsx")
-    files = glob.glob(pattern)
-    return files[0] if files else None
+    path = os.path.join(BASE_PATH, str(year), f"손익보고서({year}-{month_str}).xlsx")
+    return path if os.path.exists(path) else None
 
 
 def load_factory_data(year, month):
