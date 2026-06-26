@@ -299,13 +299,16 @@ if not years:
     st.error("데이터 폴더에 연도 폴더가 없습니다.")
     st.stop()
 
-_s, _y, _m = st.columns([0.82, 0.09, 0.09])
+_s, _y, _m, _lo = st.columns([0.73, 0.09, 0.09, 0.09])
 with _y:
     selected_year = st.selectbox("연도", years, label_visibility="collapsed")
 with _m:
     months = get_available_months(selected_year)
     selected_month = st.selectbox("월", months, format_func=lambda x: f"{x}월", label_visibility="collapsed")
-
+with _lo:
+    if st.button("로그아웃", key="logout"):
+        st.session_state.clear()
+        st.rerun()
 st.markdown('<hr style="margin:0;border:none;border-top:1px solid #e8eaed;">', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
