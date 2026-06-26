@@ -121,17 +121,17 @@ def get_parent(page):
 active_menu = get_parent(current_page)
 
 # 숨겨진 네비 버튼 (JS에서 title 속성으로 클릭)
-_nc = st.columns(len(all_pages_flat) + 1)
+_nc = st.columns(len(all_pages_flat))
 for i, pg in enumerate(all_pages_flat):
     with _nc[i]:
         if st.button("·", key=f"_nav_{pg}", help=f"goto:{pg}"):
             st.session_state["page"] = pg
             st.rerun()
-# 숨겨진 로그아웃 버튼 (navTo와 동일한 방식)
-with _nc[-1]:
-    if st.button("·", key="_do_logout", help="do_logout"):
-        st.session_state.clear()
-        st.rerun()
+
+# ── 로그아웃 버튼: 숨긴 컨테이너 바깥, CSS로 nav 우측에 고정 ──
+if st.button("로그아웃", key="logout"):
+    st.session_state.clear()
+    st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -156,8 +156,8 @@ st.markdown(f"""
 [data-testid="stSidebar"] {{ display:none; }}
 .block-container {{ padding:0 !important; max-width:100% !important; }}
 
-/* 숨겨진 버튼 행 제거 */
-button[title^="goto:"], button[title="do_logout"] {{
+/* 숨겨진 네비 버튼 행 */
+button[title^="goto:"] {{
     position:absolute !important; opacity:0 !important;
     width:1px !important; height:1px !important;
     min-height:0 !important; padding:0 !important; border:none !important;
@@ -166,6 +166,25 @@ button[title^="goto:"], button[title="do_logout"] {{
 .block-container > div:first-child {{
     height:0 !important; overflow:hidden !important;
     padding:0 !important; margin:0 !important;
+}}
+/* 로그아웃 버튼: nav 우측 고정 */
+.block-container > div:nth-child(2) {{
+    position:fixed !important; top:18px !important; right:32px !important;
+    z-index:10001 !important; width:auto !important;
+    background:transparent !important; padding:0 !important; margin:0 !important;
+}}
+.block-container > div:nth-child(2) > div {{
+    background:transparent !important;
+}}
+.block-container > div:nth-child(2) button {{
+    background:none !important; border:1px solid #d1d5db !important;
+    color:#6b7280 !important; border-radius:4px !important;
+    font-size:0.85em !important; font-weight:500 !important;
+    height:34px !important; padding:0 16px !important; cursor:pointer !important;
+    min-height:0 !important;
+}}
+.block-container > div:nth-child(2) button:hover {{
+    border-color:#1d4ed8 !important; color:#1d4ed8 !important;
 }}
 
 /* 상단 네비 */
@@ -256,28 +275,18 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 {st.session_state.get('username','')}</span>
-        <button class="nav-logout-btn" onclick="doLogout()">로그아웃</button>
     </div>
 </div>
 
 <script>
-function findBtn(titleVal) {{
+function navTo(page) {{
     var doc = (window.parent && window.parent.document) ? window.parent.document : document;
-    var btn = doc.querySelector('button[title="' + titleVal + '"]');
-    if (btn) return btn;
+    var btn = doc.querySelector('button[title="goto:' + page + '"]');
+    if (btn) {{ btn.click(); return; }}
     var all = doc.querySelectorAll('button');
     for (var i=0;i<all.length;i++) {{
-        if (all[i].getAttribute('title')===titleVal) return all[i];
+        if (all[i].getAttribute('title')==='goto:'+page) {{ all[i].click(); return; }}
     }}
-    return null;
-}}
-function navTo(page) {{
-    var btn = findBtn('goto:' + page);
-    if (btn) btn.click();
-}}
-function doLogout() {{
-    var btn = findBtn('do_logout');
-    if (btn) btn.click();
 }}
 </script>
 """, unsafe_allow_html=True)
