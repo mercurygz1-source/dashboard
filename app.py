@@ -121,12 +121,17 @@ def get_parent(page):
 active_menu = get_parent(current_page)
 
 # 숨겨진 네비 버튼 (JS에서 title 속성으로 클릭)
-_nc = st.columns(len(all_pages_flat))
+_nc = st.columns(len(all_pages_flat) + 1)
 for i, pg in enumerate(all_pages_flat):
     with _nc[i]:
         if st.button("·", key=f"_nav_{pg}", help=f"goto:{pg}"):
             st.session_state["page"] = pg
             st.rerun()
+# 숨겨진 로그아웃 버튼 (navTo와 동일한 방식)
+with _nc[-1]:
+    if st.button("·", key="_do_logout", help="do_logout"):
+        st.session_state.clear()
+        st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -152,10 +157,11 @@ st.markdown(f"""
 .block-container {{ padding:0 !important; max-width:100% !important; }}
 
 /* 숨겨진 버튼 행 제거 */
-button[title^="goto:"], button[title="logout"] {{
+button[title^="goto:"], button[title="do_logout"] {{
     position:absolute !important; opacity:0 !important;
-    pointer-events:none !important; width:0 !important;
-    height:0 !important; min-height:0 !important; padding:0 !important; border:none !important;
+    width:1px !important; height:1px !important;
+    min-height:0 !important; padding:0 !important; border:none !important;
+    overflow:hidden !important; pointer-events:none !important;
 }}
 .block-container > div:first-child {{
     height:0 !important; overflow:hidden !important;
@@ -250,18 +256,28 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 {st.session_state.get('username','')}</span>
-        <button class="nav-logout-btn" onclick="window.parent.location.href='?logout=1'">로그아웃</button>
+        <button class="nav-logout-btn" onclick="doLogout()">로그아웃</button>
     </div>
 </div>
 
 <script>
-function navTo(page) {{
-    var btn = window.parent.document.querySelector('button[title="goto:' + page + '"]');
-    if (btn) {{ btn.click(); return; }}
-    var all = window.parent.document.querySelectorAll('button');
+function findBtn(titleVal) {{
+    var doc = (window.parent && window.parent.document) ? window.parent.document : document;
+    var btn = doc.querySelector('button[title="' + titleVal + '"]');
+    if (btn) return btn;
+    var all = doc.querySelectorAll('button');
     for (var i=0;i<all.length;i++) {{
-        if (all[i].getAttribute('title')==='goto:'+page) {{ all[i].click(); return; }}
+        if (all[i].getAttribute('title')===titleVal) return all[i];
     }}
+    return null;
+}}
+function navTo(page) {{
+    var btn = findBtn('goto:' + page);
+    if (btn) btn.click();
+}}
+function doLogout() {{
+    var btn = findBtn('do_logout');
+    if (btn) btn.click();
 }}
 </script>
 """, unsafe_allow_html=True)
