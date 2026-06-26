@@ -120,17 +120,13 @@ def get_parent(page):
 
 active_menu = get_parent(current_page)
 
-# 숨겨진 네비 버튼 및 로그아웃 버튼 — 라벨을 페이지 키 또는 '로그아웃'으로 설정해 JS에서 textContent로 찾음
-_nc = st.columns(len(all_pages_flat) + 1)
+# 숨겨진 네비 버튼 — 라벨을 페이지 키로 설정해 JS에서 textContent로 찾음
+_nc = st.columns(len(all_pages_flat))
 for i, pg in enumerate(all_pages_flat):
     with _nc[i]:
         if st.button(pg, key=f"_nav_{pg}"):
             st.session_state["page"] = pg
             st.rerun()
-with _nc[-1]:
-    if st.button("로그아웃", key="_nav_logout"):
-        st.session_state.clear()
-        st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -170,6 +166,22 @@ st.markdown(f"""
 .block-container > div:first-child {{
     height:0 !important; overflow:hidden !important;
     padding:0 !important; margin:0 !important; visibility:hidden !important;
+}}
+/* 로그아웃 버튼 — nav 우측 고정 */
+.block-container > div:nth-child(3) {{
+    position:fixed !important; top:17px !important; right:32px !important;
+    z-index:10001 !important; width:auto !important;
+    background:transparent !important; padding:0 !important; margin:0 !important;
+}}
+.block-container > div:nth-child(3) button {{
+    background:none !important; border:1px solid #d1d5db !important;
+    color:#6b7280 !important; border-radius:4px !important;
+    font-size:0.85em !important; font-weight:500 !important;
+    height:34px !important; padding:0 16px !important; min-height:0 !important;
+    cursor:pointer !important;
+}}
+.block-container > div:nth-child(3) button:hover {{
+    border-color:#1d4ed8 !important; color:#1d4ed8 !important;
 }}
 
 
@@ -261,7 +273,6 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 {st.session_state.get('username','')}</span>
-        <button class="nav-logout-btn" onclick="window.parent.location.href=window.parent.location.href.split('?')[0]+'?logout=1'">로그아웃</button>
     </div>
 </div>
 
@@ -278,6 +289,11 @@ function navTo(page) {{
 }}
 </script>
 """, unsafe_allow_html=True)
+
+# 진짜 Streamlit 로그아웃 버튼 (CSS로 nav 우측에 고정)
+if st.button("로그아웃", key="logout_btn"):
+    st.session_state.clear()
+    st.rerun()
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
