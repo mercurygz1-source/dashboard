@@ -38,8 +38,7 @@ logo_html = (f'<img src="data:image/png;base64,{logo_b64}" style="height:44px;ob
 # ══════════════════════════════════════════════════════════════
 if not st.session_state["logged_in"]:
     logo_src = f'data:image/png;base64,{logo_b64}' if logo_b64 else ""
-    logo_tag = (f'<img src="{logo_src}" style="height:30px;object-fit:contain;'
-                f'filter:brightness(0) invert(1);">') if logo_b64 else \
+    logo_tag = (f'<img src="{logo_src}" style="height:40px;object-fit:contain;">') if logo_b64 else \
                '<span style="font-size:1.2em;font-weight:900;color:white;letter-spacing:0.08em;">동양</span>'
 
     st.markdown(f"""
