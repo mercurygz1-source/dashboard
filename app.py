@@ -257,13 +257,14 @@ st.markdown(f"""
 .nav-right {{ margin-left:auto; display:flex; align-items:center; gap:14px; flex-shrink:0; }}
 .nav-user {{ color:#6b7280; font-size:0.85em; font-weight:500; }}
 .nav-logout-btn {{
-    background:none; border:1px solid #d1d5db; color:#6b7280;
+    background:none; border:1px solid #d1d5db; color:#6b7280 !important;
     padding:0 16px; border-radius:4px; font-size:0.85em; cursor:pointer;
     font-weight:500; height:34px; transition:all 0.15s;
     font-family:'Noto Sans KR',sans-serif;
-    text-decoration:none; display:inline-flex; align-items:center;
+    text-decoration:none !important; display:inline-flex; align-items:center;
 }}
-.nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8; }}
+.nav-logout-btn:visited {{ color:#6b7280 !important; text-decoration:none !important; }}
+.nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8 !important; text-decoration:none !important; }}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 32px; max-width:1500px; margin:0 auto; }}
@@ -301,7 +302,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <div class="nav-logo" onclick="navTo('건재손익_총괄')">{logo_html}</div>
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
-        <span class="nav-user">👤 {st.session_state.get('username','')}</span>
+        <span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>
         <a class="nav-logout-btn" href="?logout=1" target="_top">로그아웃</a>
     </div>
 </div>
