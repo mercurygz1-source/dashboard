@@ -50,18 +50,11 @@ if not st.session_state["logged_in"]:
     [data-testid="stHeader"] {{ display:none !important; }}
     [data-testid="stSidebar"] {{ display:none !important; }}
 
-    [data-testid="stAppViewContainer"] > .main {{
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        min-height: 100vh !important;
-        padding-top: 54px !important;
-    }}
     .block-container {{
         padding: 36px 32px 28px !important;
         max-width: 420px !important;
         width: 100% !important;
-        margin: 0 auto !important;
+        margin: calc(50vh - 280px) auto 0 !important;
         background: white !important;
         border-radius: 10px !important;
         box-shadow: 0 4px 24px rgba(0,0,0,0.10) !important;
