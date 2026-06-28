@@ -37,116 +37,113 @@ logo_html = (f'<img src="data:image/png;base64,{logo_b64}" style="height:44px;ob
 # 로그인
 # ══════════════════════════════════════════════════════════════
 if not st.session_state["logged_in"]:
-    # 배경 이미지 감지 (bg.jpg / bg.png 를 프로젝트 폴더에 추가하면 자동 적용)
-    bg_b64 = None
-    bg_mime = "image/jpeg"
-    for fname, mime in [("bg.jpg","image/jpeg"),("bg.png","image/png"),("background.jpg","image/jpeg")]:
-        p = os.path.join(os.path.dirname(__file__), fname)
-        if os.path.exists(p):
-            with open(p, "rb") as f:
-                bg_b64 = base64.b64encode(f.read()).decode()
-            bg_mime = mime
-            break
-
-    if bg_b64:
-        bg_css = f"background:url('data:{bg_mime};base64,{bg_b64}') center/cover no-repeat !important;"
-    else:
-        bg_css = "background:linear-gradient(160deg,#b8cfe0 0%,#7fa8c4 40%,#4a7da0 70%,#2d5a78 100%) !important;"
-
     logo_src = f'data:image/png;base64,{logo_b64}' if logo_b64 else ""
 
     st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap');
     html, body, * {{ font-family:'Noto Sans KR',sans-serif !important; }}
 
-    [data-testid="stAppViewContainer"] {{ {bg_css} min-height:100vh; }}
+    [data-testid="stAppViewContainer"] {{
+        background: #f0f2f5 !important;
+        min-height: 100vh;
+    }}
     [data-testid="stHeader"] {{ display:none !important; }}
     [data-testid="stSidebar"] {{ display:none !important; }}
     .block-container {{ padding:0 !important; max-width:100% !important; }}
-
-    /* 컬럼들이 서로 높이를 맞추지 않도록 */
     [data-testid="stHorizontalBlock"] {{ align-items:flex-start !important; gap:0 !important; }}
 
-    /* 카드 컬럼의 실제 내용 영역만 흰색으로 */
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child
-        [data-testid="stVerticalBlockBorderWrapper"] {{
-        background:white !important;
-        border-radius:14px !important;
-        padding:28px 24px 24px !important;
-        box-shadow:0 8px 40px rgba(0,0,0,0.22) !important;
-    }}
-
-    /* 입력창 라이트 스타일 */
+    /* 입력창 */
     .stTextInput > label {{ display:none !important; }}
     .stTextInput > div > div > input {{
-        background:#f4f6f9 !important;
-        border:1.5px solid #dde2ea !important;
-        color:#1a2340 !important;
-        border-radius:8px !important;
-        padding:10px 14px !important;
-        font-size:0.92em !important;
-        height:44px !important;
+        background: #f7f8fa !important;
+        border: 1.5px solid #dde2ea !important;
+        color: #1a2340 !important;
+        border-radius: 6px !important;
+        padding: 10px 14px !important;
+        font-size: 0.9em !important;
+        height: 42px !important;
+        transition: all 0.2s !important;
     }}
     .stTextInput > div > div > input:focus {{
-        border-color:#4a7fc1 !important;
-        box-shadow:0 0 0 2px rgba(74,127,193,0.15) !important;
-        background:white !important;
+        border-color: #1a3a6e !important;
+        box-shadow: 0 0 0 2px rgba(26,58,110,0.12) !important;
+        background: white !important;
     }}
-    .stTextInput > div > div > input::placeholder {{ color:#b8bfc9 !important; }}
+    .stTextInput > div > div > input::placeholder {{ color: #b0b8c8 !important; }}
 
     /* 로그인 버튼 */
     .stButton > button {{
-        background:#4a7fc1 !important;
-        color:white !important;
-        border:none !important;
-        border-radius:8px !important;
-        font-weight:600 !important;
-        height:44px !important;
-        font-size:0.95em !important;
+        background: #1a3a6e !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        height: 44px !important;
+        font-size: 0.95em !important;
+        letter-spacing: 0.03em !important;
+        transition: background 0.2s !important;
     }}
-    .stButton > button:hover {{ background:#3a6faf !important; }}
+    .stButton > button:hover {{ background: #142d56 !important; }}
 
-    /* 에러 메시지 */
-    [data-testid="stAlert"] {{ border-radius:8px !important; font-size:0.85em !important; }}
+    [data-testid="stAlert"] {{ border-radius: 6px !important; font-size: 0.85em !important; }}
     </style>
-    """, unsafe_allow_html=True)
 
-    # ── 화면 제목 (카드 바깥, 배경 위)
-    st.markdown(f"""
-    <div style="padding:36px 52px 20px;font-size:1.45em;font-weight:900;
-                color:#1a2340;text-shadow:0 1px 4px rgba(255,255,255,0.6);">
-        건재사업본부 손익
+    <!-- ── 상단 네이비 헤더 바 (EUGENE 스타일) ── -->
+    <div style="background:#1a2340;height:54px;display:flex;align-items:center;
+                padding:0 32px;box-shadow:0 2px 8px rgba(0,0,0,0.25);">
+        {'<img src="' + logo_src + '" style="height:32px;object-fit:contain;filter:brightness(0) invert(1);">' if logo_b64 else
+         '<span style="font-size:1.3em;font-weight:900;color:white;letter-spacing:0.08em;">동양</span>'}
+        <span style="color:rgba(255,255,255,0.35);margin:0 18px;font-size:1.2em;">|</span>
+        <span style="color:rgba(255,255,255,0.75);font-size:0.85em;font-weight:400;letter-spacing:0.04em;">
+            건재사업본부 손익 관리 시스템
+        </span>
     </div>
+
+    <!-- ── 로그인 중앙 카드 래퍼 ── -->
+    <div style="display:flex;justify-content:center;align-items:center;
+                min-height:calc(100vh - 54px);padding:40px 16px;">
+        <div style="background:white;border-radius:10px;
+                    box-shadow:0 4px 24px rgba(0,0,0,0.10);
+                    width:100%;max-width:380px;padding:36px 36px 32px;">
+
+            <!-- 카드 헤더 -->
+            <div style="text-align:center;margin-bottom:28px;">
+                <div style="display:inline-flex;align-items:center;justify-content:center;
+                            width:52px;height:52px;background:#e8eef7;border-radius:50%;
+                            margin-bottom:14px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="4" fill="#1a3a6e"/>
+                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#1a3a6e"
+                              stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div style="font-size:1.15em;font-weight:700;color:#1a2340;margin-bottom:4px;">
+                    로그인
+                </div>
+                <div style="font-size:0.8em;color:#8a95a8;">
+                    계정 정보를 입력하세요
+                </div>
+            </div>
     """, unsafe_allow_html=True)
 
-    card_col, right_col = st.columns([1, 2.2])
-    with card_col:
-        # 로고
-        if logo_b64:
-            st.markdown(
-                f'<img src="{logo_src}" style="height:44px;object-fit:contain;'
-                f'margin-bottom:10px;display:block;">',
-                unsafe_allow_html=True
-            )
-        st.markdown('<div style="font-size:1.1em;font-weight:700;color:#1a2340;'
-                    'margin-bottom:16px;">로그인</div>', unsafe_allow_html=True)
+    # ── 아이디 / 패스워드 입력 (Streamlit 위젯 — 실제 동작)
+    _spacer, form_col, _spacer2 = st.columns([0.04, 0.92, 0.04])
+    with form_col:
+        st.markdown('<div style="font-size:0.78em;font-weight:600;color:#4a5568;'
+                    'margin-bottom:5px;letter-spacing:0.02em;">아이디</div>',
+                    unsafe_allow_html=True)
+        username = st.text_input("uid", placeholder="아이디를 입력하세요",
+                                 label_visibility="collapsed")
 
-        username = st.text_input("uid", placeholder="아이디", label_visibility="collapsed")
-        password = st.text_input("pwd", type="password", placeholder="패스워드", label_visibility="collapsed")
+        st.markdown('<div style="font-size:0.78em;font-weight:600;color:#4a5568;'
+                    'margin-top:12px;margin-bottom:5px;letter-spacing:0.02em;">패스워드</div>',
+                    unsafe_allow_html=True)
+        password = st.text_input("pwd", type="password", placeholder="패스워드를 입력하세요",
+                                 label_visibility="collapsed")
 
-        # 패스워드 찾기 / 아이디 기억하기 — 순수 HTML (서브 컬럼 제거)
-        st.markdown("""
-        <div style="display:flex;justify-content:space-between;align-items:center;
-                    margin:10px 0 14px;font-size:0.8em;color:#9ca3af;">
-            <a href="#" style="color:#9ca3af;text-decoration:none;">패스워드 찾기</a>
-            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
-                <input type="checkbox"
-                       style="width:13px;height:13px;accent-color:#4a7fc1;cursor:pointer;">
-                아이디 기억하기
-            </label>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
 
         if st.button("로그인", use_container_width=True):
             if username in USERS and USERS[username] == password:
@@ -155,6 +152,18 @@ if not st.session_state["logged_in"]:
                 st.rerun()
             else:
                 st.error("아이디 또는 패스워드가 올바르지 않습니다.")
+
+    st.markdown("""
+            <!-- 카드 푸터 구분선 -->
+            <div style="border-top:1px solid #edf0f5;margin:24px -36px 0;
+                        padding:16px 36px 0;text-align:center;">
+                <span style="font-size:0.75em;color:#b0b8c8;">
+                    © 동양 건재사업본부 &nbsp;|&nbsp; 내부 전용 시스템
+                </span>
+            </div>
+        </div><!-- /card -->
+    </div><!-- /center wrapper -->
+    """, unsafe_allow_html=True)
 
     st.stop()
 
