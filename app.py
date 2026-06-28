@@ -52,9 +52,12 @@ if not st.session_state["logged_in"]:
     [data-testid="stSidebar"] {{ display:none !important; }}
 
     .block-container {{
-        padding: 0 !important;
+        padding: 36px 32px 28px !important;
         max-width: 420px !important;
-        margin: 0 auto !important;
+        margin: 74px auto 0 !important;
+        background: white !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.10) !important;
     }}
 
     .stTextInput > label {{ display:none !important; }}
@@ -95,30 +98,18 @@ if not st.session_state["logged_in"]:
         <span style="color:rgba(255,255,255,0.7);font-size:0.82em;font-weight:400;
                      letter-spacing:0.04em;">건재사업본부 손익 관리 시스템</span>
     </div>
+    """, unsafe_allow_html=True)
 
-    <div style="height:80px;"></div>
-
-    <div style="background:white;border-radius:10px;
-                box-shadow:0 4px 24px rgba(0,0,0,0.10);
-                padding:36px 32px 28px;margin-top:16px;">
-
-        <div style="text-align:center;margin-bottom:26px;">
-            <div style="display:inline-flex;align-items:center;justify-content:center;
-                        width:50px;height:50px;background:#e8eef7;border-radius:50%;
-                        margin-bottom:12px;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="8" r="4" fill="#1a3a6e"/>
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#1a3a6e"
-                          stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <div style="font-size:1.1em;font-weight:700;color:#1a2340;margin-bottom:3px;">로그인</div>
-            <div style="font-size:0.78em;color:#8a95a8;">계정 정보를 입력하세요</div>
-        </div>
-
-        <div style="font-size:0.78em;font-weight:600;color:#4a5568;
-                    margin-bottom:4px;letter-spacing:0.02em;">아이디</div>
+    st.markdown("""
+    <div style="text-align:center;margin-bottom:26px;">
+        <div style="display:inline-flex;align-items:center;justify-content:center;
+                    width:50px;height:50px;background:#e8eef7;border-radius:50%;
+                    margin-bottom:12px;font-size:1.5em;color:#1a3a6e;">&#128100;</div>
+        <div style="font-size:1.1em;font-weight:700;color:#1a2340;margin-bottom:3px;">로그인</div>
+        <div style="font-size:0.78em;color:#8a95a8;">계정 정보를 입력하세요</div>
+    </div>
+    <div style="font-size:0.78em;font-weight:600;color:#4a5568;
+                margin-bottom:4px;letter-spacing:0.02em;">아이디</div>
     """, unsafe_allow_html=True)
 
     username = st.text_input("uid", placeholder="아이디를 입력하세요",
@@ -141,12 +132,11 @@ if not st.session_state["logged_in"]:
             st.error("아이디 또는 패스워드가 올바르지 않습니다.")
 
     st.markdown("""
-        <div style="border-top:1px solid #edf0f5;margin:20px -32px 0;
-                    padding:14px 32px 0;text-align:center;">
-            <span style="font-size:0.72em;color:#b0b8c8;">
-                &copy; 동양 건재사업본부 &nbsp;|&nbsp; 내부 전용 시스템
-            </span>
-        </div>
+    <div style="border-top:1px solid #edf0f5;margin:20px 0 0;
+                padding:14px 0 0;text-align:center;">
+        <span style="font-size:0.72em;color:#b0b8c8;">
+            &copy; 동양 건재사업본부 &nbsp;|&nbsp; 내부 전용 시스템
+        </span>
     </div>
     """, unsafe_allow_html=True)
 
