@@ -51,55 +51,49 @@ if not st.session_state["logged_in"]:
     if bg_b64:
         bg_css = f"background:url('data:{bg_mime};base64,{bg_b64}') center/cover no-repeat !important;"
     else:
-        bg_css = "background:linear-gradient(135deg,#c8d8e8 0%,#9ab5cc 30%,#6a92b0 60%,#3d6a8a 100%) !important;"
+        bg_css = "background:linear-gradient(160deg,#b8cfe0 0%,#7fa8c4 40%,#4a7da0 70%,#2d5a78 100%) !important;"
+
+    logo_src = f'data:image/png;base64,{logo_b64}' if logo_b64 else ""
 
     st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-    * {{ font-family:'Noto Sans KR',sans-serif !important; }}
+    html, body, * {{ font-family:'Noto Sans KR',sans-serif !important; }}
+
     [data-testid="stAppViewContainer"] {{ {bg_css} min-height:100vh; }}
-    [data-testid="stHeader"] {{ display:none; }}
-    [data-testid="stSidebar"] {{ display:none; }}
+    [data-testid="stHeader"] {{ display:none !important; }}
+    [data-testid="stSidebar"] {{ display:none !important; }}
     .block-container {{ padding:0 !important; max-width:100% !important; }}
 
-    /* 로그인 카드 열 */
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child > div:first-child {{
+    /* 컬럼들이 서로 높이를 맞추지 않도록 */
+    [data-testid="stHorizontalBlock"] {{ align-items:flex-start !important; gap:0 !important; }}
+
+    /* 카드 컬럼의 실제 내용 영역만 흰색으로 */
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child
+        [data-testid="stVerticalBlockBorderWrapper"] {{
         background:white !important;
-        min-height:100vh !important;
-        padding:60px 48px !important;
-        box-shadow:4px 0 24px rgba(0,0,0,0.15) !important;
+        border-radius:14px !important;
+        padding:28px 24px 24px !important;
+        box-shadow:0 8px 40px rgba(0,0,0,0.22) !important;
     }}
 
-    /* 입력 필드 라이트 테마 */
+    /* 입력창 라이트 스타일 */
     .stTextInput > label {{ display:none !important; }}
     .stTextInput > div > div > input {{
-        background:#f5f7fa !important;
-        border:1.5px solid #e2e6ec !important;
+        background:#f4f6f9 !important;
+        border:1.5px solid #dde2ea !important;
         color:#1a2340 !important;
         border-radius:8px !important;
-        padding:13px 16px 13px 44px !important;
-        font-size:0.95em !important;
-        height:48px !important;
+        padding:10px 14px !important;
+        font-size:0.92em !important;
+        height:44px !important;
     }}
     .stTextInput > div > div > input:focus {{
         border-color:#4a7fc1 !important;
-        box-shadow:0 0 0 3px rgba(74,127,193,0.12) !important;
+        box-shadow:0 0 0 2px rgba(74,127,193,0.15) !important;
         background:white !important;
     }}
-    .stTextInput > div > div > input::placeholder {{ color:#b0b8c4 !important; }}
-
-    /* 아이콘 오버레이 (첫번째·두번째 input) */
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child
-        .stTextInput:nth-of-type(1) > div::before {{
-        content:"👤"; position:absolute; left:14px; top:50%; transform:translateY(-50%);
-        font-size:1em; z-index:10; pointer-events:none;
-    }}
-    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child
-        .stTextInput:nth-of-type(2) > div::before {{
-        content:"🔒"; position:absolute; left:14px; top:50%; transform:translateY(-50%);
-        font-size:1em; z-index:10; pointer-events:none;
-    }}
-    .stTextInput > div {{ position:relative; }}
+    .stTextInput > div > div > input::placeholder {{ color:#b8bfc9 !important; }}
 
     /* 로그인 버튼 */
     .stButton > button {{
@@ -107,53 +101,52 @@ if not st.session_state["logged_in"]:
         color:white !important;
         border:none !important;
         border-radius:8px !important;
-        font-weight:700 !important;
-        height:48px !important;
-        font-size:1em !important;
-        letter-spacing:1px !important;
-        margin-top:8px !important;
+        font-weight:600 !important;
+        height:44px !important;
+        font-size:0.95em !important;
     }}
-    .stButton > button:hover {{ background:#3a6eaf !important; }}
+    .stButton > button:hover {{ background:#3a6faf !important; }}
 
-    /* 체크박스 */
-    .stCheckbox label {{ color:#6b7280 !important; font-size:0.85em !important; }}
-    .stCheckbox {{ margin-top:0 !important; }}
+    /* 에러 메시지 */
+    [data-testid="stAlert"] {{ border-radius:8px !important; font-size:0.85em !important; }}
     </style>
     """, unsafe_allow_html=True)
 
-    card_col, _, right_col = st.columns([1, 0.04, 1.4])
+    # ── 화면 제목 (카드 바깥, 배경 위)
+    st.markdown(f"""
+    <div style="padding:36px 52px 20px;font-size:1.45em;font-weight:900;
+                color:#1a2340;text-shadow:0 1px 4px rgba(255,255,255,0.6);">
+        건재사업본부 손익
+    </div>
+    """, unsafe_allow_html=True)
+
+    card_col, right_col = st.columns([1, 2.2])
     with card_col:
         # 로고
         if logo_b64:
             st.markdown(
-                f'<img src="data:image/png;base64,{logo_b64}" '
-                f'style="height:52px;object-fit:contain;margin-bottom:28px;display:block;">',
+                f'<img src="{logo_src}" style="height:44px;object-fit:contain;'
+                f'margin-bottom:10px;display:block;">',
                 unsafe_allow_html=True
             )
-        # 타이틀
-        st.markdown("""
-        <div style="margin-bottom:32px;">
-            <div style="color:#1a2340;font-size:1.55em;font-weight:900;line-height:1.4;margin-bottom:4px;">
-                건재사업본부 손익
-            </div>
-        </div>
-        <div style="color:#1a2340;font-size:1.15em;font-weight:700;margin-bottom:20px;">로그인</div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div style="font-size:1.1em;font-weight:700;color:#1a2340;'
+                    'margin-bottom:16px;">로그인</div>', unsafe_allow_html=True)
 
         username = st.text_input("uid", placeholder="아이디", label_visibility="collapsed")
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
         password = st.text_input("pwd", type="password", placeholder="패스워드", label_visibility="collapsed")
 
-        # 패스워드 찾기 + 아이디 기억하기
-        sub_left, sub_right = st.columns([1, 1])
-        with sub_left:
-            st.markdown(
-                '<a href="#" style="color:#9ca3af;font-size:0.82em;text-decoration:none;'
-                'line-height:2.2;">패스워드 찾기</a>',
-                unsafe_allow_html=True
-            )
-        with sub_right:
-            st.checkbox("아이디 기억하기", value=False)
+        # 패스워드 찾기 / 아이디 기억하기 — 순수 HTML (서브 컬럼 제거)
+        st.markdown("""
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    margin:10px 0 14px;font-size:0.8em;color:#9ca3af;">
+            <a href="#" style="color:#9ca3af;text-decoration:none;">패스워드 찾기</a>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;">
+                <input type="checkbox"
+                       style="width:13px;height:13px;accent-color:#4a7fc1;cursor:pointer;">
+                아이디 기억하기
+            </label>
+        </div>
+        """, unsafe_allow_html=True)
 
         if st.button("로그인", use_container_width=True):
             if username in USERS and USERS[username] == password:
@@ -163,10 +156,6 @@ if not st.session_state["logged_in"]:
             else:
                 st.error("아이디 또는 패스워드가 올바르지 않습니다.")
 
-        st.markdown(
-            '<div style="color:#c4c9d4;font-size:0.75em;margin-top:40px;">© 2026 Tongyang · Confidential</div>',
-            unsafe_allow_html=True
-        )
     st.stop()
 
 # ══════════════════════════════════════════════════════════════
