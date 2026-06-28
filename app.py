@@ -37,57 +37,136 @@ logo_html = (f'<img src="data:image/png;base64,{logo_b64}" style="height:44px;ob
 # 로그인
 # ══════════════════════════════════════════════════════════════
 if not st.session_state["logged_in"]:
-    st.markdown("""
+    # 배경 이미지 감지 (bg.jpg / bg.png 를 프로젝트 폴더에 추가하면 자동 적용)
+    bg_b64 = None
+    bg_mime = "image/jpeg"
+    for fname, mime in [("bg.jpg","image/jpeg"),("bg.png","image/png"),("background.jpg","image/jpeg")]:
+        p = os.path.join(os.path.dirname(__file__), fname)
+        if os.path.exists(p):
+            with open(p, "rb") as f:
+                bg_b64 = base64.b64encode(f.read()).decode()
+            bg_mime = mime
+            break
+
+    if bg_b64:
+        bg_css = f"background:url('data:{bg_mime};base64,{bg_b64}') center/cover no-repeat !important;"
+    else:
+        bg_css = "background:linear-gradient(135deg,#c8d8e8 0%,#9ab5cc 30%,#6a92b0 60%,#3d6a8a 100%) !important;"
+
+    st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-    * { font-family:'Noto Sans KR',sans-serif !important; }
-    [data-testid="stAppViewContainer"] {
-        background:linear-gradient(135deg,#0a1628 0%,#0f2044 50%,#0a1628 100%) !important;
-    }
-    [data-testid="stHeader"] { display:none; }
-    [data-testid="stSidebar"] { display:none; }
-    .block-container { padding:80px 0 0 0 !important; max-width:100% !important; }
-    .stTextInput > label { color:rgba(255,255,255,0.55) !important; font-size:0.8em !important; font-weight:600 !important; letter-spacing:1.5px !important; }
-    .stTextInput > div > div > input {
-        background:rgba(255,255,255,0.07) !important; border:1px solid rgba(255,255,255,0.2) !important;
-        color:white !important; border-radius:6px !important; padding:14px 16px !important;
-    }
-    .stTextInput > div > div > input:focus { border-color:#4a90d9 !important; }
-    .stButton > button {
-        background:linear-gradient(90deg,#1d4ed8,#2563eb) !important; color:white !important;
-        border:none !important; border-radius:6px !important; font-weight:700 !important;
-        height:52px !important; letter-spacing:3px !important; font-size:0.9em !important;
-    }
+    * {{ font-family:'Noto Sans KR',sans-serif !important; }}
+    [data-testid="stAppViewContainer"] {{ {bg_css} min-height:100vh; }}
+    [data-testid="stHeader"] {{ display:none; }}
+    [data-testid="stSidebar"] {{ display:none; }}
+    .block-container {{ padding:0 !important; max-width:100% !important; }}
+
+    /* 로그인 카드 열 */
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child > div:first-child {{
+        background:white !important;
+        min-height:100vh !important;
+        padding:60px 48px !important;
+        box-shadow:4px 0 24px rgba(0,0,0,0.15) !important;
+    }}
+
+    /* 입력 필드 라이트 테마 */
+    .stTextInput > label {{ display:none !important; }}
+    .stTextInput > div > div > input {{
+        background:#f5f7fa !important;
+        border:1.5px solid #e2e6ec !important;
+        color:#1a2340 !important;
+        border-radius:8px !important;
+        padding:13px 16px 13px 44px !important;
+        font-size:0.95em !important;
+        height:48px !important;
+    }}
+    .stTextInput > div > div > input:focus {{
+        border-color:#4a7fc1 !important;
+        box-shadow:0 0 0 3px rgba(74,127,193,0.12) !important;
+        background:white !important;
+    }}
+    .stTextInput > div > div > input::placeholder {{ color:#b0b8c4 !important; }}
+
+    /* 아이콘 오버레이 (첫번째·두번째 input) */
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child
+        .stTextInput:nth-of-type(1) > div::before {{
+        content:"👤"; position:absolute; left:14px; top:50%; transform:translateY(-50%);
+        font-size:1em; z-index:10; pointer-events:none;
+    }}
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child
+        .stTextInput:nth-of-type(2) > div::before {{
+        content:"🔒"; position:absolute; left:14px; top:50%; transform:translateY(-50%);
+        font-size:1em; z-index:10; pointer-events:none;
+    }}
+    .stTextInput > div {{ position:relative; }}
+
+    /* 로그인 버튼 */
+    .stButton > button {{
+        background:#4a7fc1 !important;
+        color:white !important;
+        border:none !important;
+        border-radius:8px !important;
+        font-weight:700 !important;
+        height:48px !important;
+        font-size:1em !important;
+        letter-spacing:1px !important;
+        margin-top:8px !important;
+    }}
+    .stButton > button:hover {{ background:#3a6eaf !important; }}
+
+    /* 체크박스 */
+    .stCheckbox label {{ color:#6b7280 !important; font-size:0.85em !important; }}
+    .stCheckbox {{ margin-top:0 !important; }}
     </style>
     """, unsafe_allow_html=True)
 
-    _, mid, _ = st.columns([1, 1.1, 1])
-    with mid:
+    card_col, _, right_col = st.columns([1, 0.04, 1.4])
+    with card_col:
+        # 로고
         if logo_b64:
-            st.markdown(f'<div style="text-align:center;margin-bottom:20px;"><img src="data:image/png;base64,{logo_b64}" style="height:65px;object-fit:contain;filter:brightness(0) invert(1);opacity:0.85;"></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<img src="data:image/png;base64,{logo_b64}" '
+                f'style="height:52px;object-fit:contain;margin-bottom:28px;display:block;">',
+                unsafe_allow_html=True
+            )
+        # 타이틀
         st.markdown("""
-        <div style="text-align:center;margin-bottom:30px;">
-            <div style="color:rgba(255,255,255,0.35);font-size:0.72em;letter-spacing:5px;margin-bottom:10px;">건재사업본부</div>
-            <div style="color:white;font-size:1.9em;font-weight:900;line-height:1.3;">손익 대시보드</div>
-            <div style="width:36px;height:2px;background:#1d4ed8;margin:16px auto;"></div>
-            <div style="color:rgba(255,255,255,0.3);font-size:0.78em;letter-spacing:2px;">PROFIT &amp; LOSS DASHBOARD</div>
+        <div style="margin-bottom:32px;">
+            <div style="color:#1a2340;font-size:1.55em;font-weight:900;line-height:1.4;margin-bottom:4px;">
+                건재사업본부 손익
+            </div>
         </div>
-        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:36px 32px 28px;">
+        <div style="color:#1a2340;font-size:1.15em;font-weight:700;margin-bottom:20px;">로그인</div>
         """, unsafe_allow_html=True)
-        username = st.text_input("ID", placeholder="아이디를 입력하세요")
-        password = st.text_input("PASSWORD", type="password", placeholder="패스워드를 입력하세요")
-        if st.button("L O G I N", use_container_width=True):
+
+        username = st.text_input("uid", placeholder="아이디", label_visibility="collapsed")
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        password = st.text_input("pwd", type="password", placeholder="패스워드", label_visibility="collapsed")
+
+        # 패스워드 찾기 + 아이디 기억하기
+        sub_left, sub_right = st.columns([1, 1])
+        with sub_left:
+            st.markdown(
+                '<a href="#" style="color:#9ca3af;font-size:0.82em;text-decoration:none;'
+                'line-height:2.2;">패스워드 찾기</a>',
+                unsafe_allow_html=True
+            )
+        with sub_right:
+            st.checkbox("아이디 기억하기", value=False)
+
+        if st.button("로그인", use_container_width=True):
             if username in USERS and USERS[username] == password:
                 st.session_state["logged_in"] = True
                 st.session_state["username"] = username
                 st.rerun()
             else:
                 st.error("아이디 또는 패스워드가 올바르지 않습니다.")
-        st.markdown("""
-        </div>
-        <div style="text-align:center;color:rgba(255,255,255,0.18);font-size:0.72em;margin-top:22px;">
-            © 2026 Tongyang · Confidential
-        </div>""", unsafe_allow_html=True)
+
+        st.markdown(
+            '<div style="color:#c4c9d4;font-size:0.75em;margin-top:40px;">© 2026 Tongyang · Confidential</div>',
+            unsafe_allow_html=True
+        )
     st.stop()
 
 # ══════════════════════════════════════════════════════════════
