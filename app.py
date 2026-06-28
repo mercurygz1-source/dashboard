@@ -38,8 +38,8 @@ logo_html = (f'<img src="data:image/png;base64,{logo_b64}" style="height:44px;ob
 # ══════════════════════════════════════════════════════════════
 if not st.session_state["logged_in"]:
     logo_src = f'data:image/png;base64,{logo_b64}' if logo_b64 else ""
-    logo_tag = (f'<img src="{logo_src}" style="height:40px;object-fit:contain;filter:brightness(0) invert(1);">') if logo_b64 else \
-               '<span style="font-size:1.2em;font-weight:900;color:white;letter-spacing:0.08em;">동양</span>'
+    logo_tag = (f'<img src="{logo_src}" style="height:40px;object-fit:contain;">') if logo_b64 else \
+               '<span style="font-size:1.2em;font-weight:900;color:#1a2340;letter-spacing:0.08em;">동양</span>'
 
     st.markdown(f"""
     <style>
@@ -90,11 +90,11 @@ if not st.session_state["logged_in"]:
     </style>
 
     <div style="position:fixed;top:0;left:0;right:0;z-index:9999;
-                background:#1a2340;height:54px;display:flex;align-items:center;
-                padding:0 28px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                background:white;height:54px;display:flex;align-items:center;
+                padding:0 28px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-bottom:1px solid #e8eaf0;">
         {logo_tag}
-        <span style="color:rgba(255,255,255,0.3);margin:0 16px;font-size:1.1em;">|</span>
-        <span style="color:rgba(255,255,255,0.7);font-size:0.82em;font-weight:400;
+        <span style="color:rgba(0,0,0,0.2);margin:0 16px;font-size:1.1em;">|</span>
+        <span style="color:#4a5568;font-size:0.82em;font-weight:400;
                      letter-spacing:0.04em;">건재사업본부 손익 관리 시스템</span>
     </div>
     """, unsafe_allow_html=True)
