@@ -261,6 +261,7 @@ st.markdown(f"""
     padding:0 16px; border-radius:4px; font-size:0.85em; cursor:pointer;
     font-weight:500; height:34px; transition:all 0.15s;
     font-family:'Noto Sans KR',sans-serif;
+    text-decoration:none; display:inline-flex; align-items:center;
 }}
 .nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8; }}
 
@@ -301,7 +302,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 {st.session_state.get('username','')}</span>
-        <button class="nav-logout-btn" onclick="doLogout()">로그아웃</button>
+        <a class="nav-logout-btn" href="?logout=1" target="_top">로그아웃</a>
     </div>
 </div>
 
