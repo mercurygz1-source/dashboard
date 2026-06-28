@@ -317,7 +317,7 @@ function navTo(page) {{
     }}
 }}
 function doLogout() {{
-    var loc = (window.parent && window.parent.location) ? window.parent.location : window.location;
+    var loc = window.top ? window.top.location : window.location;
     loc.href = loc.href.split('?')[0] + '?logout=1';
 }}
 </script>
