@@ -262,7 +262,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" href="{nav_href(pages[0])}" target="_self">{label}</a>{dd}</li>'
 
-admin_btn_html = f'<a class="nav-admin-btn" href="{nav_href("ADMIN_PAGE")}" target="_self">ADMIN_TRIGGER</a>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = f'<a class="nav-admin-btn" href="{nav_href("ADMIN_PAGE")}" target="_self" title="관리자 설정"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -335,10 +335,10 @@ st.markdown(f"""
 .nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8 !important; text-decoration:none !important; }}
 .nav-admin-btn {{
     background:none; border:1px solid #d1d5db; border-radius:4px;
-    height:34px; padding:0 14px; font-size:0.85em; color:#6b7280 !important;
-    font-weight:500; flex-shrink:0; transition:all 0.15s; display:inline-flex;
+    height:34px; width:34px; padding:0; color:#6b7280 !important;
+    flex-shrink:0; transition:all 0.15s; display:inline-flex;
     align-items:center; justify-content:center; text-decoration:none !important;
-    cursor:pointer; line-height:1; font-family:'Noto Sans KR',sans-serif;
+    cursor:pointer; line-height:1;
 }}
 .nav-admin-btn:hover {{ border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important; text-decoration:none !important; }}
 .nav-admin-btn:visited {{ color:#6b7280 !important; text-decoration:none !important; }}
