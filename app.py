@@ -475,7 +475,7 @@ def stitle(title):
 if current_page == "건재손익_요약":
     if "sel_period" not in st.session_state:
         st.session_state["sel_period"] = "당월"
-    _tc, _pc, _yc, _mc = st.columns([0.68, 0.12, 0.10, 0.10])
+    _tc, _gap1, _yc, _mc, _pc = st.columns([0.64, 0.03, 0.11, 0.11, 0.11])
     with _tc:
         st.markdown(f"""
         <div style="padding:18px 0 0;display:flex;align-items:center;gap:12px;">
@@ -483,10 +483,6 @@ if current_page == "건재손익_요약":
             <span style="font-size:1.6em;font-weight:900;color:#1f2937;">요약</span>
             <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.05em;font-weight:600;">{selected_year}년 {selected_month}월</span>
         </div>""", unsafe_allow_html=True)
-    with _pc:
-        st.markdown('<div style="padding-top:18px;">', unsafe_allow_html=True)
-        st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
-        st.markdown('</div>', unsafe_allow_html=True)
     with _yc:
         st.markdown('<div style="padding-top:18px;">', unsafe_allow_html=True)
         st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
@@ -495,6 +491,10 @@ if current_page == "건재손익_요약":
         st.markdown('<div style="padding-top:18px;">', unsafe_allow_html=True)
         _months = get_available_months(selected_year)
         st.selectbox("월", _months, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
+    with _pc:
+        st.markdown('<div style="padding-top:18px;">', unsafe_allow_html=True)
+        st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
     selected_period = st.session_state["sel_period"]
     _sfx = "누계" if selected_period == "누계" else ""
