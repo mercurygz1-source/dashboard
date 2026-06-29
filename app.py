@@ -686,35 +686,28 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol, a
             pass
         ds = f'<span class="kpi-delta {cls}" style="font-size:1.0em;font-weight:700;margin-left:8px;white-space:nowrap;flex-shrink:0;">(계획대비 {arrow} {f(abs(delta))}{pct_str})</span>'
     with col:
+        # 상단 숫자 박스
         st.markdown(f"""
-        <div style="background:white;border-radius:10px 10px 0 0;padding:18px 20px 12px;
+        <div style="background:white;border-radius:10px;padding:18px 20px 16px;
                     border-top:4px solid {border};
-                    border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;">
+                    border:1px solid #e5e7eb;border-top:4px solid {border};
+                    box-shadow:0 1px 6px rgba(0,0,0,0.06);margin-bottom:8px;">
             <div style="font-size:1.15em;font-weight:800;color:#1f2937;margin-bottom:10px;letter-spacing:0.01em;">{label}</div>
             <div style="display:flex;align-items:baseline;flex-wrap:nowrap;gap:0;overflow:hidden;">
                 <div class="kpi-value" style="flex-shrink:1;min-width:0;">{value_str}<span class="kpi-unit"> {unit}</span></div>
                 {ds}
             </div>
         </div>
-        <div style="background:white;border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;
-                    border-top:1px solid #e5e7eb;margin:0;padding:0;"></div>
         """, unsafe_allow_html=True)
+        # 하단 그래프 박스
         fig = spark(trend_df, pcol, acol)
         if fig:
-            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
             st.markdown("""
-            <div style="background:white;border-radius:0 0 10px 10px;height:10px;
-                        border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;
-                        border-bottom:1px solid #eef0f4;margin-top:-18px;
-                        box-shadow:0 2px 6px rgba(0,0,0,0.05);"></div>
+            <div style="background:white;border-radius:10px;border:1px solid #e5e7eb;
+                        box-shadow:0 1px 6px rgba(0,0,0,0.06);overflow:hidden;padding:4px 0 0;">
             """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div style="background:white;border-radius:0 0 10px 10px;
-                        border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;
-                        border-bottom:1px solid #eef0f4;height:16px;
-                        box-shadow:0 2px 6px rgba(0,0,0,0.05);"></div>
-            """, unsafe_allow_html=True)
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+            st.markdown("</div>", unsafe_allow_html=True)
 
 def bc(fig, h=370):
     fig.update_layout(height=h, plot_bgcolor='white', paper_bgcolor='white',
