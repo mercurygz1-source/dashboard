@@ -45,16 +45,17 @@ def find_report_file(year, month):
     return path if os.path.exists(path) else None
 
 
-def load_factory_data(year, month):
+def load_factory_data(year, month, period="당월"):
     filepath = find_report_file(year, month)
     if not filepath:
         return None
 
     wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
 
+    sheet_name = f'사업장별({period})'
     rows_data = []
-    if '사업장별(당월)' in wb.sheetnames:
-        ws = wb['사업장별(당월)']
+    if sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
         for row in ws.iter_rows(min_row=7, max_row=50, values_only=True):
             name = row[8] if (row[8] and isinstance(row[8], str)) else (row[7] if (len(row) > 7 and row[7] and isinstance(row[7], str)) else None)
             if name and isinstance(name, str):

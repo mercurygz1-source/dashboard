@@ -897,9 +897,17 @@ if current_page == "건재손익_요약":
                       "green" if (_oi실적 or 0)>=0 else "red",
                       trend_df, "영업이익_계획_억", "영업이익_실적_억")
 
-        if rc_detail is not None:
-            _공헌실적 = rc_detail.get('공헌이익_실적')
-            _공헌계획 = rc_detail.get('공헌이익_계획')
+        _rc_detail_kpi = rc_detail
+        if _sfx:
+            _df_all_누계 = load_factory_data(selected_year, selected_month, period="누계")
+            if _df_all_누계 is not None:
+                _match = _df_all_누계[_df_all_누계['공장명']=='레미콘 계']
+                if not _match.empty:
+                    _rc_detail_kpi = _match.iloc[0]
+
+        if _rc_detail_kpi is not None:
+            _공헌실적 = _rc_detail_kpi.get('공헌이익_실적')
+            _공헌계획 = _rc_detail_kpi.get('공헌이익_계획')
             kpi_spark(c4, "공헌이익",
                       f(_공헌실적), "원/㎥",
                       _공헌실적-_공헌계획 if pd.notna(_공헌계획) and _공헌실적 is not None else None,
