@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import base64, os, json
@@ -204,9 +204,6 @@ all_pages_flat = [pg for pages in NAV_STRUCTURE.values() for pg in pages]
 
 current_page = st.session_state["page"]
 
-# 숨겨진 nav signal input — JS가 이 값을 바꾸면 Streamlit이 감지하고 페이지 전환
-st.text_input("__nav_signal__", value="", key="_nav_signal", label_visibility="collapsed")
-
 def get_parent(page):
     for menu, pages in NAV_STRUCTURE.items():
         if page in pages:
@@ -214,15 +211,6 @@ def get_parent(page):
     return "건재손익"
 
 active_menu = get_parent(current_page)
-
-
-# 드롭다운 HTML 생성
-def make_dd(pages):
-    items = "".join(
-        f'<div class="dd-item{"  active" if pg == current_page else ""}" onclick="navTo(\'{pg}\')">{PAGE_LABELS[pg]}</div>'
-        for pg in pages
-    )
-    return f'<div class="dropdown">{items}</div>'
 
 NAV_LABELS = {
     "건재손익": "건재 손익",
@@ -232,168 +220,124 @@ NAV_LABELS = {
     "임대":     "임대",
 }
 
-menu_html = ""
-for menu, pages in NAV_STRUCTURE.items():
-    ac = " active" if menu == active_menu else ""
-    dd = make_dd(pages) if len(pages) > 1 else ""
-    label = NAV_LABELS.get(menu, menu)
-    menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
-
-admin_btn_html = f'<button class="nav-admin-btn" onclick="navTo(\'ADMIN_PAGE\')">ADMIN_TRIGGER</button>' if st.session_state.get("username") == ADMIN_USER else ""
-
-st.markdown(f"""
+# ── 네비게이션 스타일 ──
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-* {{ font-family:'Noto Sans KR',sans-serif !important; box-sizing:border-box; }}
-[data-testid="stAppViewContainer"],
-[data-testid="stMain"],
-.main {{ background:#f0f2f5 !important; }}
-[data-testid="stHeader"] {{ display:none; }}
-div:has(> div > input[aria-label="__nav_signal__"]) {{ display:none !important; }}
-[data-testid="stSidebar"] {{ position:fixed !important; left:-9999px !important; top:0 !important; width:1px !important; height:1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; z-index:-1 !important; }}
-[data-testid="stSidebarCollapsedControl"] {{ display:none !important; }}
-.block-container {{ padding-top:82px !important; padding-left:56px !important; padding-right:56px !important; padding-bottom:0 !important; max-width:100% !important; }}
-
-/* 상단 네비 */
-.top-nav {{
-    position:fixed; top:0; left:0; right:0; height:70px;
+* { font-family:'Noto Sans KR',sans-serif !important; box-sizing:border-box; }
+[data-testid="stAppViewContainer"],[data-testid="stMain"],.main { background:#f0f2f5 !important; }
+[data-testid="stHeader"] { display:none; }
+[data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"] { display:none !important; }
+.block-container { padding-top:120px !important; padding-left:56px !important; padding-right:56px !important; padding-bottom:0 !important; max-width:100% !important; }
+/* 네비 컨테이너 */
+div[data-testid="stVerticalBlock"]:has(> div[data-testid="stHorizontalBlock"].nav-row) {
+    position:fixed; top:0; left:0; right:0; z-index:9999;
     background:white; border-bottom:1px solid #e2e6ea;
-    box-shadow:0 2px 10px rgba(0,0,0,0.06); z-index:9999;
-    display:flex; align-items:center; padding:0 32px;
-}}
-.nav-logo {{ flex-shrink:0; cursor:pointer; line-height:1; }}
-.nav-menu {{ display:flex; list-style:none; margin:0; padding:0; height:70px; align-items:center; flex:1; justify-content:center; gap:0; }}
-.nav-item {{ position:relative; height:70px; display:flex; align-items:center; }}
-.nav-link {{
-    display:flex; align-items:center; height:70px; padding:10px 72px 0 72px;
-    color:#333; font-size:1.35em; font-weight:600;
-    cursor:pointer; white-space:nowrap; text-decoration:none !important;
-    transition:color 0.18s; user-select:none; border:none !important;
-    outline:none; background:none;
-}}
-.nav-link:hover {{ color:#1d4ed8; text-decoration:none !important; }}
-.nav-link.active {{
-    color:#1d4ed8; font-weight:700; text-decoration:none !important;
-    background: linear-gradient(180deg, transparent 30%, #dbeafe 100%);
-    border-bottom: 3px solid #1d4ed8;
-    padding-bottom: 0;
-    padding-left: 28px; padding-right: 28px;
-}}
-
-/* 드롭다운 */
-.dropdown {{
-    position:absolute; top:70px; left:50%; background:white; min-width:120px;
-    border-top:3px solid #1d4ed8;
-    box-shadow:0 8px 28px rgba(0,0,0,0.12);
-    opacity:0; visibility:hidden; transform:translateX(-50%) translateY(-6px);
-    transition:opacity 0.18s,transform 0.18s,visibility 0.18s; z-index:10000;
-}}
-.nav-item:hover .dropdown {{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }}
-.dd-item {{
-    padding:13px 14px; color:#374151; font-size:1.0em; font-weight:500; text-align:center;
-    border-bottom:1px solid #f3f4f6; cursor:pointer;
-    transition:background 0.13s,color 0.13s;
-}}
-.dd-item:last-child {{ border-bottom:none; }}
-.dd-item:hover {{ background:#eff6ff; color:#1d4ed8; }}
-.dd-item.active {{ background:#eff6ff; color:#1d4ed8; font-weight:700; }}
-
-.nav-right {{ margin-left:auto; display:flex; align-items:center; gap:14px; flex-shrink:0; }}
-.nav-user {{ color:#6b7280; font-size:0.85em; font-weight:500; }}
-
-.nav-right {{ margin-left:auto; display:flex; align-items:center; gap:14px; flex-shrink:0; }}
-.nav-user {{ color:#6b7280; font-size:0.85em; font-weight:500; }}
-.nav-logout-btn {{
-    background:none; border:1px solid #d1d5db; color:#6b7280 !important;
-    padding:0 16px; border-radius:4px; font-size:0.85em; cursor:pointer;
-    font-weight:500; height:34px; transition:all 0.15s;
-    font-family:'Noto Sans KR',sans-serif;
-    text-decoration:none !important; display:inline-flex; align-items:center;
-}}
-.nav-logout-btn:visited {{ color:#6b7280 !important; text-decoration:none !important; }}
-.nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8 !important; text-decoration:none !important; }}
-.nav-admin-btn {{
-    background:none; border:1px solid #d1d5db; border-radius:4px;
-    height:34px; padding:0 14px; font-size:0.85em; color:#6b7280 !important;
-    font-weight:500; flex-shrink:0; transition:all 0.15s; display:inline-flex;
-    align-items:center; justify-content:center; text-decoration:none !important;
-    cursor:pointer; line-height:1; font-family:'Noto Sans KR',sans-serif;
-}}
-.nav-admin-btn:hover {{ border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important; text-decoration:none !important; }}
-.nav-admin-btn:visited {{ color:#6b7280 !important; text-decoration:none !important; }}
-
-/* 컨텐츠 */
-.content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
-
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    padding:0 32px;
+}
+/* 네비 버튼 공통 */
+.nav-btn button {
+    background:none !important; border:none !important; box-shadow:none !important;
+    color:#374151 !important; font-size:1.05em !important; font-weight:600 !important;
+    padding:0 16px !important; height:52px !important; border-radius:0 !important;
+    white-space:nowrap !important; width:100% !important;
+    transition:color 0.15s !important;
+}
+.nav-btn button:hover { color:#1d4ed8 !important; }
+.nav-btn-active button {
+    color:#1d4ed8 !important; font-weight:700 !important;
+    border-bottom:3px solid #1d4ed8 !important;
+    background:linear-gradient(180deg,transparent 40%,#dbeafe 100%) !important;
+}
+/* 서브 네비 */
+.subnav-btn button {
+    background:none !important; border:none !important; box-shadow:none !important;
+    color:#6b7280 !important; font-size:0.9em !important; font-weight:500 !important;
+    padding:0 12px !important; height:32px !important; border-radius:4px !important;
+}
+.subnav-btn button:hover { background:#eff6ff !important; color:#1d4ed8 !important; }
+.subnav-btn-active button { color:#1d4ed8 !important; font-weight:700 !important; background:#eff6ff !important; }
+/* 로그아웃 버튼 */
+.logout-btn button {
+    background:none !important; border:1px solid #d1d5db !important;
+    color:#6b7280 !important; font-size:0.85em !important; font-weight:500 !important;
+    padding:0 16px !important; height:34px !important; border-radius:4px !important;
+}
+.logout-btn button:hover { border-color:#1d4ed8 !important; color:#1d4ed8 !important; }
 /* KPI 카드 */
-.kpi-card {{ background:white; border-radius:10px; padding:20px 22px; box-shadow:0 1px 6px rgba(0,0,0,0.06); border-top:4px solid #1d4ed8; height:100%; }}
-.kpi-card.green  {{ border-top-color:#16a34a; }}
-.kpi-card.red    {{ border-top-color:#dc2626; }}
-.kpi-card.amber  {{ border-top-color:#d97706; }}
-.kpi-card.purple {{ border-top-color:#7c3aed; }}
-.kpi-label {{ color:#9ca3af; font-size:0.77em; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; margin-bottom:8px; }}
-.kpi-value {{ color:#111827; font-size:1.8em; font-weight:900; line-height:1; margin-bottom:6px; }}
-.kpi-unit  {{ font-size:0.46em; color:#9ca3af; font-weight:400; vertical-align:middle; }}
-.kpi-delta {{ font-size:0.82em; font-weight:600; }}
-.kpi-delta.pos {{ color:#16a34a; }}
-.kpi-delta.neg {{ color:#dc2626; }}
-.kpi-delta-sub {{ color:#d1d5db; font-size:0.85em; font-weight:400; margin-left:3px; }}
-.card {{ background:white; border-radius:10px; padding:22px; box-shadow:0 1px 6px rgba(0,0,0,0.06); margin-bottom:18px; }}
-.card-title {{ font-size:0.92em; font-weight:700; color:#1f2937; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px; }}
-.card-title::before {{ content:''; display:inline-block; width:4px; height:15px; background:#1d4ed8; border-radius:2px; flex-shrink:0; }}
-.tbl-wrap {{ overflow-x:auto; }}
-table.pl-table {{ width:100%; border-collapse:collapse; font-size:0.86em; }}
-table.pl-table thead tr th {{ background:#0f2044; color:white; padding:10px 13px; text-align:center; font-weight:600; white-space:nowrap; }}
-table.pl-table thead tr:nth-child(2) th {{ background:#1a3a6c; font-size:0.9em; }}
-table.pl-table tbody td {{ padding:9px 13px; text-align:right; border-bottom:1px solid #f3f4f6; color:#374151; white-space:nowrap; }}
-table.pl-table tbody td:first-child {{ text-align:center; font-weight:700; color:#1f2937; }}
-table.pl-table tbody tr:hover td {{ background:#fafbff; }}
-table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#1d4ed8; }}
-.pos {{ color:#16a34a !important; font-weight:700; }}
-.neg {{ color:#dc2626 !important; font-weight:700; }}
-[data-testid="stSelectbox"] label {{ display:none !important; }}
-[data-testid="stSelectbox"] > div > div {{ background:#ffffff !important; border-color:#d1d5db !important; }}
+.kpi-card { background:white; border-radius:10px; padding:20px 22px; box-shadow:0 1px 6px rgba(0,0,0,0.06); border-top:4px solid #1d4ed8; height:100%; }
+.kpi-card.green  { border-top-color:#16a34a; }
+.kpi-card.red    { border-top-color:#dc2626; }
+.kpi-card.amber  { border-top-color:#d97706; }
+.kpi-card.purple { border-top-color:#7c3aed; }
+.kpi-label { color:#9ca3af; font-size:0.77em; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; margin-bottom:8px; }
+.kpi-value { color:#111827; font-size:1.8em; font-weight:900; line-height:1; margin-bottom:6px; }
+.kpi-unit  { font-size:0.46em; color:#9ca3af; font-weight:400; vertical-align:middle; }
+.kpi-delta { font-size:0.82em; font-weight:600; }
+.kpi-delta.pos { color:#16a34a; }
+.kpi-delta.neg { color:#dc2626; }
+.kpi-delta-sub { color:#d1d5db; font-size:0.85em; font-weight:400; margin-left:3px; }
+.card { background:white; border-radius:10px; padding:22px; box-shadow:0 1px 6px rgba(0,0,0,0.06); margin-bottom:18px; }
+.card-title { font-size:0.92em; font-weight:700; color:#1f2937; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:8px; }
+.card-title::before { content:''; display:inline-block; width:4px; height:15px; background:#1d4ed8; border-radius:2px; flex-shrink:0; }
+.tbl-wrap { overflow-x:auto; }
+.content-wrap { padding:24px 0; max-width:1500px; margin:0 auto; }
+table.pl-table { width:100%; border-collapse:collapse; font-size:0.86em; }
+table.pl-table thead tr th { background:#0f2044; color:white; padding:10px 13px; text-align:center; font-weight:600; white-space:nowrap; }
+table.pl-table thead tr:nth-child(2) th { background:#1a3a6c; font-size:0.9em; }
+table.pl-table tbody td { padding:9px 13px; text-align:right; border-bottom:1px solid #f3f4f6; color:#374151; white-space:nowrap; }
+table.pl-table tbody td:first-child { text-align:center; font-weight:700; color:#1f2937; }
+table.pl-table tbody tr:hover td { background:#fafbff; }
+table.pl-table tbody tr.total td { background:#eff6ff; font-weight:900; color:#1d4ed8; }
+.pos { color:#16a34a !important; font-weight:700; }
+.neg { color:#dc2626 !important; font-weight:700; }
+[data-testid="stSelectbox"] label { display:none !important; }
+[data-testid="stSelectbox"] > div > div { background:#ffffff !important; border-color:#d1d5db !important; }
 </style>
-
-<div class="top-nav">
-    <div class="nav-logo" onclick="navTo('건재손익_요약')">{logo_html}</div>
-    <ul class="nav-menu">{menu_html}</ul>
-    <div class="nav-right"><span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>{admin_btn_html}<a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a></div>
-</div>
 """, unsafe_allow_html=True)
 
-# navTo JS — React input setter 방식으로 hidden input 값 변경 → Streamlit 감지 → 페이지 전환
-import streamlit.components.v1 as components
-components.html("""
-<script>
-(function() {
-    function navTo(page) {
-        var p = window.parent;
-        // aria-label="__nav_signal__" 인 input 찾기
-        function trySet() {
-            var inputs = p.document.querySelectorAll('input');
-            for (var i = 0; i < inputs.length; i++) {
-                var lbl = inputs[i].getAttribute('aria-label') || inputs[i].placeholder || '';
-                if (lbl === '__nav_signal__' || inputs[i].id.indexOf('nav_signal') !== -1) {
-                    var setter = Object.getOwnPropertyDescriptor(p.HTMLInputElement.prototype, 'value').set;
-                    setter.call(inputs[i], page);
-                    inputs[i].dispatchEvent(new p.Event('input', { bubbles: true }));
-                    return true;
-                }
-            }
-            return false;
-        }
-        if (!trySet()) {
-            var tries = 0;
-            var timer = setInterval(function() {
-                if (trySet() || ++tries >= 30) clearInterval(timer);
-            }, 100);
-        }
-    }
-    window.parent.navTo = navTo;
-})();
-</script>
-""", height=0)
+# ── 네비게이션 바 (Streamlit 네이티브 버튼) ──
+def _nav(label, page, active=False, style_class="nav-btn"):
+    cls = f"{style_class}-active" if active else style_class
+    st.markdown(f'<div class="{cls}">', unsafe_allow_html=True)
+    clicked = st.button(label, key=f"_nb_{page}")
+    st.markdown('</div>', unsafe_allow_html=True)
+    return clicked
+
+with st.container():
+    # 메인 메뉴 행
+    menu_keys = list(NAV_STRUCTURE.keys())
+    # 로고(1) + 메뉴(5) + 유저(1) + 로그아웃(1) = 8
+    c_logo, *c_menus, c_user, c_logout = st.columns([1.2] + [1.4]*len(menu_keys) + [1.5, 0.8])
+    with c_logo:
+        st.markdown(f'<div style="padding:8px 0">{logo_html}</div>', unsafe_allow_html=True)
+    for col, menu in zip(c_menus, menu_keys):
+        with col:
+            is_active = (menu == active_menu)
+            if _nav(NAV_LABELS[menu], NAV_STRUCTURE[menu][0], is_active):
+                st.session_state["page"] = NAV_STRUCTURE[menu][0]
+                st.rerun()
+    with c_user:
+        st.markdown(f'<div style="display:flex;align-items:center;height:52px;color:#6b7280;font-size:0.85em;white-space:nowrap;">👤 {st.session_state.get("username","")}</div>', unsafe_allow_html=True)
+    with c_logout:
+        st.markdown('<div class="logout-btn">', unsafe_allow_html=True)
+        if st.button("로그아웃", key="_nb_logout"):
+            st.session_state.clear()
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # 서브 메뉴 행 (현재 메뉴에 서브 페이지가 있을 때)
+    sub_pages = NAV_STRUCTURE.get(active_menu, [])
+    if len(sub_pages) > 1:
+        sub_cols = st.columns([1.2] + [0.6]*len(sub_pages) + [99])
+        for i, pg in enumerate(sub_pages):
+            with sub_cols[i+1]:
+                is_sub_active = (pg == current_page)
+                if _nav(PAGE_LABELS[pg], pg, is_sub_active, "subnav-btn"):
+                    st.session_state["page"] = pg
+                    st.rerun()
+
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
