@@ -28,6 +28,15 @@ if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 if "page" not in st.session_state:
     st.session_state["page"] = "건재손익_요약"
+if "_nav_signal" not in st.session_state:
+    st.session_state["_nav_signal"] = ""
+
+# 네비게이션 신호 처리 (JS → hidden input → 여기서 감지)
+_nav_val = st.session_state.get("_nav_signal", "")
+if _nav_val and _nav_val != "":
+    st.session_state["page"] = _nav_val
+    st.session_state["_nav_signal"] = ""
+    st.rerun()
 
 # 로그아웃 처리
 if st.query_params.get("logout") == "1":
@@ -195,6 +204,9 @@ all_pages_flat = [pg for pages in NAV_STRUCTURE.values() for pg in pages]
 
 current_page = st.session_state["page"]
 
+# 숨겨진 nav signal input — JS가 이 값을 바꾸면 Streamlit이 감지하고 페이지 전환
+st.text_input("__nav_signal__", value="", key="_nav_signal", label_visibility="collapsed")
+
 def get_parent(page):
     for menu, pages in NAV_STRUCTURE.items():
         if page in pages:
@@ -203,16 +215,6 @@ def get_parent(page):
 
 active_menu = get_parent(current_page)
 
-# 사이드바에 숨겨진 네비 버튼 (off-screen CSS로 DOM에 유지, JS로 클릭)
-with st.sidebar:
-    for pg in all_pages_flat:
-        if st.button(pg, key=f"_nav_{pg}"):
-            st.session_state["page"] = pg
-            st.rerun()
-    if st.session_state.get("username") == ADMIN_USER:
-        if st.button("ADMIN_PAGE", key="_nav_ADMIN_PAGE"):
-            st.session_state["page"] = "ADMIN_PAGE"
-            st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -247,6 +249,7 @@ st.markdown(f"""
 [data-testid="stMain"],
 .main {{ background:#f0f2f5 !important; }}
 [data-testid="stHeader"] {{ display:none; }}
+div:has(> div > input[aria-label="__nav_signal__"]) {{ display:none !important; }}
 [data-testid="stSidebar"] {{ position:fixed !important; left:-9999px !important; top:0 !important; width:1px !important; height:1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; z-index:-1 !important; }}
 [data-testid="stSidebarCollapsedControl"] {{ display:none !important; }}
 .block-container {{ padding-top:82px !important; padding-left:56px !important; padding-right:56px !important; padding-bottom:0 !important; max-width:100% !important; }}
@@ -359,22 +362,33 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 </div>
 """, unsafe_allow_html=True)
 
-# navTo JS — components.v1.html은 iframe 안에서 실행되므로 window.parent에 함수 주입
+# navTo JS — React input setter 방식으로 hidden input 값 변경 → Streamlit 감지 → 페이지 전환
 import streamlit.components.v1 as components
 components.html("""
 <script>
 (function() {
     function navTo(page) {
         var p = window.parent;
-        var tries = 0;
-        var timer = setInterval(function() {
-            var btns = p.document.querySelectorAll('button');
-            for (var i = 0; i < btns.length; i++) {
-                var t = (btns[i].innerText || btns[i].textContent || '').replace(/\\s+/g,' ').trim();
-                if (t === page) { btns[i].click(); clearInterval(timer); return; }
+        // aria-label="__nav_signal__" 인 input 찾기
+        function trySet() {
+            var inputs = p.document.querySelectorAll('input');
+            for (var i = 0; i < inputs.length; i++) {
+                var lbl = inputs[i].getAttribute('aria-label') || inputs[i].placeholder || '';
+                if (lbl === '__nav_signal__' || inputs[i].id.indexOf('nav_signal') !== -1) {
+                    var setter = Object.getOwnPropertyDescriptor(p.HTMLInputElement.prototype, 'value').set;
+                    setter.call(inputs[i], page);
+                    inputs[i].dispatchEvent(new p.Event('input', { bubbles: true }));
+                    return true;
+                }
             }
-            if (++tries >= 30) clearInterval(timer);
-        }, 100);
+            return false;
+        }
+        if (!trySet()) {
+            var tries = 0;
+            var timer = setInterval(function() {
+                if (trySet() || ++tries >= 30) clearInterval(timer);
+            }, 100);
+        }
     }
     window.parent.navTo = navTo;
 })();
