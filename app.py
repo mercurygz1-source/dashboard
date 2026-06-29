@@ -534,7 +534,9 @@ else:
         st.session_state["sel_month"] = _init_months[-1] if _init_months else 1
     selected_month = st.session_state["sel_month"]
 
-    if current_page not in ("건재손익_요약", "건재손익_부문별", "ADMIN_PAGE"):
+    _pages_with_own_header = ("건재손익_요약", "건재손익_부문별", "ADMIN_PAGE",
+                               "레미콘_손익요약", "건자재_손익요약", "골재_손익요약", "임대_손익요약")
+    if current_page not in _pages_with_own_header:
         _s, _y, _m = st.columns([0.82, 0.09, 0.09])
         with _y:
             st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
@@ -1216,8 +1218,43 @@ elif current_page == "레미콘_공장별":
 
 elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_손익요약","임대_손익요약"]:
     nm={"레미콘_손익요약":"레미콘","건자재_손익요약":"건자재","골재_손익요약":"골재","임대_손익요약":"임대"}[current_page]
-    stitle(f"{nm} 손익 요약")
+    if "sel_period" not in st.session_state:
+        st.session_state["sel_period"] = "당월"
+    st.markdown("""<style>
+    div[data-testid="stColumn"]:has(> div > div > div[data-testid="stSelectbox"]) {
+        padding-left: 2px !important; padding-right: 2px !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="stColumn"] > div > div > div[data-testid="stSelectbox"]) {
+        gap: 4px !important;
+    }
+    [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
+    </style>""", unsafe_allow_html=True)
+    _tc, _rc = st.columns([0.76, 0.24], gap="small")
+    with _tc:
+        st.markdown(f"""
+        <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
+            <div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
+            <span style="font-size:1.7em;font-weight:900;color:#1f2937;">{nm} 손익 요약</span>
+            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.7em;font-weight:600;">{selected_year}년 {selected_month}월{"" if st.session_state.get("sel_period","당월")=="당월" else " 누계"}</span>
+        </div>""", unsafe_allow_html=True)
+    with _rc:
+        _cy, _cm, _cp = st.columns([1,1,1], gap="small")
+        with _cy:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+        with _cm:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            _months = get_available_months(selected_year)
+            st.selectbox("월", _months, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+        with _cp:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
     st.markdown(f'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;"><div style="font-size:3.5em;margin-bottom:20px;opacity:0.35;">🚧</div><div style="font-size:1.3em;font-weight:700;color:#374151;margin-bottom:8px;">{nm} 손익 요약</div><div style="color:#9ca3af;">준비 중입니다.</div></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 elif current_page in ["건자재_손익","골재_손익","임대_손익"]:
     nm={"건자재_손익":"건자재","골재_손익":"골재","임대_손익":"임대"}[current_page]
