@@ -854,32 +854,6 @@ if current_page == "건재손익_요약":
                       "green" if (_공헌실적 or 0)>=0 else "red",
                       trend_df, "공헌이익_계획", "공헌이익_실적")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # ── 차트 ──
-        df_chart = df_ov[df_ov['구분'].isin(['레미콘','건자재','골재','기타'])].copy()
-        _매출계획col  = _ov_col('매출','계획')
-        _매출실적col  = _ov_col('매출','실적')
-        _oi계획col    = _ov_col('영업이익','계획')
-        _oi실적col    = _ov_col('영업이익','실적')
-        cc1, cc2 = st.columns(2)
-        with cc1:
-            st.markdown(f'<div class="card"><div class="card-title">사업부문별 매출액 (백만원) — {selected_period}</div>', unsafe_allow_html=True)
-            fig=go.Figure()
-            for lb,col,clr in [("계획",_매출계획col,C["계획"]),("실적",_매출실적col,C["실적"]),("전년","매출_전년",C["전년"])]:
-                if col in df_chart.columns:
-                    fig.add_bar(name=lb,x=df_chart['구분'],y=df_chart[col],marker_color=clr,
-                                text=df_chart[col].apply(lambda x:f(x)),textposition='outside',textfont=dict(size=10))
-            bc(fig); fig.update_layout(barmode='group')
-            st.plotly_chart(fig,use_container_width=True); st.markdown('</div>', unsafe_allow_html=True)
-        with cc2:
-            st.markdown(f'<div class="card"><div class="card-title">사업부문별 영업이익 (백만원) — {selected_period}</div>', unsafe_allow_html=True)
-            fig2=go.Figure()
-            for lb,col,clr in [("계획",_oi계획col,C["계획"]),("실적",_oi실적col,C["실적"]),("전년","영업이익_전년",C["전년"])]:
-                if col in df_chart.columns:
-                    fig2.add_bar(name=lb,x=df_chart['구분'],y=df_chart[col],marker_color=clr)
-            bc(fig2); fig2.update_layout(barmode='group')
-            st.plotly_chart(fig2,use_container_width=True); st.markdown('</div>', unsafe_allow_html=True)
 
     else:
         st.error("손익총괄 데이터를 불러올 수 없습니다.")
