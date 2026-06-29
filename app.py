@@ -229,7 +229,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = ""  # 관리자 버튼은 nav HTML 밖에서 네이티브 st.button으로 처리
+admin_btn_html = '<button class="nav-admin-btn" onclick="window.parent.postMessage(\'go-admin\',\'*\')" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -363,28 +363,44 @@ function navTo(page) {{
     }}
 }}
 
-// ⚙️ 버튼을 nav 우측 로그아웃 왼쪽에 직접 고정
-(function moveAdminBtn() {{
+// 부모 문서에 postMessage 리스너 주입 (한 번만)
+(function injectAdminListener() {{
     try {{
         var pd = window.parent.document;
-        var found = null;
-        pd.querySelectorAll('button').forEach(function(b) {{
-            if (b.textContent.trim() === '⚙️') found = b;
-        }});
-        if (!found) {{ setTimeout(moveAdminBtn, 300); return; }}
-        // 버튼 자체를 position:fixed로 nav 우측에 배치
-        found.style.cssText = 'position:fixed !important;top:18px !important;right:82px !important;z-index:10000 !important;background:none !important;border:1px solid #d1d5db !important;border-radius:4px !important;width:34px !important;height:34px !important;padding:0 !important;font-size:1.1em !important;color:#6b7280 !important;cursor:pointer !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-shadow:none !important;';
-        found.onmouseenter = function(){{ this.style.borderColor='#1d4ed8'; this.style.background='#eff6ff'; this.style.color='#1d4ed8'; }};
-        found.onmouseleave = function(){{ this.style.borderColor='#d1d5db'; this.style.background='none'; this.style.color='#6b7280'; }};
-    }} catch(e) {{ setTimeout(moveAdminBtn, 300); }}
+        if (!pd.getElementById('st-admin-listener')) {{
+            var s = pd.createElement('script');
+            s.id = 'st-admin-listener';
+            s.textContent = [
+                "window.addEventListener('message', function(e) {{",
+                "  if (e.data !== 'go-admin') return;",
+                "  document.querySelectorAll('button').forEach(function(b) {{",
+                "    if (b.textContent.trim() === 'ADMIN_TRIGGER') {{ b.click(); }}",
+                "  }});",
+                "}});"
+            ].join('');
+            pd.head.appendChild(s);
+        }}
+        // ADMIN_TRIGGER 버튼 화면 밖으로 숨김
+        setTimeout(function() {{
+            pd.querySelectorAll('button').forEach(function(b) {{
+                if (b.textContent.trim() === 'ADMIN_TRIGGER') {{
+                    var w = b;
+                    for (var i = 0; i < 5; i++) {{
+                        if (!w.parentElement) break;
+                        w = w.parentElement;
+                    }}
+                    w.style.cssText = 'position:absolute !important;left:-9999px !important;top:0 !important;width:1px !important;height:1px !important;overflow:hidden !important;';
+                }}
+            }});
+        }}, 500);
+    }} catch(e) {{}}
 }})();
 </script>
 """, unsafe_allow_html=True)
 
-# 통합관리시스템 네이티브 버튼 (JS가 position:fixed로 nav 우측에 배치)
+# ADMIN_TRIGGER: JS postMessage로 클릭되는 숨김 버튼
 if st.session_state.get("username") == ADMIN_USER:
-    st.markdown('<div id="admin-nav-sentinel" style="display:none"></div>', unsafe_allow_html=True)
-    if st.button("⚙️", key="go_admin_native_btn", help="통합관리시스템"):
+    if st.button("ADMIN_TRIGGER", key="admin_trigger"):
         st.session_state["page"] = "ADMIN_PAGE"
         st.rerun()
 
