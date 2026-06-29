@@ -168,4 +168,22 @@ def load_overview(year, month):
         }
         items.append(row)
 
-    return pd.DataFrame(items)
+    df = pd.DataFrame(items)
+
+    # 합계 행에 건자재 합산 (엑셀 합계 행이 건자재를 포함하지 않음)
+    jc_row = df[df['구분'] == '건자재']
+    tot_idx = df.index[df['구분'] == '합계'].tolist()
+    if not jc_row.empty and tot_idx:
+        ti = tot_idx[0]
+        for col in ['매출_계획','매출_실적','매출_차이','매출_전년',
+                    '매출_누계계획','매출_누계실적','매출_누계차이','매출_누계전년',
+                    '영업이익_계획','영업이익_실적','영업이익_차이','영업이익_전년',
+                    '영업이익_누계계획','영업이익_누계실적','영업이익_누계차이','영업이익_누계전년']:
+            jv = jc_row.iloc[0].get(col)
+            tv = df.at[ti, col]
+            if jv is not None and tv is not None:
+                df.at[ti, col] = tv + jv
+            elif jv is not None:
+                df.at[ti, col] = jv
+
+    return df
