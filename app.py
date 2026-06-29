@@ -676,7 +676,7 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol):
     ds = ""
     if delta is not None and not (isinstance(delta, float) and pd.isna(delta)):
         arrow = "▲" if delta>=0 else "▼"; cls = "pos" if delta>=0 else "neg"
-        ds = f'<span class="kpi-delta {cls}" style="font-size:1.0em;font-weight:700;margin-left:8px;white-space:nowrap;flex-shrink:0;">계획대비 {arrow} {f(abs(delta))}</span>'
+        ds = f'<span class="kpi-delta {cls}" style="font-size:1.0em;font-weight:700;margin-left:8px;white-space:nowrap;flex-shrink:0;">(계획대비 {arrow} {f(abs(delta))})</span>'
     with col:
         st.markdown(f"""
         <div style="background:white;border-radius:10px 10px 0 0;padding:18px 20px 12px;
