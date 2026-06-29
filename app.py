@@ -392,7 +392,7 @@ st.markdown(f"""
 .main {{ background:#f0f2f5 !important; }}
 [data-testid="stHeader"] {{ display:none; }}
 [data-testid="stSidebar"] {{ display:none; }}
-.block-container {{ padding-top:80px !important; padding-left:56px !important; padding-right:56px !important; padding-bottom:0 !important; max-width:100% !important; }}
+.block-container {{ padding-top:88px !important; padding-left:56px !important; padding-right:56px !important; padding-bottom:0 !important; max-width:100% !important; }}
 
 /* 상단 네비 */
 .top-nav {{
