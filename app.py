@@ -35,11 +35,6 @@ if st.query_params.get("logout") == "1":
     st.query_params.clear()
     st.rerun()
 
-# 페이지 이동 처리 (로그인 상태 유지: query param만 지우고 session state는 보존)
-if "nav" in st.query_params:
-    _nav_target = st.query_params["nav"]
-    del st.query_params["nav"]
-    st.session_state["page"] = _nav_target
 
 
 
@@ -208,11 +203,21 @@ def get_parent(page):
 
 active_menu = get_parent(current_page)
 
+# 사이드바에 숨겨진 네비 버튼 (off-screen CSS로 DOM에 유지, JS로 클릭)
+with st.sidebar:
+    for pg in all_pages_flat:
+        if st.button(pg, key=f"_nav_{pg}"):
+            st.session_state["page"] = pg
+            st.rerun()
+    if st.session_state.get("username") == ADMIN_USER:
+        if st.button("ADMIN_PAGE", key="_nav_ADMIN_PAGE"):
+            st.session_state["page"] = "ADMIN_PAGE"
+            st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
     items = "".join(
-        f'<a class="dd-item{"  active" if pg == current_page else ""}" href="?nav={pg}" target="_self">{PAGE_LABELS[pg]}</a>'
+        f'<div class="dd-item{"  active" if pg == current_page else ""}" onclick="navTo(\'{pg}\')">{PAGE_LABELS[pg]}</div>'
         for pg in pages
     )
     return f'<div class="dropdown">{items}</div>'
@@ -230,9 +235,9 @@ for menu, pages in NAV_STRUCTURE.items():
     ac = " active" if menu == active_menu else ""
     dd = make_dd(pages) if len(pages) > 1 else ""
     label = NAV_LABELS.get(menu, menu)
-    menu_html += f'<li class="nav-item"><a class="nav-link{ac}" href="?nav={pages[0]}" target="_self">{label}</a>{dd}</li>'
+    menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = f'<a class="nav-admin-btn" href="?nav=ADMIN_PAGE" target="_self">ADMIN_TRIGGER</a>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = f'<button class="nav-admin-btn" onclick="navTo(\'ADMIN_PAGE\')">ADMIN_TRIGGER</button>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -282,8 +287,8 @@ st.markdown(f"""
 }}
 .nav-item:hover .dropdown {{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }}
 .dd-item {{
-    display:block; padding:13px 14px; color:#374151; font-size:1.0em; font-weight:500; text-align:center;
-    border-bottom:1px solid #f3f4f6; cursor:pointer; text-decoration:none !important;
+    padding:13px 14px; color:#374151; font-size:1.0em; font-weight:500; text-align:center;
+    border-bottom:1px solid #f3f4f6; cursor:pointer;
     transition:background 0.13s,color 0.13s;
 }}
 .dd-item:last-child {{ border-bottom:none; }}
@@ -348,11 +353,37 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 </style>
 
 <div class="top-nav">
-    <a class="nav-logo" href="?nav=건재손익_요약" target="_self">{logo_html}</a>
+    <div class="nav-logo" onclick="navTo('건재손익_요약')">{logo_html}</div>
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right"><span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>{admin_btn_html}<a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a></div>
 </div>
-
+<script>
+function navTo(page) {{
+    var found = false;
+    var allDocs = [document];
+    try {{ if (window.parent && window.parent.document !== document) allDocs.push(window.parent.document); }} catch(e) {{}}
+    for (var d = 0; d < allDocs.length; d++) {{
+        var btns = allDocs[d].querySelectorAll('[data-testid="stSidebar"] button, section[data-testid="stSidebar"] button');
+        for (var i = 0; i < btns.length; i++) {{
+            var t = (btns[i].innerText || btns[i].textContent || '').replace(/\s+/g,' ').trim();
+            if (t === page) {{ btns[i].click(); found = true; return; }}
+        }}
+    }}
+    if (!found) {{
+        var tries = 0;
+        var timer = setInterval(function() {{
+            for (var d = 0; d < allDocs.length; d++) {{
+                var btns = allDocs[d].querySelectorAll('button');
+                for (var i = 0; i < btns.length; i++) {{
+                    var t = (btns[i].innerText || btns[i].textContent || '').replace(/\s+/g,' ').trim();
+                    if (t === page) {{ btns[i].click(); clearInterval(timer); return; }}
+                }}
+            }}
+            if (++tries >= 20) clearInterval(timer);
+        }}, 150);
+    }}
+}}
+</script>
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
