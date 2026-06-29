@@ -480,7 +480,7 @@ if current_page == "건재손익_요약":
     .ov-selectors > div[data-testid="stSelectbox"] { min-width:0; width:90px; }
     .ov-selectors > div[data-testid="stSelectbox"] > div { min-width:0; }
     </style>""", unsafe_allow_html=True)
-    _tc, _rc = st.columns([0.68, 0.32], gap="small")
+    _tc, _rc = st.columns([0.76, 0.24], gap="small")
     with _tc:
         st.markdown(f"""
         <div style="padding:18px 0 0;display:flex;align-items:center;gap:12px;">
