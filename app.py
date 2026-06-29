@@ -364,37 +364,38 @@ function navTo(page) {{
     }}
 }}
 
+// ADMIN_TRIGGER 버튼을 nav-right 안으로 이동
+(function moveAdminBtn() {{
+    function tryMove() {{
+        var adminBtn = null;
+        document.querySelectorAll('button').forEach(function(b) {{
+            if (b.textContent.trim() === 'ADMIN_TRIGGER') adminBtn = b;
+        }});
+        var logout = document.querySelector('.nav-logout-btn');
+        var navRight = document.querySelector('.nav-right');
+        if (adminBtn && navRight && logout) {{
+            var wrapper = adminBtn;
+            for (var i = 0; i < 5; i++) {{ if (wrapper && wrapper.dataset && wrapper.dataset.testid === 'stElementContainer') break; wrapper = wrapper.parentElement; }}
+            adminBtn.style.cssText = 'background:none;border:1px solid #d1d5db;color:#6b7280;padding:0 14px;border-radius:4px;font-size:0.85em;font-weight:500;height:34px;cursor:pointer;font-family:Noto Sans KR,sans-serif;line-height:1;';
+            navRight.insertBefore(adminBtn, logout);
+            if (wrapper && wrapper !== adminBtn) wrapper.style.display = 'none';
+            adminBtn.onmouseenter = function() {{ this.style.borderColor='#1d4ed8'; this.style.color='#1d4ed8'; this.style.background='#eff6ff'; }};
+            adminBtn.onmouseleave = function() {{ this.style.borderColor='#d1d5db'; this.style.color='#6b7280'; this.style.background='none'; }};
+            return true;
+        }}
+        return false;
+    }}
+    if (!tryMove()) {{
+        var t = 0;
+        var iv = setInterval(function() {{ if (tryMove() || ++t > 30) clearInterval(iv); }}, 200);
+    }}
+}})();
+
 </script>
 """, unsafe_allow_html=True)
 
-# ADMIN_TRIGGER: 로그아웃 옆 고정 배치 (CSS position:fixed)
+# ADMIN_TRIGGER: JS가 nav-right 안으로 이동시키는 숨김 버튼
 if st.session_state.get("username") == ADMIN_USER:
-    st.markdown("""<style>
-[data-testid="stVerticalBlock"]>[data-testid="stButton"]{
-    position:fixed !important;
-    top:9px !important;
-    right:90px !important;
-    z-index:9999 !important;
-    width:auto !important;
-}
-[data-testid="stVerticalBlock"]>[data-testid="stButton"] button{
-    background:none !important;
-    border:1px solid #d1d5db !important;
-    color:#6b7280 !important;
-    padding:0 14px !important;
-    border-radius:4px !important;
-    font-size:0.85em !important;
-    font-weight:500 !important;
-    height:34px !important;
-    font-family:'Noto Sans KR',sans-serif !important;
-    box-shadow:none !important;
-}
-[data-testid="stVerticalBlock"]>[data-testid="stButton"] button:hover{
-    border-color:#1d4ed8 !important;
-    color:#1d4ed8 !important;
-    background:#eff6ff !important;
-}
-</style>""", unsafe_allow_html=True)
     if st.button("ADMIN_TRIGGER", key="admin_trigger"):
         st.session_state["page"] = "ADMIN_PAGE"
         st.rerun()
