@@ -35,12 +35,11 @@ if st.query_params.get("logout") == "1":
     st.query_params.clear()
     st.rerun()
 
-# 페이지 이동 처리
+# 페이지 이동 처리 (로그인 상태 유지: query param만 지우고 session state는 보존)
 if "nav" in st.query_params:
     _nav_target = st.query_params["nav"]
-    st.query_params.clear()
+    del st.query_params["nav"]
     st.session_state["page"] = _nav_target
-    st.rerun()
 
 
 
