@@ -530,7 +530,7 @@ else:
         st.session_state["sel_month"] = _init_months[-1] if _init_months else 1
     selected_month = st.session_state["sel_month"]
 
-    if current_page not in ("건재손익_요약", "건재손익_부문별"):
+    if current_page not in ("건재손익_요약", "건재손익_부문별", "ADMIN_PAGE"):
         _s, _y, _m = st.columns([0.82, 0.09, 0.09])
         with _y:
             st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
@@ -919,12 +919,44 @@ if current_page == "건재손익_요약":
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif current_page == "건재손익_부문별":
-    stitle("건재 부문별 손익")
-    st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
     if "sel_period" not in st.session_state:
         st.session_state["sel_period"] = "당월"
+    st.markdown("""<style>
+    div[data-testid="stColumn"]:has(> div > div > div[data-testid="stSelectbox"]) {
+        padding-left: 2px !important; padding-right: 2px !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="stColumn"] > div > div > div[data-testid="stSelectbox"]) {
+        gap: 4px !important;
+    }
+    [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
+    </style>""", unsafe_allow_html=True)
+    _tc, _rc = st.columns([0.76, 0.24], gap="small")
+    with _tc:
+        st.markdown(f"""
+        <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
+            <div style="width:4px;height:22px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
+            <span style="font-size:1.6em;font-weight:900;color:#1f2937;">부문별</span>
+            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.05em;font-weight:600;">{selected_year}년 {selected_month}월</span>
+        </div>""", unsafe_allow_html=True)
+    with _rc:
+        _cy, _cm, _cp = st.columns([1,1,1], gap="small")
+        with _cy:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+        with _cm:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            _months_bm = get_available_months(selected_year)
+            st.selectbox("월", _months_bm, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+        with _cp:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+
     _bm_period = st.session_state.get("sel_period", "당월")
     _bm_sfx = "누계" if _bm_period == "누계" else ""
+    st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
     @st.cache_data(ttl=600)
     def _get_overview_bm(year, month):
