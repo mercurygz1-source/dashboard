@@ -1252,8 +1252,205 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
             st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
             st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
             st.markdown('</div>', unsafe_allow_html=True)
+    _sec_period = st.session_state.get("sel_period", "당월")
+    _sec_sfx = "누계" if _sec_period == "누계" else ""
+
+    @st.cache_data(ttl=600)
+    def get_sec_overview(year, month):
+        return load_overview(year, month)
+
+    @st.cache_data(ttl=600)
+    def get_sec_factory(year, month, period="당월"):
+        return load_factory_data(year, month, period=period)
+
+    @st.cache_data(ttl=600)
+    def get_sec_trend(year, up_to_month, section):
+        months = [m for m in get_available_months(year) if m <= up_to_month]
+        rows = []
+        for m in months:
+            dov = load_overview(year, m)
+            dfa = load_factory_data(year, m)
+            if dov is None: continue
+            row_ov = dov[dov['구분']==section]
+            row_ov = row_ov.iloc[0] if not row_ov.empty else None
+            row_fa = None
+            if dfa is not None:
+                fa_key = {'레미콘':'레미콘 계','골재':'골재 계','건자재':'건자재','임대':'임대'}.get(section)
+                if fa_key:
+                    match = dfa[dfa['공장명']==fa_key]
+                    row_fa = match.iloc[0] if not match.empty else None
+            r = {'월': m}
+            for base in ['물량','매출','영업이익']:
+                r[f'{base}_계획'] = row_ov.get(f'{base}_계획') if row_ov is not None else None
+                r[f'{base}_실적'] = row_ov.get(f'{base}_실적') if row_ov is not None else None
+            if section == '레미콘' and row_fa is not None:
+                r['공헌이익_계획'] = row_fa.get('공헌이익_계획')
+                r['공헌이익_실적'] = row_fa.get('공헌이익_실적')
+            rows.append(r)
+        return pd.DataFrame(rows) if rows else None
+
+    df_sec_ov = get_sec_overview(selected_year, selected_month)
+    df_sec_fa = get_sec_factory(selected_year, selected_month, period=_sec_sfx if _sec_sfx else "당월")
+
+    section_key = {'레미콘_손익요약':'레미콘','건자재_손익요약':'건자재','골재_손익요약':'골재','임대_손익요약':'기타'}[current_page]
+    fa_key = {'레미콘_손익요약':'레미콘 계','건자재_손익요약':'건자재','골재_손익요약':'골재 계','임대_손익요약':'임대'}[current_page]
+
+    row_ov = df_sec_ov[df_sec_ov['구분']==section_key].iloc[0] if df_sec_ov is not None and not df_sec_ov[df_sec_ov['구분']==section_key].empty else None
+    row_fa = df_sec_fa[df_sec_fa['공장명']==fa_key].iloc[0] if df_sec_fa is not None and not df_sec_fa[df_sec_fa['공장명']==fa_key].empty else None
+
+    def _ov(base, kind):
+        col = f'{base}_누계{kind}' if _sec_sfx else f'{base}_{kind}'
+        return row_ov.get(col) if row_ov is not None else None
+    def _fa(col):
+        return row_fa.get(col) if row_fa is not None else None
+    def to억(v):
+        if v is None or (isinstance(v, float) and pd.isna(v)): return None
+        return v / 100
+
+    trend_sec = get_sec_trend(selected_year, selected_month, section_key)
+    if trend_sec is not None and not trend_sec.empty:
+        for _c in ['매출_계획','매출_실적','영업이익_계획','영업이익_실적']:
+            if _c in trend_sec.columns:
+                trend_sec[_c+'_억'] = trend_sec[_c] / 100
+
+    st.markdown("""
+    <style>
+    [data-testid="stColumn"] [data-testid="stVerticalBlock"]
+        > [data-testid="element-container"]:has(+ [data-testid="element-container"] [data-testid="stPlotlyChart"]) {
+        margin-bottom: 0 !important;
+    }
+    [data-testid="stColumn"] [data-testid="stVerticalBlock"]
+        > [data-testid="element-container"]:has([data-testid="stPlotlyChart"]) {
+        margin-top: -10px !important; background: white;
+    }
+    </style>""", unsafe_allow_html=True)
+
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
-    st.markdown(f'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;"><div style="font-size:3.5em;margin-bottom:20px;opacity:0.35;">🚧</div><div style="font-size:1.3em;font-weight:700;color:#374151;margin-bottom:8px;">{nm} 손익 요약</div><div style="color:#9ca3af;">준비 중입니다.</div></div>', unsafe_allow_html=True)
+
+    # ── KPI 카드 ──
+    if current_page == "레미콘_손익요약":
+        df_rc_fa = get_sec_factory(selected_year, selected_month, period=_sec_sfx if _sec_sfx else "당월")
+        rc_detail = df_rc_fa[df_rc_fa['공장명']=='레미콘 계'].iloc[0] if df_rc_fa is not None and not df_rc_fa[df_rc_fa['공장명']=='레미콘 계'].empty else None
+        c1, c2, c3, c4 = st.columns(4)
+        kpi_spark(c1, "판매량",
+                  f(_ov('물량','실적'),1), "천㎥",
+                  _ov('물량','차이'), "amber",
+                  trend_sec, "물량_계획", "물량_실적",
+                  actual_val=_ov('물량','실적'), plan_val=_ov('물량','계획'))
+        kpi_spark(c2, "매출액",
+                  f(to억(_ov('매출','실적')),1), "억원",
+                  to억(_ov('매출','차이')), "",
+                  trend_sec, "매출_계획_억", "매출_실적_억")
+        _oi실적 = _ov('영업이익','실적')
+        kpi_spark(c3, "영업이익",
+                  f(to억(_oi실적),1), "억원",
+                  to억(_ov('영업이익','차이')),
+                  "green" if (_oi실적 or 0)>=0 else "red",
+                  trend_sec, "영업이익_계획_억", "영업이익_실적_억")
+        _ch실적 = rc_detail.get('공헌이익_실적') if rc_detail is not None else None
+        _ch계획 = rc_detail.get('공헌이익_계획') if rc_detail is not None else None
+        kpi_spark(c4, "공헌이익",
+                  f(_ch실적), "원/㎥",
+                  (_ch실적-_ch계획) if (_ch실적 is not None and _ch계획 is not None and pd.notna(_ch계획)) else None,
+                  "green" if (_ch실적 or 0)>=0 else "red",
+                  trend_sec, "공헌이익_계획", "공헌이익_실적")
+
+    elif current_page == "골재_손익요약":
+        c1, c2, c3 = st.columns(3)
+        kpi_spark(c1, "판매량",
+                  f(_ov('물량','실적'),1), "천㎥",
+                  _ov('물량','차이'), "amber",
+                  trend_sec, "물량_계획", "물량_실적",
+                  actual_val=_ov('물량','실적'), plan_val=_ov('물량','계획'))
+        kpi_spark(c2, "매출액",
+                  f(to억(_ov('매출','실적')),1), "억원",
+                  to억(_ov('매출','차이')), "",
+                  trend_sec, "매출_계획_억", "매출_실적_억")
+        _oi실적 = _ov('영업이익','실적')
+        kpi_spark(c3, "영업이익",
+                  f(to억(_oi실적),1), "억원",
+                  to억(_ov('영업이익','차이')),
+                  "green" if (_oi실적 or 0)>=0 else "red",
+                  trend_sec, "영업이익_계획_억", "영업이익_실적_억")
+
+    elif current_page in ["건자재_손익요약","임대_손익요약"]:
+        c1, c2, c3 = st.columns(3)
+        _매출실적 = _ov('매출','실적')
+        _oi실적 = _ov('영업이익','실적')
+        _oi계획 = _ov('영업이익','계획')
+        _이익률 = (_oi실적/_매출실적*100) if (_매출실적 and _매출실적!=0 and _oi실적 is not None) else None
+        _이익률계획 = (_oi계획/_ov('매출','계획')*100) if (_ov('매출','계획') and _ov('매출','계획')!=0 and _oi계획 is not None) else None
+        kpi_spark(c1, "매출액",
+                  f(to억(_매출실적),1), "억원",
+                  to억(_ov('매출','차이')), "",
+                  trend_sec, "매출_계획_억", "매출_실적_억")
+        kpi_spark(c2, "영업이익",
+                  f(to억(_oi실적),1), "억원",
+                  to억(_ov('영업이익','차이')),
+                  "green" if (_oi실적 or 0)>=0 else "red",
+                  trend_sec, "영업이익_계획_억", "영업이익_실적_억")
+        _이익률차이 = (_이익률-_이익률계획) if (_이익률 is not None and _이익률계획 is not None) else None
+        kpi_spark(c3, "영업이익률",
+                  f(_이익률,1) if _이익률 is not None else "-", "%",
+                  _이익률차이,
+                  "green" if (_이익률 or 0)>=0 else "red",
+                  trend_sec, "영업이익_계획_억", "영업이익_실적_억")
+
+    # ── 계획 vs 실적 요약 테이블 ──
+    st.markdown('<div class="card"><div class="card-title">계획 vs 실적 요약</div><div class="tbl-wrap">', unsafe_allow_html=True)
+    has_volume = current_page in ["레미콘_손익요약","골재_손익요약"]
+    has_contrib = current_page == "레미콘_손익요약"
+
+    thead_vol = '<th colspan="3">물량 (천㎥)</th>' if has_volume else ''
+    thead_contrib = '<th colspan="3">공헌이익 (원/㎥)</th>' if has_contrib else ''
+    html_tbl = f"""<table class="pl-table"><thead>
+    <tr>
+      <th rowspan="2">구분</th>
+      {thead_vol}
+      <th colspan="3">매출 (백만원)</th>
+      <th colspan="3">영업이익 (백만원)</th>
+      <th colspan="2">이익률</th>
+      {thead_contrib}
+    </tr>
+    <tr>
+      {'<th>계획</th><th>실적</th><th>차이</th>' if has_volume else ''}
+      <th>계획</th><th>실적</th><th>차이</th>
+      <th>계획</th><th>실적</th><th>차이</th>
+      <th>계획</th><th>실적</th>
+      {'<th>계획</th><th>실적</th><th>차이</th>' if has_contrib else ''}
+    </tr></thead><tbody>"""
+
+    def _tval(base, kind):
+        col = f'{base}_누계{kind}' if _sec_sfx else f'{base}_{kind}'
+        v = row_ov.get(col) if row_ov is not None else None
+        return v
+
+    m_p=_tval('물량','계획'); m_r=_tval('물량','실적'); m_d=_tval('물량','차이')
+    s_p=_tval('매출','계획'); s_r=_tval('매출','실적'); s_d=_tval('매출','차이')
+    o_p=_tval('영업이익','계획'); o_r=_tval('영업이익','실적'); o_d=_tval('영업이익','차이')
+    ir_p = (o_p/s_p*100) if (s_p and s_p!=0 and o_p is not None) else None
+    ir_r = (o_r/s_r*100) if (s_r and s_r!=0 and o_r is not None) else None
+
+    vol_td = f'<td>{f(m_p,1)}</td><td>{f(m_r,1)}</td>{td_d(m_d,1)}' if has_volume else ''
+    contrib_td = ""
+    if has_contrib:
+        ch_p = row_fa.get('공헌이익_계획') if row_fa is not None else None
+        ch_r = row_fa.get('공헌이익_실적') if row_fa is not None else None
+        ch_d = (ch_r-ch_p) if (ch_r is not None and ch_p is not None and pd.notna(ch_p)) else None
+        contrib_td = f'<td>{f(ch_p)}</td><td>{f(ch_r)}</td>{td_d(ch_d)}'
+
+    html_tbl += f"""<tr class="total">
+      <td>{nm}</td>
+      {vol_td}
+      <td>{f(s_p)}</td><td>{f(s_r)}</td>{td_d(s_d)}
+      <td>{f(o_p)}</td><td>{f(o_r)}</td>{td_d(o_d)}
+      <td>{f(ir_p,1)}%</td><td>{f(ir_r,1)}%</td>
+      {contrib_td}
+    </tr>"""
+    html_tbl += "</tbody></table>"
+    st.markdown(html_tbl, unsafe_allow_html=True)
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif current_page in ["건자재_손익","골재_손익","임대_손익"]:
