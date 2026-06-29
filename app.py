@@ -231,7 +231,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<span class="nav-admin-btn" onclick="navToAdmin()" title="통합관리시스템">&#9881;&#65039;</span>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<a class="nav-admin-btn" onclick="navTo(\'go-admin\')" title="통합관리시스템" style="text-decoration:none;cursor:pointer;">&#9881;&#65039;</a>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -346,23 +346,16 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 
 <script>
 function navTo(page) {{
-    var doc = (window.parent && window.parent.document) ? window.parent.document : document;
-    var btns = doc.querySelectorAll('button');
-    for (var i = 0; i < btns.length; i++) {{
-        if (btns[i].textContent.trim() === page) {{
-            btns[i].click();
-            return;
-        }}
-    }}
-}}
-function navToAdmin() {{
-    var doc = (window.parent && window.parent.document) ? window.parent.document : document;
-    var btns = doc.querySelectorAll('button');
-    for (var i = 0; i < btns.length; i++) {{
-        var t = btns[i].textContent.trim();
-        if (t === 'go-admin' || t.indexOf('go-admin') !== -1) {{
-            btns[i].click();
-            return;
+    var allDocs = [];
+    try {{ allDocs.push(document); }} catch(e) {{}}
+    try {{ if (window.parent && window.parent.document !== document) allDocs.push(window.parent.document); }} catch(e) {{}}
+    for (var d = 0; d < allDocs.length; d++) {{
+        var btns = allDocs[d].querySelectorAll('button');
+        for (var i = 0; i < btns.length; i++) {{
+            if (btns[i].textContent.trim() === page) {{
+                btns[i].click();
+                return;
+            }}
         }}
     }}
 }}
