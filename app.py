@@ -99,7 +99,7 @@ if not st.session_state["logged_in"]:
                 padding:0 28px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-bottom:1px solid #e8eaf0;">
         {logo_tag}
         <span style="color:rgba(0,0,0,0.2);margin:0 16px;font-size:1.1em;">|</span>
-        <span style="color:#4a5568;font-size:0.82em;font-weight:400;
+        <span style="color:#4a5568;font-size:1.05em;font-weight:500;
                      letter-spacing:0.04em;">건재사업본부 손익 관리 시스템</span>
     </div>
     """, unsafe_allow_html=True)
