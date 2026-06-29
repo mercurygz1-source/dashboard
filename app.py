@@ -612,19 +612,45 @@ def spark(df, pcol, acol, height=420):
             marker=dict(size=9, color='#93c5fd'),
         ))
     if acol in df.columns:
-        yvals = df[acol]
+        yvals = list(df[acol])
         textvals = [f"{v:,.0f}" if v is not None and not (isinstance(v, float) and pd.isna(v)) else "" for v in yvals]
+
+        # 각 포인트 위/아래 자동 배치: 직전보다 높으면 위, 낮으면 아래
+        # 단, 인접 포인트와 너무 가까우면 반대쪽으로
+        def smart_pos(vals):
+            n = len(vals)
+            pos = []
+            for i in range(n):
+                prev = vals[i-1] if i > 0 else None
+                nxt  = vals[i+1] if i < n-1 else None
+                cur  = vals[i]
+                if cur is None or (isinstance(cur, float) and pd.isna(cur)):
+                    pos.append('top center')
+                    continue
+                # 로컬 최대 → 위, 로컬 최소 → 아래
+                is_max = (prev is None or cur >= prev) and (nxt is None or cur >= nxt)
+                is_min = (prev is None or cur <= prev) and (nxt is None or cur <= nxt)
+                if is_max:
+                    pos.append('top center')
+                elif is_min:
+                    pos.append('bottom center')
+                else:
+                    # 방향: 올라가는 중이면 위, 내려가는 중이면 아래
+                    pos.append('top center' if (prev is not None and cur > prev) else 'bottom center')
+            return pos
+
+        text_positions = smart_pos(yvals)
         fig.add_trace(go.Scatter(
             x=mlabels, y=yvals, mode='lines+markers+text', name='실적',
             line=dict(color='#1d4ed8', width=4),
             marker=dict(size=10, color='#1d4ed8'),
             text=textvals,
-            textposition='top center',
+            textposition=text_positions,
             textfont=dict(size=16, color='#1d4ed8', family='Noto Sans KR'),
         ))
     fig.update_layout(
         height=height,
-        margin=dict(l=10, r=10, t=44, b=10),
+        margin=dict(l=10, r=10, t=50, b=30),
         plot_bgcolor='white', paper_bgcolor='white',
         showlegend=True,
         legend=dict(
