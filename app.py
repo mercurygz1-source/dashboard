@@ -357,34 +357,29 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right"><span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>{admin_btn_html}<a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a></div>
 </div>
-<script>
-function navTo(page) {{
-    var found = false;
-    var allDocs = [document];
-    try {{ if (window.parent && window.parent.document !== document) allDocs.push(window.parent.document); }} catch(e) {{}}
-    for (var d = 0; d < allDocs.length; d++) {{
-        var btns = allDocs[d].querySelectorAll('[data-testid="stSidebar"] button, section[data-testid="stSidebar"] button');
-        for (var i = 0; i < btns.length; i++) {{
-            var t = (btns[i].innerText || btns[i].textContent || '').replace(/\s+/g,' ').trim();
-            if (t === page) {{ btns[i].click(); found = true; return; }}
-        }}
-    }}
-    if (!found) {{
-        var tries = 0;
-        var timer = setInterval(function() {{
-            for (var d = 0; d < allDocs.length; d++) {{
-                var btns = allDocs[d].querySelectorAll('button');
-                for (var i = 0; i < btns.length; i++) {{
-                    var t = (btns[i].innerText || btns[i].textContent || '').replace(/\s+/g,' ').trim();
-                    if (t === page) {{ btns[i].click(); clearInterval(timer); return; }}
-                }}
-            }}
-            if (++tries >= 20) clearInterval(timer);
-        }}, 150);
-    }}
-}}
-</script>
 """, unsafe_allow_html=True)
+
+# navTo JS — components.v1.html은 iframe 안에서 실행되므로 window.parent에 함수 주입
+import streamlit.components.v1 as components
+components.html("""
+<script>
+(function() {
+    function navTo(page) {
+        var p = window.parent;
+        var tries = 0;
+        var timer = setInterval(function() {
+            var btns = p.document.querySelectorAll('button');
+            for (var i = 0; i < btns.length; i++) {
+                var t = (btns[i].innerText || btns[i].textContent || '').replace(/\\s+/g,' ').trim();
+                if (t === page) { btns[i].click(); clearInterval(timer); return; }
+            }
+            if (++tries >= 30) clearInterval(timer);
+        }, 100);
+    }
+    window.parent.navTo = navTo;
+})();
+</script>
+""", height=0)
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
