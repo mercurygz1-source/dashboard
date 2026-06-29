@@ -231,7 +231,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<a class="nav-admin-btn" onclick="navTo(\'go-admin\')" title="통합관리시스템" style="text-decoration:none;cursor:pointer;">&#9881;&#65039;</a>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<span class="nav-admin-btn-placeholder" title="통합관리시스템">&#9881;&#65039;</span>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -296,14 +296,26 @@ st.markdown(f"""
 }}
 .nav-logout-btn:visited {{ color:#6b7280 !important; text-decoration:none !important; }}
 .nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8 !important; text-decoration:none !important; }}
-.nav-admin-btn {{
-    background:none; border:1px solid #d1d5db; color:#6b7280;
-    width:34px; height:34px; border-radius:4px; font-size:1em; cursor:pointer;
+.nav-admin-btn-placeholder {{
     display:inline-flex; align-items:center; justify-content:center;
-    transition:all 0.15s; padding:0; user-select:none;
-    text-decoration:none !important; margin-left:4px;
+    width:34px; height:34px; opacity:0; pointer-events:none;
 }}
-.nav-admin-btn:hover {{ border-color:#1d4ed8; background:#eff6ff; color:#1d4ed8; text-decoration:none !important; }}
+/* 네이티브 Streamlit 관리자 버튼을 nav bar 위치에 고정 */
+[data-testid="stMainBlockContainer"] > div > div > div[data-testid="stVerticalBlock"] > div:first-child [data-testid="stButton"] button,
+div[data-testid="stVerticalBlock"] > div:first-child > div[data-testid="stButton"] button {{
+    position:fixed !important; top:18px !important; right:110px !important;
+    z-index:10000 !important; width:34px !important; height:34px !important;
+    min-height:0 !important; padding:0 !important; background:none !important;
+    border:1px solid #d1d5db !important; border-radius:4px !important;
+    font-size:1.1em !important; color:#6b7280 !important;
+    transition:all 0.15s !important; line-height:1 !important;
+}}
+div[data-testid="stVerticalBlock"] > div:first-child > div[data-testid="stButton"] button:hover {{
+    border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important;
+}}
+div[data-testid="stVerticalBlock"] > div:first-child > div[data-testid="stButton"] p {{
+    font-size:1.1em !important; margin:0 !important;
+}}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
@@ -362,6 +374,11 @@ function navTo(page) {{
 </script>
 """, unsafe_allow_html=True)
 
+# 관리자 전용 네이티브 버튼 — CSS로 nav bar 위치에 고정됨
+if st.session_state.get("username") == ADMIN_USER:
+    if st.button("⚙", key="admin_nav_btn", help="통합관리시스템"):
+        st.session_state["page"] = "ADMIN_PAGE"
+        st.rerun()
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
