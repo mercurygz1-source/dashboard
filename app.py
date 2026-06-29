@@ -966,48 +966,166 @@ elif current_page == "건재손익_부문별":
 
     df_ov_bm = _get_overview_bm(selected_year, selected_month)
 
-    def _oir_bm(sale, oi):
-        try:
-            return f"{float(oi)/float(sale)*100:.1f}%"
-        except:
-            return "-"
-
-    def _build_overview_table_bm(df_src, sfx=""):
-        p = lambda col: col + ('_누계계획' if sfx else '_계획')
-        r_col = lambda col: col + ('_누계실적' if sfx else '_실적')
-        d_col = lambda col: col + ('_누계차이' if sfx else '_차이')
-        html = """<table class="pl-table">
-        <thead>
-        <tr>
-          <th rowspan="2">구분</th>
-          <th colspan="3">물량 (천㎥)</th>
-          <th colspan="3">매출액 (백만원)</th>
-          <th colspan="3">영업이익 (백만원)</th>
-          <th colspan="2">영업이익률</th>
-        </tr>
-        <tr>
-          <th>계획</th><th>실적</th><th>차이</th>
-          <th>계획</th><th>실적</th><th>차이</th>
-          <th>계획</th><th>실적</th><th>차이</th>
-          <th>계획</th><th>실적</th>
-        </tr></thead><tbody>"""
-        for _, row in df_src.iterrows():
-            name = row['구분']
-            tc = ' class="total"' if name == '합계' else ''
-            m_p = row.get(p('물량')); m_r = row.get(r_col('물량')); m_d = row.get(d_col('물량'))
-            s_p = row.get(p('매출')); s_r = row.get(r_col('매출')); s_d = row.get(d_col('매출'))
-            o_p = row.get(p('영업이익')); o_r = row.get(r_col('영업이익')); o_d = row.get(d_col('영업이익'))
-            html += f"""<tr{tc}>
-              <td>{name}</td>
-              <td>{f(m_p,1)}</td><td>{f(m_r,1)}</td>{td_d(m_d,1)}
-              <td>{f(s_p)}</td><td>{f(s_r)}</td>{td_d(s_d)}
-              <td>{f(o_p)}</td><td>{f(o_r)}</td>{td_d(o_d)}
-              <td>{_oir_bm(s_p,o_p)}</td><td>{_oir_bm(s_r,o_r)}</td>
-            </tr>"""
-        html += "</tbody></table>"
-        return html
-
     if df_ov_bm is not None:
+        _sfx = _bm_sfx
+        _p   = lambda col: col + ('_누계계획' if _sfx else '_계획')
+        _r   = lambda col: col + ('_누계실적' if _sfx else '_실적')
+        _d   = lambda col: col + ('_누계차이' if _sfx else '_차이')
+
+        _divisions   = ['레미콘', '골재', '건자재', '기타']
+        _div_colors  = {'레미콘': '#1d4ed8', '골재': '#0891b2', '건자재': '#059669', '기타': '#7c3aed'}
+        _df_div = df_ov_bm[df_ov_bm['구분'].isin(_divisions)].set_index('구분')
+
+        # ── 1. KPI 카드 ──────────────────────────────────────────
+        _kpi_cols = st.columns(4, gap="small")
+        for _i, _dname in enumerate(_divisions):
+            if _dname not in _df_div.index:
+                continue
+            _row = _df_div.loc[_dname]
+            _sp = _row.get(_p('매출')); _sr = _row.get(_r('매출'))
+            _op = _row.get(_p('영업이익')); _or = _row.get(_r('영업이익'))
+            _clr = _div_colors[_dname]
+
+            _ach_val = (_sr / _sp * 100) if (_sp and _sr and _sp != 0) else None
+            _ach_str = f"{_ach_val:.0f}%" if _ach_val is not None else "-"
+            _ach_clr = "#16a34a" if (_ach_val and _ach_val >= 100) else "#dc2626"
+
+            _oi_rate = f"{_or/_sr*100:.1f}%" if (_sr and _or and _sr != 0) else "-"
+            _oi_diff = (_or - _op) if (_or is not None and _op is not None) else None
+            _oi_diff_str = (f"+{int(_oi_diff):,}" if _oi_diff >= 0 else f"{int(_oi_diff):,}") if _oi_diff is not None else "-"
+            _oi_diff_clr = "#16a34a" if (_oi_diff is not None and _oi_diff >= 0) else "#dc2626"
+
+            with _kpi_cols[_i]:
+                st.markdown(f"""
+                <div style="background:white;border-radius:12px;padding:18px 16px 14px;border-top:4px solid {_clr};box-shadow:0 1px 6px rgba(0,0,0,0.08);height:100%;">
+                  <div style="font-size:1.05em;font-weight:800;color:{_clr};margin-bottom:10px;">{_dname}</div>
+                  <div style="font-size:0.72em;color:#9ca3af;margin-bottom:2px;">매출 실적</div>
+                  <div style="font-size:1.45em;font-weight:800;color:#1f2937;line-height:1.2;">{f"{int(_sr):,}" if _sr else "-"}<span style="font-size:0.45em;font-weight:400;color:#9ca3af;"> 백만원</span></div>
+                  <div style="font-size:0.8em;color:{_ach_clr};font-weight:600;margin-bottom:10px;">계획대비 {_ach_str}</div>
+                  <div style="height:1px;background:#f3f4f6;margin:8px 0;"></div>
+                  <div style="font-size:0.72em;color:#9ca3af;margin-bottom:2px;">영업이익</div>
+                  <div style="font-size:1.15em;font-weight:700;color:#1f2937;">{f"{int(_or):,}" if _or is not None else "-"}<span style="font-size:0.45em;font-weight:400;color:#9ca3af;"> 백만원</span></div>
+                  <div style="font-size:0.78em;color:{_oi_diff_clr};font-weight:600;">차이 {_oi_diff_str}</div>
+                  <div style="font-size:0.72em;color:#9ca3af;">이익률 {_oi_rate}</div>
+                </div>""", unsafe_allow_html=True)
+
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+        # ── 2. 차트 ──────────────────────────────────────────────
+        _col_l, _col_r = st.columns([1, 1], gap="small")
+
+        with _col_l:
+            _pie_vals, _pie_labels, _pie_colors = [], [], []
+            for _dn in _divisions:
+                if _dn in _df_div.index:
+                    _v = _df_div.loc[_dn, _r('매출')]
+                    if _v and _v > 0:
+                        _pie_vals.append(_v)
+                        _pie_labels.append(_dn)
+                        _pie_colors.append(_div_colors[_dn])
+            if _pie_vals:
+                _fig_pie = go.Figure(go.Pie(
+                    labels=_pie_labels, values=_pie_vals, hole=0.58,
+                    marker=dict(colors=_pie_colors, line=dict(color='white', width=2)),
+                    textinfo='label+percent',
+                    textfont=dict(size=13),
+                    hovertemplate='<b>%{label}</b><br>%{value:,.0f} 백만원<br>%{percent}<extra></extra>',
+                ))
+                _fig_pie.update_layout(
+                    title=dict(text="매출 구성 비중", font=dict(size=14, color='#1f2937'), x=0.5, xanchor='center'),
+                    showlegend=True,
+                    legend=dict(orientation='h', yanchor='bottom', y=-0.18, xanchor='center', x=0.5, font=dict(size=12)),
+                    margin=dict(t=40, b=50, l=10, r=10), height=300,
+                    paper_bgcolor='white', plot_bgcolor='white',
+                    annotations=[dict(text=f"매출<br><b>{int(sum(_pie_vals)):,}</b>", x=0.5, y=0.5, font_size=12, showarrow=False, font_color='#374151')]
+                )
+                st.markdown('<div style="background:white;border-radius:12px;padding:8px 8px 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);">', unsafe_allow_html=True)
+                st.plotly_chart(_fig_pie, use_container_width=True, config={"displayModeBar": False})
+                st.markdown('</div>', unsafe_allow_html=True)
+
+        with _col_r:
+            _bar_names, _bar_plan, _bar_real = [], [], []
+            for _dn in _divisions:
+                if _dn in _df_div.index:
+                    _op2 = _df_div.loc[_dn, _p('영업이익')]
+                    _or2 = _df_div.loc[_dn, _r('영업이익')]
+                    if _op2 is not None or _or2 is not None:
+                        _bar_names.append(_dn)
+                        _bar_plan.append(_op2 or 0)
+                        _bar_real.append(_or2 or 0)
+            if _bar_names:
+                _fig_bar = go.Figure()
+                _fig_bar.add_trace(go.Bar(
+                    name='계획', y=_bar_names, x=_bar_plan, orientation='h',
+                    marker_color='#bfdbfe', marker_line_width=0,
+                    hovertemplate='계획: <b>%{x:,.0f}</b> 백만원<extra></extra>',
+                    text=[f"{int(v):,}" for v in _bar_plan], textposition='inside',
+                    textfont=dict(color='#1d4ed8', size=11),
+                ))
+                _fig_bar.add_trace(go.Bar(
+                    name='실적', y=_bar_names, x=_bar_real, orientation='h',
+                    marker_color=['#16a34a' if v >= 0 else '#dc2626' for v in _bar_real],
+                    marker_line_width=0,
+                    hovertemplate='실적: <b>%{x:,.0f}</b> 백만원<extra></extra>',
+                    text=[f"{int(v):,}" for v in _bar_real], textposition='inside',
+                    textfont=dict(color='white', size=11),
+                ))
+                _fig_bar.update_layout(
+                    title=dict(text="영업이익 계획 vs 실적 (백만원)", font=dict(size=14, color='#1f2937'), x=0.5, xanchor='center'),
+                    barmode='group', bargap=0.3, bargroupgap=0.1,
+                    xaxis=dict(showgrid=True, gridcolor='#f3f4f6', zeroline=True, zerolinecolor='#9ca3af'),
+                    yaxis=dict(showgrid=False),
+                    legend=dict(orientation='h', yanchor='bottom', y=-0.18, xanchor='center', x=0.5, font=dict(size=12)),
+                    margin=dict(t=40, b=50, l=10, r=20), height=300,
+                    paper_bgcolor='white', plot_bgcolor='white',
+                )
+                st.markdown('<div style="background:white;border-radius:12px;padding:8px 8px 0;box-shadow:0 1px 6px rgba(0,0,0,0.08);">', unsafe_allow_html=True)
+                st.plotly_chart(_fig_bar, use_container_width=True, config={"displayModeBar": False})
+                st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+        # ── 3. 상세 테이블 ────────────────────────────────────────
+        def _oir_bm(sale, oi):
+            try:
+                return f"{float(oi)/float(sale)*100:.1f}%"
+            except:
+                return "-"
+
+        def _build_overview_table_bm(df_src, sfx=""):
+            _p2 = lambda col: col + ('_누계계획' if sfx else '_계획')
+            _r2 = lambda col: col + ('_누계실적' if sfx else '_실적')
+            _d2 = lambda col: col + ('_누계차이' if sfx else '_차이')
+            html = """<table class="pl-table"><thead>
+            <tr>
+              <th rowspan="2">구분</th>
+              <th colspan="3">물량 (천㎥)</th>
+              <th colspan="3">매출액 (백만원)</th>
+              <th colspan="3">영업이익 (백만원)</th>
+              <th colspan="2">영업이익률</th>
+            </tr>
+            <tr>
+              <th>계획</th><th>실적</th><th>차이</th>
+              <th>계획</th><th>실적</th><th>차이</th>
+              <th>계획</th><th>실적</th><th>차이</th>
+              <th>계획</th><th>실적</th>
+            </tr></thead><tbody>"""
+            for _, row in df_src.iterrows():
+                name = row['구분']
+                tc = ' class="total"' if name == '합계' else ''
+                m_p = row.get(_p2('물량')); m_r = row.get(_r2('물량')); m_d = row.get(_d2('물량'))
+                s_p = row.get(_p2('매출')); s_r = row.get(_r2('매출')); s_d = row.get(_d2('매출'))
+                o_p = row.get(_p2('영업이익')); o_r = row.get(_r2('영업이익')); o_d = row.get(_d2('영업이익'))
+                html += f"""<tr{tc}>
+                  <td>{name}</td>
+                  <td>{f(m_p,1)}</td><td>{f(m_r,1)}</td>{td_d(m_d,1)}
+                  <td>{f(s_p)}</td><td>{f(s_r)}</td>{td_d(s_d)}
+                  <td>{f(o_p)}</td><td>{f(o_r)}</td>{td_d(o_d)}
+                  <td>{_oir_bm(s_p,o_p)}</td><td>{_oir_bm(s_r,o_r)}</td>
+                </tr>"""
+            html += "</tbody></table>"
+            return html
+
         st.markdown(_build_overview_table_bm(df_ov_bm, _bm_sfx), unsafe_allow_html=True)
     else:
         st.error("손익총괄 데이터를 불러올 수 없습니다.")
