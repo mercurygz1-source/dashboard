@@ -1264,192 +1264,433 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
         return load_factory_data(year, month, period=period)
 
     @st.cache_data(ttl=600)
-    def get_sec_trend(year, up_to_month, section):
+    def get_monthly_trend(year, up_to_month, ov_key, fa_key_name):
         months = [m for m in get_available_months(year) if m <= up_to_month]
         rows = []
         for m in months:
             dov = load_overview(year, m)
             dfa = load_factory_data(year, m)
-            if dov is None: continue
-            row_ov = dov[dov['구분']==section]
-            row_ov = row_ov.iloc[0] if not row_ov.empty else None
-            row_fa = None
-            if dfa is not None:
-                fa_key = {'레미콘':'레미콘 계','골재':'골재 계','건자재':'건자재','임대':'임대'}.get(section)
-                if fa_key:
-                    match = dfa[dfa['공장명']==fa_key]
-                    row_fa = match.iloc[0] if not match.empty else None
             r = {'월': m}
-            for base in ['물량','매출','영업이익']:
-                r[f'{base}_계획'] = row_ov.get(f'{base}_계획') if row_ov is not None else None
-                r[f'{base}_실적'] = row_ov.get(f'{base}_실적') if row_ov is not None else None
-            if section == '레미콘' and row_fa is not None:
-                r['공헌이익_계획'] = row_fa.get('공헌이익_계획')
-                r['공헌이익_실적'] = row_fa.get('공헌이익_실적')
+            if dov is not None:
+                ov_row = dov[dov['구분']==ov_key]
+                ov_row = ov_row.iloc[0] if not ov_row.empty else None
+                for base in ['물량','매출','영업이익']:
+                    r[f'{base}_계획'] = ov_row.get(f'{base}_계획') if ov_row is not None else None
+                    r[f'{base}_실적'] = ov_row.get(f'{base}_실적') if ov_row is not None else None
+            if dfa is not None and fa_key_name:
+                fa_row = dfa[dfa['공장명']==fa_key_name]
+                fa_row = fa_row.iloc[0] if not fa_row.empty else None
+                if fa_row is not None:
+                    r['공헌이익_계획'] = fa_row.get('공헌이익_계획')
+                    r['공헌이익_실적'] = fa_row.get('공헌이익_실적')
             rows.append(r)
         return pd.DataFrame(rows) if rows else None
 
-    df_sec_ov = get_sec_overview(selected_year, selected_month)
-    df_sec_fa = get_sec_factory(selected_year, selected_month, period=_sec_sfx if _sec_sfx else "당월")
-
-    section_key = {'레미콘_손익요약':'레미콘','건자재_손익요약':'건자재','골재_손익요약':'골재','임대_손익요약':'기타'}[current_page]
-    fa_key = {'레미콘_손익요약':'레미콘 계','건자재_손익요약':'건자재','골재_손익요약':'골재 계','임대_손익요약':'임대'}[current_page]
-
-    row_ov = df_sec_ov[df_sec_ov['구분']==section_key].iloc[0] if df_sec_ov is not None and not df_sec_ov[df_sec_ov['구분']==section_key].empty else None
-    row_fa = df_sec_fa[df_sec_fa['공장명']==fa_key].iloc[0] if df_sec_fa is not None and not df_sec_fa[df_sec_fa['공장명']==fa_key].empty else None
-
-    def _ov(base, kind):
-        col = f'{base}_누계{kind}' if _sec_sfx else f'{base}_{kind}'
-        return row_ov.get(col) if row_ov is not None else None
-    def _fa(col):
-        return row_fa.get(col) if row_fa is not None else None
     def to억(v):
         if v is None or (isinstance(v, float) and pd.isna(v)): return None
         return v / 100
 
-    trend_sec = get_sec_trend(selected_year, selected_month, section_key)
-    if trend_sec is not None and not trend_sec.empty:
-        for _c in ['매출_계획','매출_실적','영업이익_계획','영업이익_실적']:
-            if _c in trend_sec.columns:
-                trend_sec[_c+'_억'] = trend_sec[_c] / 100
+    ov_section = {'레미콘_손익요약':'레미콘','건자재_손익요약':'건자재','골재_손익요약':'골재','임대_손익요약':'기타'}[current_page]
+    fa_name    = {'레미콘_손익요약':'레미콘 계','건자재_손익요약':'건자재','골재_손익요약':'골재 계','임대_손익요약':'임대'}[current_page]
 
-    st.markdown("""
-    <style>
-    [data-testid="stColumn"] [data-testid="stVerticalBlock"]
-        > [data-testid="element-container"]:has(+ [data-testid="element-container"] [data-testid="stPlotlyChart"]) {
-        margin-bottom: 0 !important;
-    }
-    [data-testid="stColumn"] [data-testid="stVerticalBlock"]
-        > [data-testid="element-container"]:has([data-testid="stPlotlyChart"]) {
-        margin-top: -10px !important; background: white;
-    }
-    </style>""", unsafe_allow_html=True)
+    df_sec_ov = get_sec_overview(selected_year, selected_month)
+    df_sec_fa = get_sec_factory(selected_year, selected_month, period=_sec_sfx if _sec_sfx else "당월")
+
+    row_ov = df_sec_ov[df_sec_ov['구분']==ov_section].iloc[0] if df_sec_ov is not None and not df_sec_ov[df_sec_ov['구분']==ov_section].empty else None
+    row_fa = df_sec_fa[df_sec_fa['공장명']==fa_name].iloc[0] if df_sec_fa is not None and not df_sec_fa[df_sec_fa['공장명']==fa_name].empty else None
+
+    def _ov(base, kind):
+        col = f'{base}_누계{kind}' if _sec_sfx else f'{base}_{kind}'
+        return row_ov.get(col) if row_ov is not None else None
+
+    trend_df2 = get_monthly_trend(selected_year, selected_month, ov_section, fa_name)
+
+    def _safe(v, d=1):
+        if v is None or (isinstance(v, float) and pd.isna(v)): return None
+        return round(float(v), d)
+
+    def _pct(actual, plan):
+        try:
+            if actual is None or plan is None or plan == 0: return None
+            return round(actual / plan * 100, 1)
+        except: return None
+
+    def _달성색(pct):
+        if pct is None: return '#6b7280'
+        if pct >= 100: return '#16a34a'
+        if pct >= 85: return '#d97706'
+        return '#dc2626'
+
+    def _delta_html(val, unit='백만원', positive_good=True):
+        if val is None or (isinstance(val, float) and pd.isna(val)): return ''
+        good = val >= 0 if positive_good else val <= 0
+        color = '#16a34a' if good else '#dc2626'
+        arrow = '▲' if val >= 0 else '▼'
+        return f'<span style="color:{color};font-size:0.85em;font-weight:700;">{arrow} {f(abs(val))} {unit}</span>'
 
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
-    # ── KPI 카드 ──
+    # ════════════════════════════════
+    # 레미콘 요약: 달성률 게이지 + 지역별 바차트 + 공헌이익 바차트
+    # ════════════════════════════════
     if current_page == "레미콘_손익요약":
-        df_rc_fa = get_sec_factory(selected_year, selected_month, period=_sec_sfx if _sec_sfx else "당월")
-        rc_detail = df_rc_fa[df_rc_fa['공장명']=='레미콘 계'].iloc[0] if df_rc_fa is not None and not df_rc_fa[df_rc_fa['공장명']=='레미콘 계'].empty else None
-        c1, c2, c3, c4 = st.columns(4)
-        kpi_spark(c1, "판매량",
-                  f(_ov('물량','실적'),1), "천㎥",
-                  _ov('물량','차이'), "amber",
-                  trend_sec, "물량_계획", "물량_실적",
-                  actual_val=_ov('물량','실적'), plan_val=_ov('물량','계획'))
-        kpi_spark(c2, "매출액",
-                  f(to억(_ov('매출','실적')),1), "억원",
-                  to억(_ov('매출','차이')), "",
-                  trend_sec, "매출_계획_억", "매출_실적_억")
-        _oi실적 = _ov('영업이익','실적')
-        kpi_spark(c3, "영업이익",
-                  f(to억(_oi실적),1), "억원",
-                  to억(_ov('영업이익','차이')),
-                  "green" if (_oi실적 or 0)>=0 else "red",
-                  trend_sec, "영업이익_계획_억", "영업이익_실적_억")
-        _ch실적 = rc_detail.get('공헌이익_실적') if rc_detail is not None else None
-        _ch계획 = rc_detail.get('공헌이익_계획') if rc_detail is not None else None
-        kpi_spark(c4, "공헌이익",
-                  f(_ch실적), "원/㎥",
-                  (_ch실적-_ch계획) if (_ch실적 is not None and _ch계획 is not None and pd.notna(_ch계획)) else None,
-                  "green" if (_ch실적 or 0)>=0 else "red",
-                  trend_sec, "공헌이익_계획", "공헌이익_실적")
+        m_r=_safe(_ov('물량','실적')); m_p=_safe(_ov('물량','계획'))
+        s_r=_safe(_ov('매출','실적')); s_p=_safe(_ov('매출','계획'))
+        o_r=_safe(_ov('영업이익','실적')); o_p=_safe(_ov('영업이익','계획'))
+        m_pct=_pct(m_r,m_p); s_pct=_pct(s_r,s_p); o_pct=_pct(o_r,o_p)
 
+        # ── 상단: 3개 달성률 게이지 카드 ──
+        def gauge_card(label, actual, plan, unit, pct, color_theme):
+            bar_w = min(max(pct or 0, 0), 150) / 150 * 100
+            bar_color = _달성색(pct)
+            diff = (actual - plan) if (actual is not None and plan is not None) else None
+            diff_html = _delta_html(diff, unit)
+            return f"""
+            <div style="background:white;border-radius:12px;padding:22px 24px;border:1px solid #e5e7eb;
+                        box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:5px solid {color_theme};">
+              <div style="font-size:0.85em;font-weight:700;color:#6b7280;letter-spacing:0.05em;margin-bottom:6px;">{label}</div>
+              <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:14px;">
+                <span style="font-size:2.2em;font-weight:900;color:#1f2937;">{f(actual,1) if actual is not None else '-'}</span>
+                <span style="font-size:1em;color:#6b7280;font-weight:500;">{unit}</span>
+              </div>
+              <div style="background:#f3f4f6;border-radius:6px;height:8px;margin-bottom:8px;">
+                <div style="background:{bar_color};width:{bar_w:.1f}%;height:8px;border-radius:6px;transition:width 0.3s;"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.8em;color:#9ca3af;">계획 {f(plan,1)} {unit}</span>
+                <span style="font-size:1.05em;font-weight:800;color:{bar_color};">계획 {pct:.1f}%</span>
+              </div>
+              <div style="margin-top:6px;">{diff_html}</div>
+            </div>"""
+
+        col1, col2, col3 = st.columns(3)
+        col1.markdown(gauge_card("판매량", m_r, m_p, "천㎥", m_pct, "#d97706"), unsafe_allow_html=True)
+        col2.markdown(gauge_card("매출액", to억(s_r*100 if s_r else None), to억(s_p*100 if s_p else None), "억원",
+                                  s_pct, "#1d4ed8"), unsafe_allow_html=True)
+        _oi_color = "#16a34a" if (o_r or 0) >= 0 else "#dc2626"
+        col3.markdown(gauge_card("영업이익", to억(o_r*100 if o_r else None), to억(o_p*100 if o_p else None), "억원",
+                                  o_pct, _oi_color), unsafe_allow_html=True)
+
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+        # ── 중단: 지역별 실적 바차트 + 공헌이익 월별 바차트 ──
+        ch_left, ch_right = st.columns([1, 1])
+
+        with ch_left:
+            st.markdown('<div class="card"><div class="card-title">지역별 판매 실적 (천㎥)</div>', unsafe_allow_html=True)
+            region_rows = []
+            for rname in ['수도권','영남권','중부권']:
+                match = df_sec_fa[df_sec_fa['공장명']==rname] if df_sec_fa is not None else pd.DataFrame()
+                if not match.empty:
+                    r2 = match.iloc[0]
+                    region_rows.append({'지역': rname,
+                                        '계획': r2.get('물량_계획'), '실적': r2.get('물량_실적')})
+            if region_rows:
+                df_reg = pd.DataFrame(region_rows)
+                fig_reg = go.Figure()
+                fig_reg.add_trace(go.Bar(name='계획', x=df_reg['지역'], y=df_reg['계획'],
+                                         marker_color='#bfdbfe', text=df_reg['계획'].apply(lambda v: f"{v:,.1f}" if v else ""),
+                                         textposition='outside', textfont=dict(size=11)))
+                fig_reg.add_trace(go.Bar(name='실적', x=df_reg['지역'], y=df_reg['실적'],
+                                         marker_color='#1d4ed8', text=df_reg['실적'].apply(lambda v: f"{v:,.1f}" if v else ""),
+                                         textposition='outside', textfont=dict(size=11)))
+                fig_reg.update_layout(barmode='group', height=280, plot_bgcolor='white', paper_bgcolor='white',
+                    margin=dict(l=0,r=0,t=10,b=10),
+                    legend=dict(orientation='h',x=0.5,xanchor='center',y=1.12,font=dict(size=12)),
+                    xaxis=dict(tickfont=dict(size=13,color='#374151'), showgrid=False),
+                    yaxis=dict(showticklabels=False, showgrid=False),
+                    font=dict(family='Noto Sans KR'))
+                st.plotly_chart(fig_reg, use_container_width=True, config={'displayModeBar': False})
+            else:
+                st.info("지역별 데이터 없음")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with ch_right:
+            st.markdown('<div class="card"><div class="card-title">월별 공헌이익 추이 (원/㎥)</div>', unsafe_allow_html=True)
+            if trend_df2 is not None and '공헌이익_실적' in trend_df2.columns:
+                mlabels = [f"{int(m)}월" for m in trend_df2['월']]
+                ch_vals = list(trend_df2['공헌이익_실적'].fillna(0))
+                ch_plan = list(trend_df2.get('공헌이익_계획', pd.Series([None]*len(mlabels))).fillna(0))
+                colors = ['#16a34a' if v >= 0 else '#dc2626' for v in ch_vals]
+                fig_ch = go.Figure()
+                fig_ch.add_trace(go.Scatter(x=mlabels, y=ch_plan, name='계획',
+                    line=dict(color='#93c5fd', width=2, dash='dot'), mode='lines+markers',
+                    marker=dict(size=6)))
+                fig_ch.add_trace(go.Bar(x=mlabels, y=ch_vals, name='실적',
+                    marker_color=colors,
+                    text=[f"{v:,.0f}" for v in ch_vals], textposition='outside', textfont=dict(size=10)))
+                fig_ch.update_layout(barmode='overlay', height=280, plot_bgcolor='white', paper_bgcolor='white',
+                    margin=dict(l=0,r=0,t=10,b=10),
+                    legend=dict(orientation='h',x=0.5,xanchor='center',y=1.12,font=dict(size=12)),
+                    xaxis=dict(tickfont=dict(size=12), showgrid=False),
+                    yaxis=dict(showticklabels=False, showgrid=True, gridcolor='#f3f4f6'),
+                    font=dict(family='Noto Sans KR'))
+                st.plotly_chart(fig_ch, use_container_width=True, config={'displayModeBar': False})
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    # ════════════════════════════════
+    # 건자재 요약: 좌측 빅넘버 KPI + 우측 월별 매출/이익 바차트
+    # ════════════════════════════════
+    elif current_page == "건자재_손익요약":
+        s_r=_ov('매출','실적'); s_p=_ov('매출','계획'); s_d=_ov('매출','차이')
+        o_r=_ov('영업이익','실적'); o_p=_ov('영업이익','계획'); o_d=_ov('영업이익','차이')
+        ir_r = (o_r/s_r*100) if (s_r and s_r!=0 and o_r is not None) else None
+        ir_p = (o_p/s_p*100) if (s_p and s_p!=0 and o_p is not None) else None
+        s_pct = _pct(s_r, s_p)
+        o_pct = _pct(o_r, o_p)
+
+        left_col, right_col = st.columns([1, 1.6])
+
+        with left_col:
+            def big_kpi(label, actual_억, plan_억, unit, pct, border_color, is_profit=False):
+                pct_color = _달성색(pct)
+                bar_w = min(max(pct or 0, 0), 150) / 150 * 100
+                diff_억 = (actual_억 - plan_억) if (actual_억 is not None and plan_억 is not None) else None
+                diff_html = ''
+                if diff_억 is not None:
+                    good = diff_억 >= 0
+                    c = '#16a34a' if good else '#dc2626'
+                    arrow = '▲' if diff_억 >= 0 else '▼'
+                    diff_html = f'<span style="color:{c};font-weight:700;">{arrow} {f(abs(diff_억),1)} {unit} vs 계획</span>'
+                return f"""
+                <div style="background:white;border-radius:12px;padding:26px 28px;border:1px solid #e5e7eb;
+                            box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:14px;
+                            border-top:5px solid {border_color};">
+                  <div style="font-size:0.82em;font-weight:700;color:{border_color};letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">{label}</div>
+                  <div style="font-size:2.8em;font-weight:900;color:#1f2937;line-height:1;">{f(actual_억,1) if actual_억 is not None else '-'}</div>
+                  <div style="font-size:1em;color:#6b7280;margin-bottom:14px;">{unit}</div>
+                  <div style="background:#f3f4f6;border-radius:6px;height:6px;margin-bottom:10px;">
+                    <div style="background:{pct_color};width:{bar_w:.1f}%;height:6px;border-radius:6px;"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-size:0.78em;color:#9ca3af;">계획 {f(plan_억,1)} {unit}</span>
+                    <span style="font-size:1em;font-weight:800;color:{pct_color};">{pct:.1f}% 달성</span>
+                  </div>
+                  <div style="font-size:0.85em;">{diff_html}</div>
+                </div>"""
+
+            st.markdown(big_kpi("매출액", to억(s_r), to억(s_p), "억원", s_pct, "#059669"), unsafe_allow_html=True)
+
+            _oi_border = "#16a34a" if (o_r or 0) >= 0 else "#dc2626"
+            st.markdown(big_kpi("영업이익", to억(o_r), to억(o_p), "억원", o_pct, _oi_border, True), unsafe_allow_html=True)
+
+            ir_diff = (ir_r - ir_p) if (ir_r is not None and ir_p is not None) else None
+            ir_color = '#16a34a' if (ir_r or 0) >= 0 else '#dc2626'
+            ir_arrow = '▲' if (ir_diff or 0) >= 0 else '▼'
+            ir_diff_html = f'<span style="color:{ir_color}">{ir_arrow} {abs(ir_diff):.2f}%p vs 계획</span>' if ir_diff is not None else ''
+            st.markdown(f"""
+            <div style="background:white;border-radius:12px;padding:20px 28px;border:1px solid #e5e7eb;
+                        box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:0.82em;font-weight:700;color:#6b7280;margin-bottom:4px;">영업이익률</div>
+                <div style="font-size:2em;font-weight:900;color:{ir_color};">{f(ir_r,1) if ir_r is not None else '-'}%</div>
+                <div style="font-size:0.82em;margin-top:4px;">{ir_diff_html}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:0.78em;color:#9ca3af;">계획</div>
+                <div style="font-size:1.4em;font-weight:700;color:#9ca3af;">{f(ir_p,1) if ir_p is not None else '-'}%</div>
+              </div>
+            </div>""", unsafe_allow_html=True)
+
+        with right_col:
+            st.markdown('<div class="card"><div class="card-title">월별 매출 / 영업이익 추이 (억원)</div>', unsafe_allow_html=True)
+            if trend_df2 is not None and not trend_df2.empty:
+                mlabels = [f"{int(m)}월" for m in trend_df2['월']]
+                s_vals = [to억(v) for v in trend_df2.get('매출_실적', [])]
+                o_vals = [to억(v) for v in trend_df2.get('영업이익_실적', [])]
+                s_plan = [to억(v) for v in trend_df2.get('매출_계획', [])]
+                fig_jc = go.Figure()
+                fig_jc.add_trace(go.Bar(name='매출 실적', x=mlabels, y=s_vals,
+                    marker_color='#6ee7b7', text=[f"{v:.1f}" if v else "" for v in s_vals],
+                    textposition='outside', textfont=dict(size=10), yaxis='y'))
+                fig_jc.add_trace(go.Scatter(name='매출 계획', x=mlabels, y=s_plan,
+                    line=dict(color='#059669', width=2, dash='dot'), mode='lines+markers',
+                    marker=dict(size=6), yaxis='y'))
+                oi_colors = ['#16a34a' if (v or 0) >= 0 else '#dc2626' for v in o_vals]
+                fig_jc.add_trace(go.Bar(name='영업이익', x=mlabels, y=o_vals,
+                    marker_color=oi_colors,
+                    text=[f"{v:.1f}" if v else "" for v in o_vals],
+                    textposition='outside', textfont=dict(size=10), yaxis='y2'))
+                fig_jc.update_layout(
+                    barmode='group', height=380,
+                    plot_bgcolor='white', paper_bgcolor='white',
+                    margin=dict(l=0,r=40,t=10,b=10),
+                    legend=dict(orientation='h',x=0.5,xanchor='center',y=1.08,font=dict(size=11)),
+                    xaxis=dict(tickfont=dict(size=12), showgrid=False),
+                    yaxis=dict(title='매출 (억원)', showgrid=True, gridcolor='#f3f4f6', tickfont=dict(size=10)),
+                    yaxis2=dict(title='영업이익 (억원)', overlaying='y', side='right', showgrid=False, tickfont=dict(size=10)),
+                    font=dict(family='Noto Sans KR'))
+                st.plotly_chart(fig_jc, use_container_width=True, config={'displayModeBar': False})
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    # ════════════════════════════════
+    # 골재 요약: 달성률 프로그레스 배지 + 이중축 (물량 바 + 이익률 꺾은선)
+    # ════════════════════════════════
     elif current_page == "골재_손익요약":
-        c1, c2, c3 = st.columns(3)
-        kpi_spark(c1, "판매량",
-                  f(_ov('물량','실적'),1), "천㎥",
-                  _ov('물량','차이'), "amber",
-                  trend_sec, "물량_계획", "물량_실적",
-                  actual_val=_ov('물량','실적'), plan_val=_ov('물량','계획'))
-        kpi_spark(c2, "매출액",
-                  f(to억(_ov('매출','실적')),1), "억원",
-                  to억(_ov('매출','차이')), "",
-                  trend_sec, "매출_계획_억", "매출_실적_억")
-        _oi실적 = _ov('영업이익','실적')
-        kpi_spark(c3, "영업이익",
-                  f(to억(_oi실적),1), "억원",
-                  to억(_ov('영업이익','차이')),
-                  "green" if (_oi실적 or 0)>=0 else "red",
-                  trend_sec, "영업이익_계획_억", "영업이익_실적_억")
+        m_r=_ov('물량','실적'); m_p=_ov('물량','계획'); m_d=_ov('물량','차이')
+        s_r=_ov('매출','실적'); s_p=_ov('매출','계획'); s_d=_ov('매출','차이')
+        o_r=_ov('영업이익','실적'); o_p=_ov('영업이익','계획'); o_d=_ov('영업이익','차이')
+        ir_r = (o_r/s_r*100) if (s_r and s_r!=0 and o_r is not None) else None
 
-    elif current_page in ["건자재_손익요약","임대_손익요약"]:
-        c1, c2, c3 = st.columns(3)
-        _매출실적 = _ov('매출','실적')
-        _oi실적 = _ov('영업이익','실적')
-        _oi계획 = _ov('영업이익','계획')
-        _이익률 = (_oi실적/_매출실적*100) if (_매출실적 and _매출실적!=0 and _oi실적 is not None) else None
-        _이익률계획 = (_oi계획/_ov('매출','계획')*100) if (_ov('매출','계획') and _ov('매출','계획')!=0 and _oi계획 is not None) else None
-        kpi_spark(c1, "매출액",
-                  f(to억(_매출실적),1), "억원",
-                  to억(_ov('매출','차이')), "",
-                  trend_sec, "매출_계획_억", "매출_실적_억")
-        kpi_spark(c2, "영업이익",
-                  f(to억(_oi실적),1), "억원",
-                  to억(_ov('영업이익','차이')),
-                  "green" if (_oi실적 or 0)>=0 else "red",
-                  trend_sec, "영업이익_계획_억", "영업이익_실적_억")
-        _이익률차이 = (_이익률-_이익률계획) if (_이익률 is not None and _이익률계획 is not None) else None
-        kpi_spark(c3, "영업이익률",
-                  f(_이익률,1) if _이익률 is not None else "-", "%",
-                  _이익률차이,
-                  "green" if (_이익률 or 0)>=0 else "red",
-                  trend_sec, "영업이익_계획_억", "영업이익_실적_억")
+        # ── 상단: 수평 달성률 배지 3개 ──
+        def progress_badge(label, actual, plan, unit, actual_display=None):
+            pct = _pct(actual, plan)
+            bar_color = _달성색(pct)
+            bar_w = min(max(pct or 0, 0), 150) / 150 * 100
+            diff = (actual - plan) if (actual is not None and plan is not None) else None
+            diff_str = ''
+            if diff is not None:
+                arrow = '▲' if diff >= 0 else '▼'
+                diff_color = '#16a34a' if diff >= 0 else '#dc2626'
+                diff_str = f'<span style="color:{diff_color};font-weight:700;margin-left:8px;">{arrow} {f(abs(diff),1)}</span>'
+            disp = actual_display if actual_display is not None else (f(actual,1) if actual is not None else '-')
+            return f"""
+            <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid #e5e7eb;
+                        box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                <div>
+                  <div style="font-size:0.8em;font-weight:700;color:#0891b2;margin-bottom:4px;">{label}</div>
+                  <div style="font-size:2.4em;font-weight:900;color:#1f2937;line-height:1.1;">{disp}
+                    <span style="font-size:0.4em;color:#6b7280;font-weight:500;">{unit}</span>
+                  </div>
+                  <div style="font-size:0.82em;color:#6b7280;margin-top:4px;">계획 {f(plan,1) if plan else '-'} {unit}{diff_str}</div>
+                </div>
+                <div style="background:{bar_color}15;border-radius:50%;width:60px;height:60px;
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="font-size:1.05em;font-weight:900;color:{bar_color};">{pct:.0f}%</span>
+                </div>
+              </div>
+              <div style="background:#f3f4f6;border-radius:6px;height:8px;">
+                <div style="background:{bar_color};width:{bar_w:.1f}%;height:8px;border-radius:6px;"></div>
+              </div>
+            </div>"""
 
-    # ── 계획 vs 실적 요약 테이블 ──
-    st.markdown('<div class="card"><div class="card-title">계획 vs 실적 요약</div><div class="tbl-wrap">', unsafe_allow_html=True)
-    has_volume = current_page in ["레미콘_손익요약","골재_손익요약"]
-    has_contrib = current_page == "레미콘_손익요약"
+        pb1, pb2, pb3 = st.columns(3)
+        pb1.markdown(progress_badge("판매량", m_r, m_p, "천㎥"), unsafe_allow_html=True)
+        pb2.markdown(progress_badge("매출액", s_r, s_p, "백만원",
+                                     f(to억(s_r), 1)+"억원" if s_r else '-'), unsafe_allow_html=True)
+        pb3.markdown(progress_badge("영업이익", o_r, o_p, "백만원",
+                                     f(to억(o_r), 1)+"억원" if o_r else '-'), unsafe_allow_html=True)
 
-    thead_vol = '<th colspan="3">물량 (천㎥)</th>' if has_volume else ''
-    thead_contrib = '<th colspan="3">공헌이익 (원/㎥)</th>' if has_contrib else ''
-    html_tbl = f"""<table class="pl-table"><thead>
-    <tr>
-      <th rowspan="2">구분</th>
-      {thead_vol}
-      <th colspan="3">매출 (백만원)</th>
-      <th colspan="3">영업이익 (백만원)</th>
-      <th colspan="2">이익률</th>
-      {thead_contrib}
-    </tr>
-    <tr>
-      {'<th>계획</th><th>실적</th><th>차이</th>' if has_volume else ''}
-      <th>계획</th><th>실적</th><th>차이</th>
-      <th>계획</th><th>실적</th><th>차이</th>
-      <th>계획</th><th>실적</th>
-      {'<th>계획</th><th>실적</th><th>차이</th>' if has_contrib else ''}
-    </tr></thead><tbody>"""
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
-    def _tval(base, kind):
-        col = f'{base}_누계{kind}' if _sec_sfx else f'{base}_{kind}'
-        v = row_ov.get(col) if row_ov is not None else None
-        return v
+        # ── 하단: 물량 바 + 이익률 꺾은선 이중축 ──
+        st.markdown('<div class="card"><div class="card-title">월별 판매량 (천㎥) · 영업이익률 (%)</div>', unsafe_allow_html=True)
+        if trend_df2 is not None and not trend_df2.empty:
+            mlabels = [f"{int(m)}월" for m in trend_df2['월']]
+            vol_plan = list(trend_df2.get('물량_계획', pd.Series()))
+            vol_act  = list(trend_df2.get('물량_실적', pd.Series()))
+            s_vals2  = list(trend_df2.get('매출_실적', pd.Series()))
+            o_vals2  = list(trend_df2.get('영업이익_실적', pd.Series()))
+            ir_vals  = [(_safe(o/s*100) if s and s!=0 and o is not None else None) for o,s in zip(o_vals2, s_vals2)]
 
-    m_p=_tval('물량','계획'); m_r=_tval('물량','실적'); m_d=_tval('물량','차이')
-    s_p=_tval('매출','계획'); s_r=_tval('매출','실적'); s_d=_tval('매출','차이')
-    o_p=_tval('영업이익','계획'); o_r=_tval('영업이익','실적'); o_d=_tval('영업이익','차이')
-    ir_p = (o_p/s_p*100) if (s_p and s_p!=0 and o_p is not None) else None
-    ir_r = (o_r/s_r*100) if (s_r and s_r!=0 and o_r is not None) else None
+            fig_gr = go.Figure()
+            fig_gr.add_trace(go.Bar(name='계획 물량', x=mlabels, y=vol_plan,
+                marker_color='#cffafe', text=[f"{v:.0f}" if v else "" for v in vol_plan],
+                textposition='outside', textfont=dict(size=9), yaxis='y'))
+            fig_gr.add_trace(go.Bar(name='실적 물량', x=mlabels, y=vol_act,
+                marker_color='#0891b2', text=[f"{v:.0f}" if v else "" for v in vol_act],
+                textposition='outside', textfont=dict(size=9), yaxis='y'))
+            fig_gr.add_trace(go.Scatter(name='이익률', x=mlabels, y=ir_vals,
+                mode='lines+markers+text',
+                line=dict(color='#dc2626', width=3),
+                marker=dict(size=10, color='#dc2626'),
+                text=[f"{v:.1f}%" if v is not None else "" for v in ir_vals],
+                textposition='top center', textfont=dict(size=11, color='#dc2626'),
+                yaxis='y2'))
+            fig_gr.update_layout(
+                barmode='group', height=320,
+                plot_bgcolor='white', paper_bgcolor='white',
+                margin=dict(l=0,r=40,t=10,b=10),
+                legend=dict(orientation='h',x=0.5,xanchor='center',y=1.1,font=dict(size=11)),
+                xaxis=dict(tickfont=dict(size=12), showgrid=False),
+                yaxis=dict(title='물량 (천㎥)', showgrid=True, gridcolor='#f3f4f6', tickfont=dict(size=10)),
+                yaxis2=dict(title='이익률 (%)', overlaying='y', side='right', showgrid=False,
+                            tickfont=dict(size=10), ticksuffix='%'),
+                font=dict(family='Noto Sans KR'))
+            st.plotly_chart(fig_gr, use_container_width=True, config={'displayModeBar': False})
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    vol_td = f'<td>{f(m_p,1)}</td><td>{f(m_r,1)}</td>{td_d(m_d,1)}' if has_volume else ''
-    contrib_td = ""
-    if has_contrib:
-        ch_p = row_fa.get('공헌이익_계획') if row_fa is not None else None
-        ch_r = row_fa.get('공헌이익_실적') if row_fa is not None else None
-        ch_d = (ch_r-ch_p) if (ch_r is not None and ch_p is not None and pd.notna(ch_p)) else None
-        contrib_td = f'<td>{f(ch_p)}</td><td>{f(ch_r)}</td>{td_d(ch_d)}'
+    # ════════════════════════════════
+    # 임대 요약: 빅넘버 2개 + 월별 가로 바차트
+    # ════════════════════════════════
+    elif current_page == "임대_손익요약":
+        s_r=_ov('매출','실적'); s_p=_ov('매출','계획'); s_d=_ov('매출','차이')
+        o_r=_ov('영업이익','실적'); o_p=_ov('영업이익','계획'); o_d=_ov('영업이익','차이')
+        ir_r = (o_r/s_r*100) if (s_r and s_r!=0 and o_r is not None) else None
+        s_pct = _pct(s_r, s_p)
+        o_pct = _pct(o_r, o_p)
 
-    html_tbl += f"""<tr class="total">
-      <td>{nm}</td>
-      {vol_td}
-      <td>{f(s_p)}</td><td>{f(s_r)}</td>{td_d(s_d)}
-      <td>{f(o_p)}</td><td>{f(o_r)}</td>{td_d(o_d)}
-      <td>{f(ir_p,1)}%</td><td>{f(ir_r,1)}%</td>
-      {contrib_td}
-    </tr>"""
-    html_tbl += "</tbody></table>"
-    st.markdown(html_tbl, unsafe_allow_html=True)
-    st.markdown('</div></div>', unsafe_allow_html=True)
+        # ── 상단: 빅넘버 2+1 레이아웃 ──
+        bn1, bn2, bn3 = st.columns([1.2, 1.2, 0.9])
+        def big_number(label, val_억, plan_억, unit, pct, color, col):
+            bar_w = min(max(pct or 0, 0), 150) / 150 * 100
+            pc = _달성색(pct)
+            diff = (val_억 - plan_억) if (val_억 is not None and plan_억 is not None) else None
+            diff_html = ''
+            if diff is not None:
+                arrow = '▲' if diff >= 0 else '▼'
+                c = '#16a34a' if diff >= 0 else '#dc2626'
+                diff_html = f'<span style="color:{c};font-size:0.9em;font-weight:700;">{arrow} {f(abs(diff),1)} {unit} vs 계획</span>'
+            col.markdown(f"""
+            <div style="background:white;border-radius:14px;padding:28px 30px;border:1px solid #e5e7eb;
+                        box-shadow:0 3px 12px rgba(0,0,0,0.07);border-bottom:5px solid {color};">
+              <div style="font-size:0.82em;font-weight:700;color:{color};margin-bottom:10px;letter-spacing:0.06em;">{label}</div>
+              <div style="font-size:3em;font-weight:900;color:#1f2937;line-height:1;">{f(val_억,1) if val_억 is not None else '-'}</div>
+              <div style="font-size:1.1em;color:#6b7280;margin-bottom:16px;">{unit}</div>
+              <div style="background:#f3f4f6;border-radius:6px;height:8px;margin-bottom:10px;">
+                <div style="background:{pc};width:{bar_w:.1f}%;height:8px;border-radius:6px;"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-size:0.78em;color:#9ca3af;">계획 {f(plan_억,1) if plan_억 else '-'} {unit}</span>
+                <span style="font-size:0.95em;font-weight:800;color:{pc};">{pct:.1f}% 달성</span>
+              </div>
+              {diff_html}
+            </div>""", unsafe_allow_html=True)
+
+        big_number("매출액", to억(s_r), to억(s_p), "억원", s_pct, "#7c3aed", bn1)
+        _oi_col = "#16a34a" if (o_r or 0) >= 0 else "#dc2626"
+        big_number("영업이익", to억(o_r), to억(o_p), "억원", o_pct, _oi_col, bn2)
+
+        ir_color2 = '#16a34a' if (ir_r or 0) >= 0 else '#dc2626'
+        bn3.markdown(f"""
+        <div style="background:white;border-radius:14px;padding:28px 24px;border:1px solid #e5e7eb;
+                    box-shadow:0 3px 12px rgba(0,0,0,0.07);height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+          <div style="font-size:0.82em;font-weight:700;color:#6b7280;margin-bottom:12px;">영업이익률</div>
+          <div style="font-size:3.5em;font-weight:900;color:{ir_color2};line-height:1;">{f(ir_r,1) if ir_r is not None else '-'}</div>
+          <div style="font-size:1.1em;color:#6b7280;margin-bottom:8px;">%</div>
+          <div style="font-size:0.82em;color:#9ca3af;">계획 {f((o_p/s_p*100) if (s_p and s_p!=0 and o_p is not None) else None,1)}%</div>
+        </div>""", unsafe_allow_html=True)
+
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+        # ── 하단: 월별 매출/영업이익 가로 바차트 ──
+        st.markdown('<div class="card"><div class="card-title">월별 매출 · 영업이익 (억원)</div>', unsafe_allow_html=True)
+        if trend_df2 is not None and not trend_df2.empty:
+            mlabels = [f"{int(m)}월" for m in trend_df2['월']]
+            s_trend = [to억(v) for v in trend_df2.get('매출_실적', [])]
+            o_trend = [to억(v) for v in trend_df2.get('영업이익_실적', [])]
+            s_plan_t = [to억(v) for v in trend_df2.get('매출_계획', [])]
+            fig_im = go.Figure()
+            fig_im.add_trace(go.Bar(name='매출 실적', y=mlabels, x=s_trend,
+                orientation='h', marker_color='#c4b5fd',
+                text=[f"{v:.1f}" if v else "" for v in s_trend],
+                textposition='outside', textfont=dict(size=11)))
+            oi_colors2 = ['#7c3aed' if (v or 0) >= 0 else '#dc2626' for v in o_trend]
+            fig_im.add_trace(go.Bar(name='영업이익', y=mlabels, x=o_trend,
+                orientation='h', marker_color=oi_colors2,
+                text=[f"{v:.1f}" if v else "" for v in o_trend],
+                textposition='outside', textfont=dict(size=11)))
+            fig_im.update_layout(
+                barmode='group', height=max(280, len(mlabels)*55),
+                plot_bgcolor='white', paper_bgcolor='white',
+                margin=dict(l=0,r=60,t=10,b=10),
+                legend=dict(orientation='h',x=0.5,xanchor='center',y=1.1,font=dict(size=11)),
+                xaxis=dict(title='억원', showgrid=True, gridcolor='#f3f4f6', tickfont=dict(size=10)),
+                yaxis=dict(tickfont=dict(size=12), showgrid=False, autorange='reversed'),
+                font=dict(family='Noto Sans KR'))
+            st.plotly_chart(fig_im, use_container_width=True, config={'displayModeBar': False})
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
