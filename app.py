@@ -29,6 +29,13 @@ if "logged_in" not in st.session_state:
 if "page" not in st.session_state:
     st.session_state["page"] = "건재손익_총괄"
 
+# 어드민 페이지 이동 처리
+if st.query_params.get("admin") == "1":
+    if st.session_state.get("username") == ADMIN_USER:
+        st.session_state["page"] = "ADMIN_PAGE"
+    st.query_params.clear()
+    st.rerun()
+
 # 로그아웃 처리
 if st.query_params.get("logout") == "1":
     st.session_state.clear()
@@ -230,7 +237,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<button class="nav-admin-btn" onclick="clickAdminTrigger()">ADMIN_TRIGGER</button>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<a class="nav-admin-btn" href="?admin=1" target="_self">ADMIN_TRIGGER</a>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -303,6 +310,7 @@ st.markdown(f"""
     cursor:pointer; line-height:1; font-family:'Noto Sans KR',sans-serif;
 }}
 .nav-admin-btn:hover {{ border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important; text-decoration:none !important; }}
+.nav-admin-btn:visited {{ color:#6b7280 !important; text-decoration:none !important; }}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
@@ -364,50 +372,10 @@ function navTo(page) {{
     }}
 }}
 
-function clickAdminTrigger() {{
-    var btns = document.querySelectorAll('button');
-    for (var i = 0; i < btns.length; i++) {{
-        if (btns[i].textContent.trim() === 'ADMIN_TRIGGER') {{
-            btns[i].click();
-            return;
-        }}
-    }}
-}}
-// Streamlit ADMIN_TRIGGER 버튼 숨기기
-(function hideAdminBtn() {{
-    function tryHide() {{
-        var btns = document.querySelectorAll('button');
-        for (var i = 0; i < btns.length; i++) {{
-            if (btns[i].textContent.trim() === 'ADMIN_TRIGGER') {{
-                var el = btns[i];
-                for (var j = 0; j < 6; j++) {{
-                    if (el.parentElement && el.parentElement.dataset && el.parentElement.dataset.testid === 'stElementContainer') {{
-                        el.parentElement.style.display = 'none';
-                        return true;
-                    }}
-                    el = el.parentElement;
-                    if (!el) break;
-                }}
-                btns[i].style.display = 'none';
-                return true;
-            }}
-        }}
-        return false;
-    }}
-    if (!tryHide()) {{
-        var t = 0;
-        var iv = setInterval(function() {{ if (tryHide() || ++t > 30) clearInterval(iv); }}, 200);
-    }}
-}})();
 
 </script>
 """, unsafe_allow_html=True)
 
-# ADMIN_TRIGGER: nav-right HTML 버튼이 클릭하는 숨김 Streamlit 버튼
-if st.session_state.get("username") == ADMIN_USER:
-    if st.button("ADMIN_TRIGGER", key="admin_trigger"):
-        st.session_state["page"] = "ADMIN_PAGE"
-        st.rerun()
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
