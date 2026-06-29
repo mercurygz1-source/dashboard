@@ -215,7 +215,7 @@ st.markdown(f"""
 .main {{ background:#f0f2f5 !important; }}
 [data-testid="stHeader"] {{ display:none; }}
 [data-testid="stSidebar"] {{ display:none; }}
-.block-container {{ padding-top:82px !important; padding-left:0 !important; padding-right:0 !important; padding-bottom:0 !important; max-width:100% !important; }}
+.block-container {{ padding-top:82px !important; padding-left:28px !important; padding-right:28px !important; padding-bottom:0 !important; max-width:100% !important; }}
 
 /* 상단 네비 */
 .top-nav {{
