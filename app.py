@@ -230,7 +230,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = ""
+admin_btn_html = '<button class="nav-admin-btn" onclick="clickAdminTrigger()">ADMIN_TRIGGER</button>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -297,10 +297,10 @@ st.markdown(f"""
 .nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8 !important; text-decoration:none !important; }}
 .nav-admin-btn {{
     background:none; border:1px solid #d1d5db; border-radius:4px;
-    width:34px; height:34px; padding:0; font-size:1.1em; color:#6b7280 !important;
-    flex-shrink:0; transition:all 0.15s; display:inline-flex;
+    height:34px; padding:0 14px; font-size:0.85em; color:#6b7280 !important;
+    font-weight:500; flex-shrink:0; transition:all 0.15s; display:inline-flex;
     align-items:center; justify-content:center; text-decoration:none !important;
-    cursor:pointer; line-height:1;
+    cursor:pointer; line-height:1; font-family:'Noto Sans KR',sans-serif;
 }}
 .nav-admin-btn:hover {{ border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important; text-decoration:none !important; }}
 
@@ -364,37 +364,46 @@ function navTo(page) {{
     }}
 }}
 
-// ADMIN_TRIGGER 버튼을 nav-right 안으로 이동
-(function moveAdminBtn() {{
-    function tryMove() {{
-        var adminBtn = null;
-        document.querySelectorAll('button').forEach(function(b) {{
-            if (b.textContent.trim() === 'ADMIN_TRIGGER') adminBtn = b;
-        }});
-        var logout = document.querySelector('.nav-logout-btn');
-        var navRight = document.querySelector('.nav-right');
-        if (adminBtn && navRight && logout) {{
-            var wrapper = adminBtn;
-            for (var i = 0; i < 5; i++) {{ if (wrapper && wrapper.dataset && wrapper.dataset.testid === 'stElementContainer') break; wrapper = wrapper.parentElement; }}
-            adminBtn.style.cssText = 'background:none;border:1px solid #d1d5db;color:#6b7280;padding:0 14px;border-radius:4px;font-size:0.85em;font-weight:500;height:34px;cursor:pointer;font-family:Noto Sans KR,sans-serif;line-height:1;';
-            navRight.insertBefore(adminBtn, logout);
-            if (wrapper && wrapper !== adminBtn) wrapper.style.display = 'none';
-            adminBtn.onmouseenter = function() {{ this.style.borderColor='#1d4ed8'; this.style.color='#1d4ed8'; this.style.background='#eff6ff'; }};
-            adminBtn.onmouseleave = function() {{ this.style.borderColor='#d1d5db'; this.style.color='#6b7280'; this.style.background='none'; }};
-            return true;
+function clickAdminTrigger() {{
+    var btns = document.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++) {{
+        if (btns[i].textContent.trim() === 'ADMIN_TRIGGER') {{
+            btns[i].click();
+            return;
+        }}
+    }}
+}}
+// Streamlit ADMIN_TRIGGER 버튼 숨기기
+(function hideAdminBtn() {{
+    function tryHide() {{
+        var btns = document.querySelectorAll('button');
+        for (var i = 0; i < btns.length; i++) {{
+            if (btns[i].textContent.trim() === 'ADMIN_TRIGGER') {{
+                var el = btns[i];
+                for (var j = 0; j < 6; j++) {{
+                    if (el.parentElement && el.parentElement.dataset && el.parentElement.dataset.testid === 'stElementContainer') {{
+                        el.parentElement.style.display = 'none';
+                        return true;
+                    }}
+                    el = el.parentElement;
+                    if (!el) break;
+                }}
+                btns[i].style.display = 'none';
+                return true;
+            }}
         }}
         return false;
     }}
-    if (!tryMove()) {{
+    if (!tryHide()) {{
         var t = 0;
-        var iv = setInterval(function() {{ if (tryMove() || ++t > 30) clearInterval(iv); }}, 200);
+        var iv = setInterval(function() {{ if (tryHide() || ++t > 30) clearInterval(iv); }}, 200);
     }}
 }})();
 
 </script>
 """, unsafe_allow_html=True)
 
-# ADMIN_TRIGGER: JS가 nav-right 안으로 이동시키는 숨김 버튼
+# ADMIN_TRIGGER: nav-right HTML 버튼이 클릭하는 숨김 Streamlit 버튼
 if st.session_state.get("username") == ADMIN_USER:
     if st.button("ADMIN_TRIGGER", key="admin_trigger"):
         st.session_state["page"] = "ADMIN_PAGE"
