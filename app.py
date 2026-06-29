@@ -1008,8 +1008,7 @@ elif current_page == "건재손익_부문별":
         return html
 
     if df_ov_bm is not None:
-        st.markdown(f'<div class="card"><div class="tbl-wrap">', unsafe_allow_html=True)
-        st.markdown(_build_overview_table_bm(df_ov_bm, _bm_sfx) + "</div></div>", unsafe_allow_html=True)
+        st.markdown(_build_overview_table_bm(df_ov_bm, _bm_sfx), unsafe_allow_html=True)
     else:
         st.error("손익총괄 데이터를 불러올 수 없습니다.")
     st.markdown('</div>', unsafe_allow_html=True)
