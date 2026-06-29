@@ -189,6 +189,13 @@ PAGE_LABELS = {
     "임대_손익":      "임대 손익",
 }
 all_pages_flat = [pg for pages in NAV_STRUCTURE.values() for pg in pages]
+
+# 통합관리시스템 버튼 query param 처리
+if st.query_params.get("go_admin") == "1":
+    st.session_state["page"] = "ADMIN_PAGE"
+    st.query_params.clear()
+    st.rerun()
+
 current_page = st.session_state["page"]
 
 def get_parent(page):
@@ -232,7 +239,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<button class="nav-admin-btn" onclick="navTo(\'go-admin\')" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<a class="nav-admin-btn" href="?go_admin=1" target="_self" title="통합관리시스템">⚙️</a>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -302,8 +309,9 @@ st.markdown(f"""
     width:34px; height:34px; padding:0; font-size:1.1em; color:#6b7280 !important;
     flex-shrink:0; transition:all 0.15s; display:inline-flex;
     align-items:center; justify-content:center; text-decoration:none !important;
+    cursor:pointer; line-height:1;
 }}
-.nav-admin-btn:hover {{ border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important; }}
+.nav-admin-btn:hover {{ border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important; text-decoration:none !important; }}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
