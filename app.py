@@ -345,11 +345,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 <div class="top-nav">
     <div class="nav-logo" onclick="navTo('건재손익_총괄')">{logo_html}</div>
     <ul class="nav-menu">{menu_html}</ul>
-    <div class="nav-right">
-        <span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>
-        {admin_btn_html}
-        <a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a>
-    </div>
+    <div class="nav-right"><span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>{admin_btn_html}<a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a></div>
 </div>
 
 <script>
