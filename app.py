@@ -35,11 +35,6 @@ if st.query_params.get("logout") == "1":
     st.query_params.clear()
     st.rerun()
 
-# 어드민 이동 처리
-if st.query_params.get("admin") == "1" and st.session_state.get("username") == ADMIN_USER:
-    st.session_state["page"] = "ADMIN_PAGE"
-    st.query_params.clear()
-    st.rerun()
 
 
 if st.session_state.get("do_logout"):
@@ -235,7 +230,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<a class="nav-admin-btn" href="?admin=1" target="_self" title="통합관리시스템">⚙️</a>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<button class="nav-admin-btn" onclick="navTo(\'ADMIN_TRIGGER\')" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -372,7 +367,12 @@ function navTo(page) {{
 </script>
 """, unsafe_allow_html=True)
 
-
+# ADMIN_TRIGGER: ⚙️ 클릭 시 navTo()로 호출되는 숨김 버튼
+if st.session_state.get("username") == ADMIN_USER:
+    st.markdown('<style>[data-testid="stVerticalBlock"]>[data-testid="stButton"]{display:none!important}</style>', unsafe_allow_html=True)
+    if st.button("ADMIN_TRIGGER", key="admin_trigger"):
+        st.session_state["page"] = "ADMIN_PAGE"
+        st.rerun()
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
