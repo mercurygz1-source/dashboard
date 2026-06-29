@@ -271,7 +271,7 @@ st.markdown(f"""
 .nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8 !important; text-decoration:none !important; }}
 
 /* 컨텐츠 */
-.content-wrap {{ padding:24px 32px; max-width:1500px; margin:0 auto; }}
+.content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
 
 /* KPI 카드 */
 .kpi-card {{ background:white; border-radius:10px; padding:20px 22px; box-shadow:0 1px 6px rgba(0,0,0,0.06); border-top:4px solid #1d4ed8; height:100%; }}
@@ -416,7 +416,7 @@ if current_page == "건재손익_총괄":
     _tc, _yc, _mc = st.columns([0.74, 0.13, 0.13])
     with _tc:
         st.markdown(f"""
-        <div style="padding:18px 32px 0;display:flex;align-items:center;gap:12px;">
+        <div style="padding:18px 0 0;display:flex;align-items:center;gap:12px;">
             <div style="width:4px;height:22px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
             <span style="font-size:1.6em;font-weight:900;color:#1f2937;">손익 총괄</span>
             <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.05em;font-weight:600;">{selected_year}년 {selected_month}월</span>
