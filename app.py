@@ -476,7 +476,7 @@ st.markdown(f"""
 .kpi-card.amber  {{ border-top-color:#d97706; }}
 .kpi-card.purple {{ border-top-color:#7c3aed; }}
 .kpi-label {{ color:#374151; font-size:1.05em; font-weight:700; letter-spacing:0.3px; margin-bottom:10px; }}
-.kpi-value {{ color:#111827; font-size:3.4em; font-weight:900; line-height:1; margin-bottom:10px; }}
+.kpi-value {{ color:#111827; font-size:2.4em; font-weight:900; line-height:1; margin-bottom:0; }}
 .kpi-unit  {{ font-size:0.42em; color:#6b7280; font-weight:500; vertical-align:middle; }}
 .kpi-delta {{ font-size:0.82em; font-weight:600; }}
 .kpi-delta.pos {{ color:#16a34a; }}
@@ -676,7 +676,7 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol):
     ds = ""
     if delta is not None and not (isinstance(delta, float) and pd.isna(delta)):
         arrow = "▲" if delta>=0 else "▼"; cls = "pos" if delta>=0 else "neg"
-        ds = f'<span class="kpi-delta {cls}" style="font-size:0.82em;font-weight:600;margin-left:6px;white-space:nowrap;">계획대비 {arrow} {f(abs(delta))}</span>'
+        ds = f'<span class="kpi-delta {cls}" style="font-size:1.0em;font-weight:700;margin-left:8px;white-space:nowrap;flex-shrink:0;">계획대비 {arrow} {f(abs(delta))}</span>'
     with col:
         st.markdown(f"""
         <div style="background:white;border-radius:10px 10px 0 0;padding:18px 20px 12px;
@@ -684,8 +684,8 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol):
                     box-shadow:0 1px 0 rgba(0,0,0,0.04);
                     border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;">
             <div style="font-size:1.15em;font-weight:800;color:#1f2937;margin-bottom:10px;letter-spacing:0.01em;">{label}</div>
-            <div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:0;">
-                <div class="kpi-value" style="margin-bottom:0;">{value_str}<span class="kpi-unit"> {unit}</span></div>
+            <div style="display:flex;align-items:baseline;flex-wrap:nowrap;gap:0;overflow:hidden;">
+                <div class="kpi-value" style="flex-shrink:1;min-width:0;">{value_str}<span class="kpi-unit"> {unit}</span></div>
                 {ds}
             </div>
         </div>
