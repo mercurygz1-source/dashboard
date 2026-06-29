@@ -342,7 +342,7 @@ if st.session_state["sel_year"] not in years:
 selected_year = st.session_state["sel_year"]
 _init_months = get_available_months(selected_year)
 if "sel_month" not in st.session_state or st.session_state["sel_month"] not in _init_months:
-    st.session_state["sel_month"] = _init_months[0] if _init_months else 1
+    st.session_state["sel_month"] = _init_months[-1] if _init_months else 1
 selected_month = st.session_state["sel_month"]
 
 if current_page != "건재손익_총괄":
