@@ -476,9 +476,13 @@ if current_page == "건재손익_요약":
     if "sel_period" not in st.session_state:
         st.session_state["sel_period"] = "당월"
     st.markdown("""<style>
-    .ov-selectors { display:flex; justify-content:flex-end; align-items:center; gap:4px; padding-top:18px; }
-    .ov-selectors > div[data-testid="stSelectbox"] { min-width:0; width:90px; }
-    .ov-selectors > div[data-testid="stSelectbox"] > div { min-width:0; }
+    /* 요약 페이지 드롭다운 간격 최소화 */
+    div[data-testid="column"]:has(> div > div > div[data-testid="stSelectbox"][data-key="sel_year"]),
+    div[data-testid="column"]:has(> div > div > div[data-testid="stSelectbox"][data-key="sel_month"]),
+    div[data-testid="column"]:has(> div > div > div[data-testid="stSelectbox"][data-key="sel_period"]) {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
     </style>""", unsafe_allow_html=True)
     _tc, _rc = st.columns([0.76, 0.24], gap="small")
     with _tc:
@@ -489,16 +493,20 @@ if current_page == "건재손익_요약":
             <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.05em;font-weight:600;">{selected_year}년 {selected_month}월</span>
         </div>""", unsafe_allow_html=True)
     with _rc:
-        st.markdown('<div class="ov-selectors">', unsafe_allow_html=True)
-        _cy, _cm, _cp = st.columns(3, gap="small")
+        _cy, _cm, _cp = st.columns([1,1,1], gap="small")
         with _cy:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
             st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
         with _cm:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
             _months = get_available_months(selected_year)
             st.selectbox("월", _months, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
         with _cp:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
             st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
     selected_period = st.session_state["sel_period"]
     _sfx = "누계" if selected_period == "누계" else ""
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
