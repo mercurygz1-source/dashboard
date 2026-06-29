@@ -35,7 +35,12 @@ if st.query_params.get("logout") == "1":
     st.query_params.clear()
     st.rerun()
 
-
+# 통합관리시스템 이동 (로그인 체크 전에 처리해야 세션 유지됨)
+if st.query_params.get("go_admin") == "1":
+    st.query_params.clear()
+    if st.session_state.get("logged_in"):
+        st.session_state["page"] = "ADMIN_PAGE"
+    st.rerun()
 
 if st.session_state.get("do_logout"):
     st.session_state.clear()
@@ -189,12 +194,6 @@ PAGE_LABELS = {
     "임대_손익":      "임대 손익",
 }
 all_pages_flat = [pg for pages in NAV_STRUCTURE.values() for pg in pages]
-
-# 통합관리시스템 버튼 query param 처리
-if st.query_params.get("go_admin") == "1":
-    st.session_state["page"] = "ADMIN_PAGE"
-    st.query_params.clear()
-    st.rerun()
 
 current_page = st.session_state["page"]
 
