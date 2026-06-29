@@ -654,7 +654,7 @@ def spark(df, pcol, acol, height=420):
         plot_bgcolor='white', paper_bgcolor='white',
         showlegend=True,
         legend=dict(
-            orientation='h', x=0.5, y=1.12, xanchor='center', yanchor='top',
+            orientation='h', x=0, y=1.12, xanchor='left', yanchor='top',
             font=dict(size=14, color='#6b7280'), bgcolor='rgba(0,0,0,0)',
             itemwidth=30, traceorder='normal',
         ),
