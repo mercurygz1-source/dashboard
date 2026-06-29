@@ -231,7 +231,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<span class="nav-admin-btn-placeholder" title="통합관리시스템">&#9881;&#65039;</span>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<button class="nav-admin-btn" id="nav-admin-visible-btn" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -296,26 +296,13 @@ st.markdown(f"""
 }}
 .nav-logout-btn:visited {{ color:#6b7280 !important; text-decoration:none !important; }}
 .nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8 !important; text-decoration:none !important; }}
-.nav-admin-btn-placeholder {{
-    display:inline-flex; align-items:center; justify-content:center;
-    width:34px; height:34px; opacity:0; pointer-events:none;
+.nav-admin-btn {{
+    background:none; border:1px solid #d1d5db; border-radius:4px;
+    width:34px; height:34px; padding:0; font-size:1.1em; color:#6b7280;
+    cursor:pointer; flex-shrink:0; transition:all 0.15s; display:inline-flex;
+    align-items:center; justify-content:center;
 }}
-/* 네이티브 Streamlit 관리자 버튼을 nav bar 위치에 고정 */
-[data-testid="stMainBlockContainer"] > div > div > div[data-testid="stVerticalBlock"] > div:first-child [data-testid="stButton"] button,
-div[data-testid="stVerticalBlock"] > div:first-child > div[data-testid="stButton"] button {{
-    position:fixed !important; top:18px !important; right:110px !important;
-    z-index:10000 !important; width:34px !important; height:34px !important;
-    min-height:0 !important; padding:0 !important; background:none !important;
-    border:1px solid #d1d5db !important; border-radius:4px !important;
-    font-size:1.1em !important; color:#6b7280 !important;
-    transition:all 0.15s !important; line-height:1 !important;
-}}
-div[data-testid="stVerticalBlock"] > div:first-child > div[data-testid="stButton"] button:hover {{
-    border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important;
-}}
-div[data-testid="stVerticalBlock"] > div:first-child > div[data-testid="stButton"] p {{
-    font-size:1.1em !important; margin:0 !important;
-}}
+.nav-admin-btn:hover {{ border-color:#1d4ed8; background:#eff6ff; color:#1d4ed8; }}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
@@ -371,33 +358,23 @@ function navTo(page) {{
         }}
     }}
 }}
-function placeAdminBtn() {{
-    var navRight = document.querySelector('.nav-right');
-    if (!navRight) {{ setTimeout(placeAdminBtn, 200); return; }}
-    if (navRight.querySelector('.admin-btn-clone')) return;
+function setupAdminBtn() {{
+    var visibleBtn = document.getElementById('nav-admin-visible-btn');
+    if (!visibleBtn) {{ setTimeout(setupAdminBtn, 200); return; }}
+    if (visibleBtn._wired) return;
     var btns = document.querySelectorAll('button');
-    var original = null;
+    var stBtn = null;
     for (var i = 0; i < btns.length; i++) {{
-        if (btns[i].textContent.trim() === '⚙') {{ original = btns[i]; break; }}
+        var t = btns[i].textContent.trim();
+        if (t === '⚙' || t === '⚙️') {{ stBtn = btns[i]; break; }}
     }}
-    if (!original) {{ setTimeout(placeAdminBtn, 200); return; }}
-    var clone = document.createElement('button');
-    clone.className = 'admin-btn-clone';
-    clone.innerHTML = '⚙️';
-    clone.title = '통합관리시스템';
-    clone.style.cssText = 'background:none;border:1px solid #d1d5db;border-radius:4px;width:34px;height:34px;padding:0;font-size:1.1em;color:#6b7280;cursor:pointer;margin:0 6px;flex-shrink:0;transition:all 0.15s;';
-    clone.onmouseover = function(){{ this.style.borderColor='#1d4ed8'; this.style.background='#eff6ff'; }};
-    clone.onmouseout  = function(){{ this.style.borderColor='#d1d5db'; this.style.background='none'; }};
-    clone.onclick = function(e){{ e.preventDefault(); original.click(); }};
-    var stBtn = original.closest('[data-testid="stButton"]');
-    if (stBtn) stBtn.style.display = 'none';
-    var logout = navRight.querySelector('.nav-logout-btn');
-    navRight.insertBefore(clone, logout);
+    if (!stBtn) {{ setTimeout(setupAdminBtn, 200); return; }}
+    var container = stBtn.closest('[data-testid="stButton"]') || stBtn.parentElement;
+    if (container) container.style.display = 'none';
+    visibleBtn.onclick = function(e) {{ e.preventDefault(); stBtn.click(); }};
+    visibleBtn._wired = true;
 }}
-setInterval(function(){{
-    var navRight = document.querySelector('.nav-right');
-    if (navRight && !navRight.querySelector('.admin-btn-clone')) placeAdminBtn();
-}}, 300);
+setupAdminBtn();
 </script>
 """, unsafe_allow_html=True)
 
