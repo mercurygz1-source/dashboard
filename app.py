@@ -283,12 +283,12 @@ st.markdown(f"""
 }}
 .nav-item:hover .dropdown {{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }}
 .dd-item {{
-    padding:13px 20px; color:#374151; font-size:0.88em; font-weight:500;
+    padding:13px 20px; color:#374151; font-size:0.88em; font-weight:500; text-align:center;
     border-bottom:1px solid #f3f4f6; cursor:pointer;
     transition:background 0.13s,color 0.13s,padding-left 0.13s;
 }}
 .dd-item:last-child {{ border-bottom:none; }}
-.dd-item:hover {{ background:#eff6ff; color:#1d4ed8; padding-left:26px; }}
+.dd-item:hover {{ background:#eff6ff; color:#1d4ed8; }}
 .dd-item.active {{ background:#eff6ff; color:#1d4ed8; font-weight:700; }}
 
 .nav-right {{ margin-left:auto; display:flex; align-items:center; gap:14px; flex-shrink:0; }}
