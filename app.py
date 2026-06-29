@@ -681,7 +681,7 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol, a
             if actual_val is not None and plan_val is not None and plan_val != 0 \
                and not pd.isna(actual_val) and not pd.isna(plan_val):
                 ratio = actual_val / plan_val * 100
-                pct_str = f' · 실적률 {ratio:.1f}%'
+                pct_str = f', {ratio:.1f}%'
         except Exception:
             pass
         ds = f'<span class="kpi-delta {cls}" style="font-size:1.0em;font-weight:700;margin-left:8px;white-space:nowrap;flex-shrink:0;">(계획대비 {arrow} {f(abs(delta))}{pct_str})</span>'
