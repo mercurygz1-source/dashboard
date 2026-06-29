@@ -473,14 +473,20 @@ def stitle(title):
 # 건재손익 요약
 # ══════════════════════════════════════════════════════════════
 if current_page == "건재손익_요약":
-    _tc, _yc, _mc = st.columns([0.80, 0.10, 0.10])
+    if "sel_period" not in st.session_state:
+        st.session_state["sel_period"] = "당월"
+    _tc, _pc, _yc, _mc = st.columns([0.68, 0.12, 0.10, 0.10])
     with _tc:
         st.markdown(f"""
         <div style="padding:18px 0 0;display:flex;align-items:center;gap:12px;">
             <div style="width:4px;height:22px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
-            <span style="font-size:1.6em;font-weight:900;color:#1f2937;">손익 총괄</span>
+            <span style="font-size:1.6em;font-weight:900;color:#1f2937;">요약</span>
             <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.05em;font-weight:600;">{selected_year}년 {selected_month}월</span>
         </div>""", unsafe_allow_html=True)
+    with _pc:
+        st.markdown('<div style="padding-top:18px;">', unsafe_allow_html=True)
+        st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
     with _yc:
         st.markdown('<div style="padding-top:18px;">', unsafe_allow_html=True)
         st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
@@ -490,6 +496,8 @@ if current_page == "건재손익_요약":
         _months = get_available_months(selected_year)
         st.selectbox("월", _months, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
+    selected_period = st.session_state["sel_period"]
+    _sfx = "누계" if selected_period == "누계" else ""
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
     @st.cache_data(ttl=600)
@@ -546,49 +554,57 @@ if current_page == "건재손익_요약":
         rc_row_ov = df_ov[df_ov['구분']=='레미콘'].iloc[0] if not df_ov[df_ov['구분']=='레미콘'].empty else None
 
         # ── KPI 카드 ──
+        def _ov_col(base, kind):
+            # kind: '실적','차이','계획'
+            return f'{base}_누계{kind}' if _sfx else f'{base}_{kind}'
         rc_detail   = df_all[df_all['공장명']=='레미콘 계'].iloc[0] if not df_all[df_all['공장명']=='레미콘 계'].empty else None
         total_all   = df_all[df_all['공장명']=='합계'].iloc[0]       if not df_all[df_all['공장명']=='합계'].empty       else None
         c1,c2,c3,c4 = st.columns(4)
         if rc_row_ov is not None:
-            c1.markdown(kpi("레미콘 판매량",f(rc_row_ov.get('물량_실적'),1),"천㎥",rc_row_ov.get('물량_차이'),"계획","amber"), unsafe_allow_html=True)
+            c1.markdown(kpi("레미콘 판매량",f(rc_row_ov.get(_ov_col('물량','실적')),1),"천㎥",rc_row_ov.get(_ov_col('물량','차이')),"계획","amber"), unsafe_allow_html=True)
         if total_all is not None:
-            c2.markdown(kpi("매출액",f(total_all.get('매출_실적')),"백만원",total_all.get('매출_차이'),"계획"), unsafe_allow_html=True)
-            c3.markdown(kpi("영업이익",f(total_all.get('영업이익_실적')),"백만원",total_all.get('영업이익_차이'),"계획",
-                            "green" if (total_all.get('영업이익_실적') or 0)>=0 else "red"), unsafe_allow_html=True)
+            _매출실적 = total_all.get(_ov_col('매출','실적'))
+            _oi실적   = total_all.get(_ov_col('영업이익','실적'))
+            c2.markdown(kpi("매출액",f(_매출실적),"백만원",total_all.get(_ov_col('매출','차이')),"계획"), unsafe_allow_html=True)
+            c3.markdown(kpi("영업이익",f(_oi실적),"백만원",total_all.get(_ov_col('영업이익','차이')),"계획",
+                            "green" if (_oi실적 or 0)>=0 else "red"), unsafe_allow_html=True)
         if rc_detail is not None:
-            c4.markdown(kpi("공헌이익",f(rc_detail.get('공헌이익_실적')),"원/㎥",
-                            rc_detail.get('공헌이익_실적',0)-rc_detail.get('공헌이익_계획',0) if pd.notna(rc_detail.get('공헌이익_계획')) else None,"계획",
-                            "green" if (rc_detail.get('공헌이익_실적') or 0)>=0 else "red"), unsafe_allow_html=True)
+            _공헌실적 = rc_detail.get('공헌이익_실적')
+            _공헌계획 = rc_detail.get('공헌이익_계획')
+            c4.markdown(kpi("공헌이익",f(_공헌실적),"원/㎥",
+                            _공헌실적-_공헌계획 if pd.notna(_공헌계획) and _공헌실적 is not None else None,"계획",
+                            "green" if (_공헌실적 or 0)>=0 else "red"), unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
         # ── 차트 ──
         df_chart = df_ov[df_ov['구분'].isin(['레미콘','건자재','골재','기타'])].copy()
+        _매출계획col  = _ov_col('매출','계획')
+        _매출실적col  = _ov_col('매출','실적')
+        _oi계획col    = _ov_col('영업이익','계획')
+        _oi실적col    = _ov_col('영업이익','실적')
         cc1, cc2 = st.columns(2)
         with cc1:
-            st.markdown('<div class="card"><div class="card-title">사업부문별 매출액 (백만원)</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="card"><div class="card-title">사업부문별 매출액 (백만원) — {selected_period}</div>', unsafe_allow_html=True)
             fig=go.Figure()
-            for lb,col,clr in [("계획","매출_계획",C["계획"]),("실적","매출_실적",C["실적"]),("전년","매출_전년",C["전년"])]:
-                fig.add_bar(name=lb,x=df_chart['구분'],y=df_chart[col],marker_color=clr,
-                            text=df_chart[col].apply(lambda x:f(x)),textposition='outside',textfont=dict(size=10))
+            for lb,col,clr in [("계획",_매출계획col,C["계획"]),("실적",_매출실적col,C["실적"]),("전년","매출_전년",C["전년"])]:
+                if col in df_chart.columns:
+                    fig.add_bar(name=lb,x=df_chart['구분'],y=df_chart[col],marker_color=clr,
+                                text=df_chart[col].apply(lambda x:f(x)),textposition='outside',textfont=dict(size=10))
             bc(fig); fig.update_layout(barmode='group')
             st.plotly_chart(fig,use_container_width=True); st.markdown('</div>', unsafe_allow_html=True)
         with cc2:
-            st.markdown('<div class="card"><div class="card-title">사업부문별 영업이익 (백만원)</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="card"><div class="card-title">사업부문별 영업이익 (백만원) — {selected_period}</div>', unsafe_allow_html=True)
             fig2=go.Figure()
-            for lb,col,clr in [("계획","영업이익_계획",C["계획"]),("실적","영업이익_실적",C["실적"]),("전년","영업이익_전년",C["전년"])]:
-                fig2.add_bar(name=lb,x=df_chart['구분'],y=df_chart[col],marker_color=clr)
+            for lb,col,clr in [("계획",_oi계획col,C["계획"]),("실적",_oi실적col,C["실적"]),("전년","영업이익_전년",C["전년"])]:
+                if col in df_chart.columns:
+                    fig2.add_bar(name=lb,x=df_chart['구분'],y=df_chart[col],marker_color=clr)
             bc(fig2); fig2.update_layout(barmode='group')
             st.plotly_chart(fig2,use_container_width=True); st.markdown('</div>', unsafe_allow_html=True)
 
-        # ── 당월/누계 탭 ──
-        tab1, tab2 = st.tabs(["📅 당월", "📊 누계"])
-        with tab1:
-            st.markdown('<div class="card"><div class="card-title">사업부문별 손익 상세 — 당월</div><div class="tbl-wrap">', unsafe_allow_html=True)
-            st.markdown(build_overview_table(df_ov, "") + "</div></div>", unsafe_allow_html=True)
-        with tab2:
-            st.markdown('<div class="card"><div class="card-title">사업부문별 손익 상세 — 누계</div><div class="tbl-wrap">', unsafe_allow_html=True)
-            st.markdown(build_overview_table(df_ov, "누계") + "</div></div>", unsafe_allow_html=True)
+        # ── 손익 상세 테이블 ──
+        st.markdown(f'<div class="card"><div class="card-title">사업부문별 손익 상세 — {selected_period}</div><div class="tbl-wrap">', unsafe_allow_html=True)
+        st.markdown(build_overview_table(df_ov, _sfx) + "</div></div>", unsafe_allow_html=True)
     else:
         st.error("손익총괄 데이터를 불러올 수 없습니다.")
 
