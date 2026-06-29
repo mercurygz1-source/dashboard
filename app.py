@@ -371,6 +371,19 @@ function navTo(page) {{
         }}
     }}
 }}
+function positionAdminBtn() {{
+    var btns = document.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++) {{
+        if (btns[i].textContent.trim() === '⚙') {{
+            var wrap = btns[i].closest('[data-testid="stButton"]') || btns[i].parentElement;
+            wrap.style.cssText = 'position:fixed!important;top:18px!important;right:110px!important;z-index:10001!important;margin:0!important;padding:0!important;';
+            btns[i].style.cssText = 'width:34px!important;height:34px!important;min-height:0!important;padding:0!important;background:none!important;border:1px solid #d1d5db!important;border-radius:4px!important;font-size:1.1em!important;color:#6b7280!important;line-height:1!important;';
+            return;
+        }}
+    }}
+    setTimeout(positionAdminBtn, 150);
+}}
+setTimeout(positionAdminBtn, 100);
 </script>
 """, unsafe_allow_html=True)
 
