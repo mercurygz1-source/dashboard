@@ -11,6 +11,7 @@ def _token_store():
 
 ADMIN_USER = "tongyang"
 USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
+PENDING_FILE = os.path.join(os.path.dirname(__file__), "pending_users.json")
 
 def load_users():
     """secrets + users.json 병합. users.json이 우선."""
@@ -27,6 +28,19 @@ def save_users(users: dict):
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f, ensure_ascii=False, indent=2)
 
+def load_pending() -> list:
+    if os.path.exists(PENDING_FILE):
+        try:
+            with open(PENDING_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return []
+
+def save_pending(pending: list):
+    with open(PENDING_FILE, "w", encoding="utf-8") as f:
+        json.dump(pending, f, ensure_ascii=False, indent=2)
+
 st.set_page_config(page_title="동양 건재사업본부 손익", page_icon="📊", layout="wide")
 
 TOKEN_STORE = _token_store()
@@ -35,6 +49,8 @@ if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 if "page" not in st.session_state:
     st.session_state["page"] = "건재손익_요약"
+if "auth_view" not in st.session_state:
+    st.session_state["auth_view"] = "login"  # "login" | "signup"
 
 # ── URL 파라미터 처리 ──
 _qp = st.query_params.to_dict()
@@ -109,7 +125,7 @@ if not st.session_state["logged_in"]:
         padding: 36px 32px 28px !important;
         max-width: 420px !important;
         width: 100% !important;
-        margin: calc(50vh - 280px) auto 0 !important;
+        margin: calc(50vh - 300px) auto 0 !important;
         background: white !important;
         border-radius: 10px !important;
         box-shadow: 0 4px 24px rgba(0,0,0,0.10) !important;
@@ -142,6 +158,12 @@ if not st.session_state["logged_in"]:
         letter-spacing: 0.03em !important;
     }}
     .stButton > button:hover {{ background: #142d56 !important; }}
+    .btn-outline > button {{
+        background: white !important;
+        color: #1a3a6e !important;
+        border: 1.5px solid #1a3a6e !important;
+    }}
+    .btn-outline > button:hover {{ background: #eef0f4 !important; }}
     [data-testid="stAlert"] {{ border-radius: 6px !important; font-size: 0.85em !important; }}
     </style>
 
@@ -155,48 +177,145 @@ if not st.session_state["logged_in"]:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div style="text-align:center;margin-bottom:26px;">
-        <div style="display:inline-flex;align-items:center;justify-content:center;
-                    width:50px;height:50px;background:#e8eef7;border-radius:50%;
-                    margin-bottom:12px;font-size:1.5em;color:#1a3a6e;">&#128100;</div>
-        <div style="font-size:1.1em;font-weight:700;color:#1a2340;margin-bottom:3px;">로그인</div>
-        <div style="font-size:0.78em;color:#8a95a8;">계정 정보를 입력하세요</div>
-    </div>
-    <div style="font-size:0.78em;font-weight:600;color:#4a5568;
-                margin-bottom:4px;letter-spacing:0.02em;">아이디</div>
-    """, unsafe_allow_html=True)
+    # ── 로그인 뷰 ──
+    if st.session_state["auth_view"] == "login":
+        st.markdown("""
+        <div style="text-align:center;margin-bottom:26px;">
+            <div style="display:inline-flex;align-items:center;justify-content:center;
+                        width:50px;height:50px;background:#e8eef7;border-radius:50%;
+                        margin-bottom:12px;font-size:1.5em;color:#1a3a6e;">&#128100;</div>
+            <div style="font-size:1.1em;font-weight:700;color:#1a2340;margin-bottom:3px;">로그인</div>
+            <div style="font-size:0.78em;color:#8a95a8;">계정 정보를 입력하세요</div>
+        </div>
+        <div style="font-size:0.78em;font-weight:600;color:#4a5568;
+                    margin-bottom:4px;letter-spacing:0.02em;">아이디</div>
+        """, unsafe_allow_html=True)
 
-    username = st.text_input("uid", placeholder="아이디를 입력하세요",
-                             label_visibility="collapsed")
+        username = st.text_input("uid", placeholder="아이디를 입력하세요",
+                                 label_visibility="collapsed")
 
-    st.markdown('<div style="font-size:0.78em;font-weight:600;color:#4a5568;'
-                'margin-top:10px;margin-bottom:4px;letter-spacing:0.02em;">패스워드</div>',
-                unsafe_allow_html=True)
-    password = st.text_input("pwd", type="password", placeholder="패스워드를 입력하세요",
-                             label_visibility="collapsed")
+        st.markdown('<div style="font-size:0.78em;font-weight:600;color:#4a5568;'
+                    'margin-top:10px;margin-bottom:4px;letter-spacing:0.02em;">패스워드</div>',
+                    unsafe_allow_html=True)
+        password = st.text_input("pwd", type="password", placeholder="패스워드를 입력하세요",
+                                 label_visibility="collapsed")
 
-    st.markdown('<div style="height:6px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="height:6px;"></div>', unsafe_allow_html=True)
 
-    if st.button("로그인", use_container_width=True):
-        if username in USERS and USERS[username] == password:
-            _new_token = str(uuid.uuid4())
-            TOKEN_STORE[_new_token] = username
-            st.session_state["logged_in"] = True
-            st.session_state["username"] = username
-            st.session_state["auth_token"] = _new_token
+        if st.button("로그인", use_container_width=True):
+            if username in USERS and USERS[username] == password:
+                _new_token = str(uuid.uuid4())
+                TOKEN_STORE[_new_token] = username
+                st.session_state["logged_in"] = True
+                st.session_state["username"] = username
+                st.session_state["auth_token"] = _new_token
+                st.rerun()
+            else:
+                st.error("아이디 또는 패스워드가 올바르지 않습니다.")
+
+        st.markdown('<div style="height:6px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
+        if st.button("회원가입", use_container_width=True):
+            st.session_state["auth_view"] = "signup"
             st.rerun()
-        else:
-            st.error("아이디 또는 패스워드가 올바르지 않습니다.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown("""
-    <div style="border-top:1px solid #edf0f5;margin:20px 0 0;
-                padding:14px 0 0;text-align:center;">
-        <span style="font-size:0.72em;color:#b0b8c8;">
-            &copy; 동양 건재사업본부 &nbsp;|&nbsp; 내부 전용 시스템
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown("""
+        <div style="border-top:1px solid #edf0f5;margin:20px 0 0;
+                    padding:14px 0 0;text-align:center;">
+            <span style="font-size:0.72em;color:#b0b8c8;">
+                &copy; 동양 건재사업본부 &nbsp;|&nbsp; 내부 전용 시스템
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── 회원가입 뷰 ──
+    else:
+        st.markdown("""
+        <div style="text-align:center;margin-bottom:26px;">
+            <div style="display:inline-flex;align-items:center;justify-content:center;
+                        width:50px;height:50px;background:#e8eef7;border-radius:50%;
+                        margin-bottom:12px;font-size:1.5em;color:#1a3a6e;">&#9997;&#65039;</div>
+            <div style="font-size:1.1em;font-weight:700;color:#1a2340;margin-bottom:3px;">회원가입</div>
+            <div style="font-size:0.78em;color:#8a95a8;">가입 신청 후 운영자 승인이 필요합니다</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        def _field(label):
+            st.markdown(f'<div style="font-size:0.78em;font-weight:600;color:#4a5568;'
+                        f'margin-top:10px;margin-bottom:4px;letter-spacing:0.02em;">{label}</div>',
+                        unsafe_allow_html=True)
+
+        _field("소속")
+        sg_dept = st.text_input("sg_dept", placeholder="소속 부서를 입력하세요",
+                                label_visibility="collapsed")
+        _field("성함")
+        sg_name = st.text_input("sg_name", placeholder="성함을 입력하세요",
+                                label_visibility="collapsed")
+        _field("아이디")
+        sg_uid = st.text_input("sg_uid", placeholder="사용할 아이디를 입력하세요",
+                               label_visibility="collapsed")
+        _field("패스워드")
+        sg_pw = st.text_input("sg_pw", type="password", placeholder="패스워드를 입력하세요",
+                              label_visibility="collapsed")
+        _field("패스워드 확인")
+        sg_pw2 = st.text_input("sg_pw2", type="password", placeholder="패스워드를 다시 입력하세요",
+                               label_visibility="collapsed")
+
+        st.markdown('<div style="height:6px;"></div>', unsafe_allow_html=True)
+
+        if st.button("가입 신청", use_container_width=True):
+            current_users = load_users()
+            pending = load_pending()
+            pending_ids = [p["username"] for p in pending]
+            ok = True
+            if not sg_dept.strip():
+                st.warning("소속을 입력하세요.")
+                ok = False
+            elif not sg_name.strip():
+                st.warning("성함을 입력하세요.")
+                ok = False
+            elif not sg_uid.strip():
+                st.warning("아이디를 입력하세요.")
+                ok = False
+            elif sg_uid in current_users:
+                st.warning("이미 사용 중인 아이디입니다.")
+                ok = False
+            elif sg_uid in pending_ids:
+                st.warning("이미 가입 신청 중인 아이디입니다.")
+                ok = False
+            elif not sg_pw.strip():
+                st.warning("패스워드를 입력하세요.")
+                ok = False
+            elif sg_pw != sg_pw2:
+                st.warning("패스워드가 일치하지 않습니다.")
+                ok = False
+            if ok:
+                pending.append({
+                    "id": str(uuid.uuid4()),
+                    "department": sg_dept.strip(),
+                    "name": sg_name.strip(),
+                    "username": sg_uid.strip(),
+                    "password": sg_pw,
+                })
+                save_pending(pending)
+                st.success("가입 신청이 완료되었습니다. 운영자 승인 후 로그인할 수 있습니다.")
+
+        st.markdown('<div style="height:6px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
+        if st.button("로그인으로 돌아가기", use_container_width=True):
+            st.session_state["auth_view"] = "login"
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="border-top:1px solid #edf0f5;margin:20px 0 0;
+                    padding:14px 0 0;text-align:center;">
+            <span style="font-size:0.72em;color:#b0b8c8;">
+                &copy; 동양 건재사업본부 &nbsp;|&nbsp; 내부 전용 시스템
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.stop()
 
@@ -802,6 +921,65 @@ elif current_page == "ADMIN_PAGE":
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="admin-wrap">', unsafe_allow_html=True)
+
+    # ── 가입 승인 대기 섹션 ──
+    pending = load_pending()
+    if pending:
+        st.markdown(f'<div class="admin-section"><div class="admin-title">🔔 가입 승인 대기 ({len(pending)}건)</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <style>
+        .pending-row { display:flex; align-items:center; gap:8px; padding:10px 0;
+                       border-bottom:1px solid #f3f4f6; font-size:0.88em; }
+        .pending-row:last-child { border-bottom:none; }
+        .pending-info { flex:1; }
+        .pending-name { font-weight:700; color:#1f2937; }
+        .pending-meta { color:#6b7280; font-size:0.85em; margin-top:2px; }
+        .pending-uid { display:inline-block; background:#f3f4f6; border-radius:4px;
+                       padding:1px 7px; font-size:0.9em; font-family:monospace; color:#374151; }
+        </style>
+        """, unsafe_allow_html=True)
+
+        approved_ids = []
+        rejected_ids = []
+        for req in pending:
+            cols = st.columns([4, 1, 1])
+            cols[0].markdown(
+                f'<div class="pending-info">'
+                f'<span class="pending-name">{req["name"]}</span>'
+                f' <span class="pending-meta">| {req["department"]}</span>'
+                f'<div style="margin-top:4px;"><span class="pending-uid">{req["username"]}</span></div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+            if cols[1].button("승인", key=f"approve_{req['id']}", type="primary"):
+                approved_ids.append(req["id"])
+            if cols[2].button("거절", key=f"reject_{req['id']}", type="secondary"):
+                rejected_ids.append(req["id"])
+
+        if approved_ids:
+            current_users_now = load_users()
+            secrets_users = dict(st.secrets.get("users", {}))
+            new_pending = []
+            for req in pending:
+                if req["id"] in approved_ids:
+                    current_users_now[req["username"]] = req["password"]
+                else:
+                    new_pending.append(req)
+            override = {k: v for k, v in current_users_now.items()
+                        if k not in secrets_users or secrets_users[k] != v}
+            save_users(override)
+            save_pending(new_pending)
+            st.success("승인 처리되었습니다.")
+            st.rerun()
+
+        if rejected_ids:
+            new_pending = [req for req in pending if req["id"] not in rejected_ids]
+            save_pending(new_pending)
+            st.warning("거절 처리되었습니다.")
+            st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
     st.markdown('<div class="admin-section"><div class="admin-title">⚙️ 통합관리시스템 — 계정 관리</div>', unsafe_allow_html=True)
 
     current_users = load_users()
