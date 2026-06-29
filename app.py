@@ -35,6 +35,12 @@ if st.query_params.get("logout") == "1":
     st.query_params.clear()
     st.rerun()
 
+# 통합관리시스템 query param 처리
+if st.query_params.get("admin") == "1":
+    st.query_params.clear()
+    st.session_state["page"] = "ADMIN_PAGE"
+    st.rerun()
+
 
 if st.session_state.get("do_logout"):
     st.session_state.clear()
@@ -231,7 +237,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<button class="nav-admin-btn" id="nav-admin-visible-btn" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<a class="nav-admin-btn" href="?admin=1" target="_self" title="통합관리시스템">⚙️</a>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -298,11 +304,11 @@ st.markdown(f"""
 .nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8 !important; text-decoration:none !important; }}
 .nav-admin-btn {{
     background:none; border:1px solid #d1d5db; border-radius:4px;
-    width:34px; height:34px; padding:0; font-size:1.1em; color:#6b7280;
-    cursor:pointer; flex-shrink:0; transition:all 0.15s; display:inline-flex;
-    align-items:center; justify-content:center;
+    width:34px; height:34px; padding:0; font-size:1.1em; color:#6b7280 !important;
+    flex-shrink:0; transition:all 0.15s; display:inline-flex;
+    align-items:center; justify-content:center; text-decoration:none !important;
 }}
-.nav-admin-btn:hover {{ border-color:#1d4ed8; background:#eff6ff; color:#1d4ed8; }}
+.nav-admin-btn:hover {{ border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important; }}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
@@ -358,36 +364,9 @@ function navTo(page) {{
         }}
     }}
 }}
-function setupAdminBtn() {{
-    var visibleBtn = document.getElementById('nav-admin-visible-btn');
-    if (!visibleBtn) {{ setTimeout(setupAdminBtn, 200); return; }}
-    if (visibleBtn._wired) return;
-    var btns = document.querySelectorAll('button');
-    var stBtn = null;
-    for (var i = 0; i < btns.length; i++) {{
-        if (btns[i].id === 'nav-admin-visible-btn') continue;
-        var t = btns[i].textContent.trim();
-        if (t === '⚙' || t === '⚙️') {{ stBtn = btns[i]; break; }}
-    }}
-    if (!stBtn) {{ setTimeout(setupAdminBtn, 200); return; }}
-    var container = stBtn.closest('[data-testid="stButton"]') || stBtn.parentElement;
-    if (container) container.style.cssText = 'display:none !important;';
-    visibleBtn.onclick = function(e) {{ e.preventDefault(); stBtn.click(); }};
-    visibleBtn._wired = true;
-}}
-setupAdminBtn();
-setInterval(function() {{
-    var visibleBtn = document.getElementById('nav-admin-visible-btn');
-    if (visibleBtn && !visibleBtn._wired) setupAdminBtn();
-}}, 300);
 </script>
 """, unsafe_allow_html=True)
 
-# 관리자 전용 네이티브 버튼 — CSS로 nav bar 위치에 고정됨
-if st.session_state.get("username") == ADMIN_USER:
-    if st.button("⚙", key="admin_nav_btn", help="통합관리시스템"):
-        st.session_state["page"] = "ADMIN_PAGE"
-        st.rerun()
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
