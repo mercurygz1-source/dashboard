@@ -582,11 +582,12 @@ if current_page == "건재손익_요약":
         c1,c2,c3,c4 = st.columns(4)
         if rc_row_ov is not None:
             c1.markdown(kpi("레미콘 판매량",f(rc_row_ov.get(_ov_col('물량','실적')),1),"천㎥",rc_row_ov.get(_ov_col('물량','차이')),"계획","amber"), unsafe_allow_html=True)
-        if total_all is not None:
-            _매출실적 = total_all.get(_ov_col('매출','실적'))
-            _oi실적   = total_all.get(_ov_col('영업이익','실적'))
-            c2.markdown(kpi("매출액",f(_매출실적),"백만원",total_all.get(_ov_col('매출','차이')),"계획"), unsafe_allow_html=True)
-            c3.markdown(kpi("영업이익",f(_oi실적),"백만원",total_all.get(_ov_col('영업이익','차이')),"계획",
+        _kpi_total = total_row if _sfx else (total_all if total_all is not None else total_row)
+        if _kpi_total is not None:
+            _매출실적 = _kpi_total.get(_ov_col('매출','실적'))
+            _oi실적   = _kpi_total.get(_ov_col('영업이익','실적'))
+            c2.markdown(kpi("매출액",f(_매출실적),"백만원",_kpi_total.get(_ov_col('매출','차이')),"계획"), unsafe_allow_html=True)
+            c3.markdown(kpi("영업이익",f(_oi실적),"백만원",_kpi_total.get(_ov_col('영업이익','차이')),"계획",
                             "green" if (_oi실적 or 0)>=0 else "red"), unsafe_allow_html=True)
         if rc_detail is not None:
             _공헌실적 = rc_detail.get('공헌이익_실적')
