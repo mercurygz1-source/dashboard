@@ -300,6 +300,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 .pos {{ color:#16a34a !important; font-weight:700; }}
 .neg {{ color:#dc2626 !important; font-weight:700; }}
 [data-testid="stSelectbox"] label {{ display:none !important; }}
+[data-testid="stSelectbox"] > div > div {{ background:#ffffff !important; border-color:#d1d5db !important; }}
 </style>
 
 <div class="top-nav">
@@ -347,7 +348,7 @@ selected_month = st.session_state["sel_month"]
 if current_page != "건재손익_총괄":
     _s, _y, _m = st.columns([0.82, 0.09, 0.09])
     with _y:
-        st.selectbox("연도", years, key="sel_year", label_visibility="collapsed")
+        st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
     with _m:
         _pm = get_available_months(selected_year)
         st.selectbox("월", _pm, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
@@ -422,7 +423,7 @@ if current_page == "건재손익_총괄":
             <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.05em;font-weight:600;">{selected_year}년 {selected_month}월</span>
         </div>""", unsafe_allow_html=True)
     with _yc:
-        st.selectbox("연도", years, key="sel_year", label_visibility="collapsed")
+        st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
     with _mc:
         _months = get_available_months(selected_year)
         st.selectbox("월", _months, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
