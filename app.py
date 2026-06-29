@@ -334,13 +334,24 @@ if not years:
     st.error("데이터 폴더에 연도 폴더가 없습니다.")
     st.stop()
 
-_s, _y, _m = st.columns([0.82, 0.09, 0.09])
-with _y:
-    selected_year = st.selectbox("연도", years, label_visibility="collapsed")
-with _m:
-    months = get_available_months(selected_year)
-    selected_month = st.selectbox("월", months, format_func=lambda x: f"{x}월", label_visibility="collapsed")
-st.markdown('<hr style="margin:0;border:none;border-top:1px solid #e8eaed;">', unsafe_allow_html=True)
+if "sel_year" not in st.session_state:
+    st.session_state["sel_year"] = years[0]
+if st.session_state["sel_year"] not in years:
+    st.session_state["sel_year"] = years[0]
+selected_year = st.session_state["sel_year"]
+_init_months = get_available_months(selected_year)
+if "sel_month" not in st.session_state or st.session_state["sel_month"] not in _init_months:
+    st.session_state["sel_month"] = _init_months[0] if _init_months else 1
+selected_month = st.session_state["sel_month"]
+
+if current_page != "건재손익_총괄":
+    _s, _y, _m = st.columns([0.82, 0.09, 0.09])
+    with _y:
+        st.selectbox("연도", years, key="sel_year", label_visibility="collapsed")
+    with _m:
+        _pm = get_available_months(selected_year)
+        st.selectbox("월", _pm, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+    st.markdown('<hr style="margin:0;border:none;border-top:1px solid #e8eaed;">', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
 # 데이터
@@ -402,7 +413,19 @@ def stitle(title):
 # 건재손익 총괄
 # ══════════════════════════════════════════════════════════════
 if current_page == "건재손익_총괄":
-    stitle("손익 총괄")
+    _tc, _yc, _mc = st.columns([0.74, 0.13, 0.13])
+    with _tc:
+        st.markdown(f"""
+        <div style="padding:18px 32px 0;display:flex;align-items:center;gap:12px;">
+            <div style="width:4px;height:22px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
+            <span style="font-size:1.15em;font-weight:900;color:#1f2937;">손익 총괄</span>
+            <span style="background:#eff6ff;color:#1d4ed8;padding:3px 12px;border-radius:20px;font-size:0.78em;font-weight:600;">{selected_year}년 {selected_month}월</span>
+        </div>""", unsafe_allow_html=True)
+    with _yc:
+        st.selectbox("연도", years, key="sel_year", label_visibility="collapsed")
+    with _mc:
+        _months = get_available_months(selected_year)
+        st.selectbox("월", _months, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
     @st.cache_data
