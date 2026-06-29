@@ -202,8 +202,8 @@ with st.sidebar:
         if st.button(pg, key=f"_nav_{pg}"):
             st.session_state["page"] = pg
             st.rerun()
-    if st.button("__admin__", key="_nav___admin__"):
-        st.session_state["page"] = "__admin__"
+    if st.button("ADMIN_PAGE", key="_nav_ADMIN_PAGE"):
+        st.session_state["page"] = "ADMIN_PAGE"
         st.rerun()
 
 # 드롭다운 HTML 생성
@@ -338,7 +338,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>
-        {'<button class="nav-admin-btn" onclick="navTo(\'__admin__\')" title="통합관리시스템">⚙️</button>' if st.session_state.get('username') == ADMIN_USER else ''}
+        {'<button class="nav-admin-btn" onclick="navTo(\'ADMIN_PAGE\')" title="통합관리시스템">⚙️</button>' if st.session_state.get('username') == ADMIN_USER else ''}
         <a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a>
     </div>
 </div>
@@ -361,7 +361,7 @@ function navTo(page) {{
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
 # ══════════════════════════════════════════════════════════════
-if current_page == "__admin__":
+if current_page == "ADMIN_PAGE":
     years = []
     selected_year = None
     selected_month = None
@@ -656,7 +656,7 @@ elif current_page in ["건자재_손익","골재_손익","임대_손익"]:
 # ══════════════════════════════════════════════════════════════
 # 통합관리시스템
 # ══════════════════════════════════════════════════════════════
-elif current_page == "__admin__":
+elif current_page == "ADMIN_PAGE":
     if st.session_state.get("username") != ADMIN_USER:
         st.error("접근 권한이 없습니다.")
         st.stop()
