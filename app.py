@@ -392,7 +392,7 @@ st.markdown(f"""
 .main {{ background:#f0f2f5 !important; }}
 [data-testid="stHeader"] {{ display:none; }}
 [data-testid="stSidebar"] {{ display:none; }}
-.block-container {{ padding-top:74px !important; padding-left:56px !important; padding-right:56px !important; padding-bottom:0 !important; max-width:100% !important; }}
+.block-container {{ padding-top:72px !important; padding-left:56px !important; padding-right:56px !important; padding-bottom:0 !important; max-width:100% !important; }}
 
 /* 상단 네비 */
 .top-nav {{
@@ -743,6 +743,12 @@ if current_page == "건재손익_요약":
     div[data-testid="stHorizontalBlock"]:has(> div[data-testid="stColumn"] > div > div > div[data-testid="stSelectbox"]) {
         gap: 4px !important;
     }
+    /* 요약 페이지 제목 행과 KPI 카드 사이 모든 여백 제거 */
+    [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"] > [data-testid="element-container"] {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    [data-testid="stVerticalBlock"] { gap: 0rem !important; }
     </style>""", unsafe_allow_html=True)
     _tc, _rc = st.columns([0.76, 0.24], gap="small")
     with _tc:
