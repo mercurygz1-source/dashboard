@@ -35,6 +35,12 @@ if st.query_params.get("logout") == "1":
     st.query_params.clear()
     st.rerun()
 
+# 어드민 이동 처리
+if st.query_params.get("admin") == "1" and st.session_state.get("username") == ADMIN_USER:
+    st.session_state["page"] = "ADMIN_PAGE"
+    st.query_params.clear()
+    st.rerun()
+
 
 if st.session_state.get("do_logout"):
     st.session_state.clear()
@@ -229,7 +235,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<button class="nav-admin-btn" onclick="window.parent.postMessage(\'go-admin\',\'*\')" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<a class="nav-admin-btn" href="?admin=1" target="_self" title="통합관리시스템">⚙️</a>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -363,49 +369,9 @@ function navTo(page) {{
     }}
 }}
 
-// 부모 문서에 postMessage 리스너 주입 (한 번만)
-(function injectAdminListener() {{
-    try {{
-        var pd = window.parent.document;
-        if (!pd.getElementById('st-admin-listener')) {{
-            var s = pd.createElement('script');
-            s.id = 'st-admin-listener';
-            s.textContent = [
-                "window.addEventListener('message', function(e) {{",
-                "  if (e.data !== 'go-admin') return;",
-                "  document.querySelectorAll('button').forEach(function(b) {{",
-                "    if (b.textContent.trim() === 'ADMIN_TRIGGER') {{ b.click(); }}",
-                "  }});",
-                "}});"
-            ].join('');
-            pd.head.appendChild(s);
-        }}
-        // ADMIN_TRIGGER 버튼 숨김 (MutationObserver로 영구 감시)
-        function hideAdminTrigger(doc) {{
-            doc.querySelectorAll('button').forEach(function(b) {{
-                if (b.textContent.trim() === 'ADMIN_TRIGGER') {{
-                    var el = b;
-                    for (var i = 0; i < 5; i++) {{
-                        if (el) {{ el.style.cssText = 'display:none!important'; el = el.parentElement; }}
-                    }}
-                }}
-            }});
-        }}
-        hideAdminTrigger(document);
-        hideAdminTrigger(pd);
-        var obs = new MutationObserver(function() {{ hideAdminTrigger(document); hideAdminTrigger(pd); }});
-        obs.observe(document.body || document.documentElement, {{childList: true, subtree: true}});
-        try {{ obs.observe(pd.body || pd.documentElement, {{childList: true, subtree: true}}); }} catch(e) {{}}
-    }} catch(e) {{}}
-}})();
 </script>
 """, unsafe_allow_html=True)
 
-# ADMIN_TRIGGER: JS postMessage로 클릭되는 숨김 버튼
-if st.session_state.get("username") == ADMIN_USER:
-    if st.button("ADMIN_TRIGGER", key="admin_trigger"):
-        st.session_state["page"] = "ADMIN_PAGE"
-        st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════
