@@ -475,7 +475,7 @@ def stitle(title):
 if current_page == "건재손익_요약":
     if "sel_period" not in st.session_state:
         st.session_state["sel_period"] = "당월"
-    _tc, _gap1, _yc, _mc, _pc = st.columns([0.64, 0.03, 0.11, 0.11, 0.11], gap="small")
+    _tc, _yc, _mc, _pc = st.columns([0.73, 0.09, 0.09, 0.09], gap="small")
     with _tc:
         st.markdown(f"""
         <div style="padding:18px 0 0;display:flex;align-items:center;gap:12px;">
