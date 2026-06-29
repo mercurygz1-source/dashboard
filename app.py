@@ -230,7 +230,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<button class="nav-admin-btn" onclick="navTo(\'ADMIN_TRIGGER\')" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = ""
 
 st.markdown(f"""
 <style>
@@ -367,9 +367,34 @@ function navTo(page) {{
 </script>
 """, unsafe_allow_html=True)
 
-# ADMIN_TRIGGER: ⚙️ 클릭 시 navTo()로 호출되는 숨김 버튼
+# ADMIN_TRIGGER: 로그아웃 옆 고정 배치 (CSS position:fixed)
 if st.session_state.get("username") == ADMIN_USER:
-    st.markdown('<style>[data-testid="stVerticalBlock"]>[data-testid="stButton"]{display:none!important}</style>', unsafe_allow_html=True)
+    st.markdown("""<style>
+[data-testid="stVerticalBlock"]>[data-testid="stButton"]{
+    position:fixed !important;
+    top:9px !important;
+    right:90px !important;
+    z-index:9999 !important;
+    width:auto !important;
+}
+[data-testid="stVerticalBlock"]>[data-testid="stButton"] button{
+    background:none !important;
+    border:1px solid #d1d5db !important;
+    color:#6b7280 !important;
+    padding:0 14px !important;
+    border-radius:4px !important;
+    font-size:0.85em !important;
+    font-weight:500 !important;
+    height:34px !important;
+    font-family:'Noto Sans KR',sans-serif !important;
+    box-shadow:none !important;
+}
+[data-testid="stVerticalBlock"]>[data-testid="stButton"] button:hover{
+    border-color:#1d4ed8 !important;
+    color:#1d4ed8 !important;
+    background:#eff6ff !important;
+}
+</style>""", unsafe_allow_html=True)
     if st.button("ADMIN_TRIGGER", key="admin_trigger"):
         st.session_state["page"] = "ADMIN_PAGE"
         st.rerun()
