@@ -573,6 +573,107 @@ def kpi(label, value, unit, delta=None, dl="계획대비", color=""):
 
 C = {"계획":"#93c5fd","실적":"#1d4ed8","전년":"#f87171","pos":"#16a34a","neg":"#dc2626"}
 
+@st.cache_data(ttl=600)
+def get_kpi_trend(year, up_to_month):
+    """1월~up_to_month 각 월의 KPI 당월값을 모아 트렌드 DataFrame 반환."""
+    months = [m for m in get_available_months(year) if m <= up_to_month]
+    rows = []
+    for m in months:
+        dov = load_overview(year, m)
+        dfa = load_factory_data(year, m)
+        if dov is None:
+            continue
+        rc  = dov[dov['구분']=='레미콘'].iloc[0] if not dov[dov['구분']=='레미콘'].empty else None
+        tot = dov[dov['구분']=='합계'].iloc[0]   if not dov[dov['구분']=='합계'].empty   else None
+        rcd = dfa[dfa['공장명']=='레미콘 계'].iloc[0] if dfa is not None and not dfa[dfa['공장명']=='레미콘 계'].empty else None
+        rows.append({
+            '월': m,
+            '판매량_계획':  rc.get('물량_계획')      if rc  is not None else None,
+            '판매량_실적':  rc.get('물량_실적')      if rc  is not None else None,
+            '매출_계획':    tot.get('매출_계획')     if tot is not None else None,
+            '매출_실적':    tot.get('매출_실적')     if tot is not None else None,
+            '영업이익_계획': tot.get('영업이익_계획') if tot is not None else None,
+            '영업이익_실적': tot.get('영업이익_실적') if tot is not None else None,
+            '공헌이익_계획': rcd.get('공헌이익_계획') if rcd is not None else None,
+            '공헌이익_실적': rcd.get('공헌이익_실적') if rcd is not None else None,
+        })
+    return pd.DataFrame(rows) if rows else None
+
+def spark(df, pcol, acol, height=100):
+    """계획/실적 선 그래프 스파크라인."""
+    if df is None or df.empty:
+        return None
+    mlabels = [f"{int(m)}월" for m in df['월']]
+    fig = go.Figure()
+    if pcol in df.columns:
+        fig.add_trace(go.Scatter(
+            x=mlabels, y=df[pcol], mode='lines+markers', name='계획',
+            line=dict(color='#93c5fd', width=2, dash='dot'),
+            marker=dict(size=4, color='#93c5fd'),
+        ))
+    if acol in df.columns:
+        fig.add_trace(go.Scatter(
+            x=mlabels, y=df[acol], mode='lines+markers', name='실적',
+            line=dict(color='#1d4ed8', width=2.5),
+            marker=dict(size=5, color='#1d4ed8'),
+        ))
+    fig.update_layout(
+        height=height,
+        margin=dict(l=4, r=4, t=4, b=2),
+        plot_bgcolor='white', paper_bgcolor='white',
+        showlegend=True,
+        legend=dict(
+            orientation='h', x=1, y=1.1, xanchor='right', yanchor='top',
+            font=dict(size=9, color='#6b7280'), bgcolor='rgba(0,0,0,0)',
+            itemwidth=30, traceorder='normal',
+        ),
+        xaxis=dict(
+            showgrid=False, tickfont=dict(size=8, color='#9ca3af'),
+            linecolor='#e5e7eb', showline=True, tickangle=0,
+        ),
+        yaxis=dict(
+            showgrid=True, showticklabels=False, gridcolor='#f3f4f6',
+        ),
+        font=dict(family='Noto Sans KR'),
+        hoverlabel=dict(font_size=10, font_family='Noto Sans KR'),
+    )
+    return fig
+
+def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol):
+    """KPI 헤더 + 스파크라인을 하나의 카드처럼 렌더링."""
+    border = {"amber":"#d97706","green":"#16a34a","red":"#dc2626","purple":"#7c3aed"}.get(color,"#1d4ed8")
+    ds = ""
+    if delta is not None and not (isinstance(delta, float) and pd.isna(delta)):
+        arrow = "▲" if delta>=0 else "▼"; cls = "pos" if delta>=0 else "neg"
+        ds = f'<div class="kpi-delta {cls}">{arrow} {f(abs(delta))}<span class="kpi-delta-sub"> vs 계획</span></div>'
+    with col:
+        st.markdown(f"""
+        <div style="background:white;border-radius:10px 10px 0 0;padding:16px 18px 10px;
+                    border-top:4px solid {border};
+                    box-shadow:0 1px 0 rgba(0,0,0,0.04);
+                    border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;">
+            <div class="kpi-label">{label}</div>
+            <div class="kpi-value">{value_str}<span class="kpi-unit"> {unit}</span></div>
+            {ds}
+        </div>
+        """, unsafe_allow_html=True)
+        fig = spark(trend_df, pcol, acol)
+        if fig:
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+            st.markdown("""
+            <div style="background:white;border-radius:0 0 10px 10px;height:10px;
+                        border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;
+                        border-bottom:1px solid #eef0f4;margin-top:-18px;
+                        box-shadow:0 2px 6px rgba(0,0,0,0.05);"></div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="background:white;border-radius:0 0 10px 10px;
+                        border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;
+                        border-bottom:1px solid #eef0f4;height:16px;
+                        box-shadow:0 2px 6px rgba(0,0,0,0.05);"></div>
+            """, unsafe_allow_html=True)
+
 def bc(fig, h=370):
     fig.update_layout(height=h, plot_bgcolor='white', paper_bgcolor='white',
         margin=dict(l=10,r=10,t=36,b=10),
@@ -698,22 +799,60 @@ if current_page == "건재손익_요약":
             return f'{base}_누계{kind}' if _sfx else f'{base}_{kind}'
         rc_detail   = df_all[df_all['공장명']=='레미콘 계'].iloc[0] if not df_all[df_all['공장명']=='레미콘 계'].empty else None
         total_all   = df_all[df_all['공장명']=='합계'].iloc[0]       if not df_all[df_all['공장명']=='합계'].empty       else None
-        c1,c2,c3,c4 = st.columns(4)
-        if rc_row_ov is not None:
-            c1.markdown(kpi("레미콘 판매량",f(rc_row_ov.get(_ov_col('물량','실적')),1),"천㎥",rc_row_ov.get(_ov_col('물량','차이')),"계획","amber"), unsafe_allow_html=True)
+
+        # 월별 트렌드 데이터 (스파크라인용)
+        trend_df = get_kpi_trend(selected_year, selected_month)
+
+        # 스파크라인 plotly 요소와 markdown 사이 gap 제거용 CSS
+        st.markdown("""
+        <style>
+        /* KPI 스파크라인 카드: 헤더와 차트 사이 gap 제거 */
+        [data-testid="stColumn"] [data-testid="stVerticalBlock"]
+            > [data-testid="element-container"]:has(+ [data-testid="element-container"] [data-testid="stPlotlyChart"]) {
+            margin-bottom: 0 !important;
+        }
+        [data-testid="stColumn"] [data-testid="stVerticalBlock"]
+            > [data-testid="element-container"]:has([data-testid="stPlotlyChart"]) {
+            margin-top: -10px !important;
+            background: white;
+        }
+        [data-testid="stColumn"] [data-testid="stVerticalBlock"]
+            > [data-testid="element-container"] [data-testid="stPlotlyChart"] {
+            background: white;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        c1, c2, c3, c4 = st.columns(4)
         _kpi_total = total_row if _sfx else (total_all if total_all is not None else total_row)
+
+        if rc_row_ov is not None:
+            kpi_spark(c1, "레미콘 판매량",
+                      f(rc_row_ov.get(_ov_col('물량','실적')), 1), "천㎥",
+                      rc_row_ov.get(_ov_col('물량','차이')), "amber",
+                      trend_df, "판매량_계획", "판매량_실적")
+
         if _kpi_total is not None:
             _매출실적 = _kpi_total.get(_ov_col('매출','실적'))
             _oi실적   = _kpi_total.get(_ov_col('영업이익','실적'))
-            c2.markdown(kpi("매출액",f(_매출실적),"백만원",_kpi_total.get(_ov_col('매출','차이')),"계획"), unsafe_allow_html=True)
-            c3.markdown(kpi("영업이익",f(_oi실적),"백만원",_kpi_total.get(_ov_col('영업이익','차이')),"계획",
-                            "green" if (_oi실적 or 0)>=0 else "red"), unsafe_allow_html=True)
+            kpi_spark(c2, "매출액",
+                      f(_매출실적), "백만원",
+                      _kpi_total.get(_ov_col('매출','차이')), "",
+                      trend_df, "매출_계획", "매출_실적")
+            kpi_spark(c3, "영업이익",
+                      f(_oi실적), "백만원",
+                      _kpi_total.get(_ov_col('영업이익','차이')),
+                      "green" if (_oi실적 or 0)>=0 else "red",
+                      trend_df, "영업이익_계획", "영업이익_실적")
+
         if rc_detail is not None:
             _공헌실적 = rc_detail.get('공헌이익_실적')
             _공헌계획 = rc_detail.get('공헌이익_계획')
-            c4.markdown(kpi("공헌이익",f(_공헌실적),"원/㎥",
-                            _공헌실적-_공헌계획 if pd.notna(_공헌계획) and _공헌실적 is not None else None,"계획",
-                            "green" if (_공헌실적 or 0)>=0 else "red"), unsafe_allow_html=True)
+            kpi_spark(c4, "공헌이익",
+                      f(_공헌실적), "원/㎥",
+                      _공헌실적-_공헌계획 if pd.notna(_공헌계획) and _공헌실적 is not None else None,
+                      "green" if (_공헌실적 or 0)>=0 else "red",
+                      trend_df, "공헌이익_계획", "공헌이익_실적")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
