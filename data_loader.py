@@ -56,7 +56,7 @@ def load_factory_data(year, month):
     if '사업장별(당월)' in wb.sheetnames:
         ws = wb['사업장별(당월)']
         for row in ws.iter_rows(min_row=7, max_row=50, values_only=True):
-            name = row[8]  # 공장명 (열 I)
+            name = row[8] if (row[8] and isinstance(row[8], str)) else (row[7] if (len(row) > 7 and row[7] and isinstance(row[7], str)) else None)
             if name and isinstance(name, str):
                 rows_data.append({
                     '공장명': name,
@@ -85,6 +85,8 @@ def load_factory_data(year, month):
     wb.close()
 
     df = pd.DataFrame(rows_data)
+    # 합계 행이 2개(레미콘만/전체)인 경우 마지막(건자재 포함 전체) 행만 유지
+    df = df.drop_duplicates(subset=['공장명'], keep='last')
     df['연도'] = int(year)
     df['월'] = int(month)
     return df
