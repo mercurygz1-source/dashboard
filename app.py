@@ -206,6 +206,10 @@ with st.sidebar:
         if st.button(pg, key=f"_nav_{pg}"):
             st.session_state["page"] = pg
             st.rerun()
+    if st.session_state.get("username") == ADMIN_USER:
+        if st.button("ADMIN_PAGE", key="_nav_ADMIN_PAGE"):
+            st.session_state["page"] = "ADMIN_PAGE"
+            st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -230,7 +234,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<button class="nav-admin-btn" onclick="clickAdminTrigger()">ADMIN_TRIGGER</button>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<button class="nav-admin-btn" onclick="navTo(\'ADMIN_PAGE\')">ADMIN_TRIGGER</button>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -365,48 +369,8 @@ function navTo(page) {{
     }}
 }}
 
-function clickAdminTrigger() {{
-    var btns = document.querySelectorAll('button');
-    for (var i = 0; i < btns.length; i++) {{
-        if (btns[i].textContent.trim() === 'ADMIN_TRIGGER' && !btns[i].classList.contains('nav-admin-btn')) {{
-            btns[i].click();
-            return;
-        }}
-    }}
-}}
-
-(function hideAdminBtn() {{
-    function tryHide() {{
-        var btns = document.querySelectorAll('button');
-        for (var i = 0; i < btns.length; i++) {{
-            if (btns[i].textContent.trim() === 'ADMIN_TRIGGER' && !btns[i].classList.contains('nav-admin-btn')) {{
-                var el = btns[i];
-                for (var j = 0; j < 8; j++) {{
-                    if (!el.parentElement) break;
-                    el = el.parentElement;
-                    if (el.dataset && el.dataset.testid === 'stElementContainer') {{
-                        el.style.cssText = 'display:none!important';
-                        return true;
-                    }}
-                }}
-                btns[i].style.cssText = 'display:none!important';
-                return true;
-            }}
-        }}
-        return false;
-    }}
-    if (!tryHide()) {{
-        var t = 0;
-        var iv = setInterval(function() {{ if (tryHide() || ++t > 30) clearInterval(iv); }}, 200);
-    }}
-}})();
 </script>
 """, unsafe_allow_html=True)
-
-if st.session_state.get("username") == ADMIN_USER:
-    if st.button("ADMIN_TRIGGER", key="admin_trigger"):
-        st.session_state["page"] = "ADMIN_PAGE"
-        st.rerun()
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
