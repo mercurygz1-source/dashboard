@@ -692,7 +692,7 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol, a
                     border-top:4px solid {border};
                     border:1px solid #e5e7eb;border-top:4px solid {border};
                     box-shadow:0 1px 6px rgba(0,0,0,0.06);margin-bottom:8px;">
-            <div style="font-size:1.15em;font-weight:800;color:#1f2937;margin-bottom:10px;letter-spacing:0.01em;">{label}</div>
+            <div style="font-size:1.3em;font-weight:900;color:white;background:{border};display:inline-block;padding:3px 12px;border-radius:6px;margin-bottom:12px;letter-spacing:0.02em;">{label}</div>
             <div style="display:flex;align-items:baseline;flex-wrap:nowrap;gap:0;overflow:hidden;">
                 <div class="kpi-value" style="flex-shrink:1;min-width:0;">{value_str}<span class="kpi-unit"> {unit}</span></div>
                 {ds}
