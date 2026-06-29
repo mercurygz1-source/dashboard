@@ -283,7 +283,7 @@ st.markdown(f"""
 }}
 .nav-item:hover .dropdown {{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }}
 .dd-item {{
-    padding:13px 14px; color:#374151; font-size:0.88em; font-weight:500; text-align:center;
+    padding:13px 14px; color:#374151; font-size:1.0em; font-weight:500; text-align:center;
     border-bottom:1px solid #f3f4f6; cursor:pointer;
     transition:background 0.13s,color 0.13s,padding-left 0.13s;
 }}
