@@ -167,6 +167,12 @@ if not st.session_state["logged_in"]:
 
     st.stop()
 
+# 로그인 된 상태에서만 처리 — goto=admin query param으로 관리자 페이지 이동
+if st.query_params.get("goto") == "admin" and st.session_state.get("username") == ADMIN_USER:
+    st.session_state["page"] = "ADMIN_PAGE"
+    st.query_params.clear()
+    st.rerun()
+
 # ══════════════════════════════════════════════════════════════
 # 네비게이션 구조
 # ══════════════════════════════════════════════════════════════
@@ -203,9 +209,6 @@ with st.sidebar:
         if st.button(pg, key=f"_nav_{pg}"):
             st.session_state["page"] = pg
             st.rerun()
-    if st.button("ADMIN_PAGE", key="_nav_ADMIN_PAGE"):
-        st.session_state["page"] = "ADMIN_PAGE"
-        st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -230,7 +233,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<span class="nav-admin-btn" onclick="navTo(\'ADMIN_PAGE\')" title="통합관리시스템">&#9881;&#65039;</span>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<a class="nav-admin-btn" href="?goto=admin" target="_self" title="통합관리시스템">&#9881;&#65039;</a>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
