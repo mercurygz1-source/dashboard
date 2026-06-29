@@ -265,7 +265,12 @@ st.markdown(f"""
     outline:none; background:none;
 }}
 .nav-link:hover {{ color:#1d4ed8; text-decoration:none !important; }}
-.nav-link.active {{ color:#1d4ed8; font-weight:700; text-decoration:none !important; }}
+.nav-link.active {{
+    color:#1d4ed8; font-weight:700; text-decoration:none !important;
+    background: linear-gradient(180deg, transparent 30%, #dbeafe 100%);
+    border-bottom: 3px solid #1d4ed8;
+    padding-bottom: 0;
+}}
 
 /* 드롭다운 */
 .dropdown {{
