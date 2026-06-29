@@ -95,7 +95,7 @@ if not st.session_state["logged_in"]:
     </style>
 
     <div style="position:fixed;top:0;left:0;right:0;z-index:9999;
-                background:white;height:54px;display:flex;align-items:center;
+                background:white;height:70px;display:flex;align-items:center;
                 padding:0 28px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-bottom:1px solid #e8eaf0;">
         {logo_tag}
         <span style="color:rgba(0,0,0,0.2);margin:0 16px;font-size:1.1em;">|</span>
