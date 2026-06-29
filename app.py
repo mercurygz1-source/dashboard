@@ -1,8 +1,26 @@
 ﻿import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import base64, os
+import base64, os, json
 from data_loader import get_available_years, get_available_months, load_factory_data, load_overview
+
+ADMIN_USER = "tongyang"
+USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
+
+def load_users():
+    """secrets + users.json 병합. users.json이 우선."""
+    base = dict(st.secrets.get("users", {"tongyang": "6150"}))
+    if os.path.exists(USERS_FILE):
+        try:
+            with open(USERS_FILE, "r", encoding="utf-8") as f:
+                base.update(json.load(f))
+        except Exception:
+            pass
+    return base
+
+def save_users(users: dict):
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f, ensure_ascii=False, indent=2)
 
 st.set_page_config(page_title="동양 건재사업본부 손익", page_icon="📊", layout="wide")
 
@@ -22,7 +40,7 @@ if st.session_state.get("do_logout"):
     st.rerun()
 
 
-USERS = st.secrets.get("users", {"tongyang": "6150"})
+USERS = load_users()
 
 def get_logo_b64():
     for fname in ["logo.png", "tongyang_logo.png", "logo.jpg"]:
@@ -40,6 +58,8 @@ logo_html = (f'<img src="data:image/png;base64,{logo_b64}" style="height:44px;ob
 # ══════════════════════════════════════════════════════════════
 # 로그인
 # ══════════════════════════════════════════════════════════════
+USERS = load_users()
+
 if not st.session_state["logged_in"]:
     logo_src = f'data:image/png;base64,{logo_b64}' if logo_b64 else ""
     logo_tag = (f'<img src="{logo_src}" style="height:44px;object-fit:contain;">') if logo_b64 else \
@@ -182,6 +202,9 @@ with st.sidebar:
         if st.button(pg, key=f"_nav_{pg}"):
             st.session_state["page"] = pg
             st.rerun()
+    if st.button("__admin__", key="_nav___admin__"):
+        st.session_state["page"] = "__admin__"
+        st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -269,6 +292,13 @@ st.markdown(f"""
 }}
 .nav-logout-btn:visited {{ color:#6b7280 !important; text-decoration:none !important; }}
 .nav-logout-btn:hover {{ border-color:#1d4ed8; color:#1d4ed8 !important; text-decoration:none !important; }}
+.nav-admin-btn {{
+    background:none; border:1px solid #d1d5db; color:#6b7280;
+    width:34px; height:34px; border-radius:4px; font-size:1em; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
+    transition:all 0.15s; padding:0;
+}}
+.nav-admin-btn:hover {{ border-color:#1d4ed8; background:#eff6ff; }}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
@@ -308,6 +338,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>
+        {'<button class="nav-admin-btn" onclick="navTo(\'__admin__\')" title="통합관리시스템">⚙️</button>' if st.session_state.get('username') == ADMIN_USER else ''}
         <a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a>
     </div>
 </div>
@@ -330,47 +361,53 @@ function navTo(page) {{
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
 # ══════════════════════════════════════════════════════════════
-years = get_available_years()
-if not years:
-    st.error("데이터 폴더에 연도 폴더가 없습니다.")
-    st.stop()
+if current_page == "__admin__":
+    years = []
+    selected_year = None
+    selected_month = None
+    df_all = df_rc = df_summary = None
+else:
+    years = get_available_years()
+    if not years:
+        st.error("데이터 폴더에 연도 폴더가 없습니다.")
+        st.stop()
 
-if "sel_year" not in st.session_state:
-    st.session_state["sel_year"] = years[0]
-if st.session_state["sel_year"] not in years:
-    st.session_state["sel_year"] = years[0]
-selected_year = st.session_state["sel_year"]
-_init_months = get_available_months(selected_year)
-if "sel_month" not in st.session_state or st.session_state["sel_month"] not in _init_months:
-    st.session_state["sel_month"] = _init_months[-1] if _init_months else 1
-selected_month = st.session_state["sel_month"]
+    if "sel_year" not in st.session_state:
+        st.session_state["sel_year"] = years[0]
+    if st.session_state["sel_year"] not in years:
+        st.session_state["sel_year"] = years[0]
+    selected_year = st.session_state["sel_year"]
+    _init_months = get_available_months(selected_year)
+    if "sel_month" not in st.session_state or st.session_state["sel_month"] not in _init_months:
+        st.session_state["sel_month"] = _init_months[-1] if _init_months else 1
+    selected_month = st.session_state["sel_month"]
 
-if current_page != "건재손익_총괄":
-    _s, _y, _m = st.columns([0.82, 0.09, 0.09])
-    with _y:
-        st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
-    with _m:
-        _pm = get_available_months(selected_year)
-        st.selectbox("월", _pm, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
-    st.markdown('<hr style="margin:0;border:none;border-top:1px solid #e8eaed;">', unsafe_allow_html=True)
+    if current_page != "건재손익_총괄":
+        _s, _y, _m = st.columns([0.82, 0.09, 0.09])
+        with _y:
+            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
+        with _m:
+            _pm = get_available_months(selected_year)
+            st.selectbox("월", _pm, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+        st.markdown('<hr style="margin:0;border:none;border-top:1px solid #e8eaed;">', unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════
-# 데이터
-# ══════════════════════════════════════════════════════════════
-REMICON_FACTORIES = ['안양','인천','파주','김포','부산','서부산','김해',
-                     '정관','양산','창원','대구','울산','아산','전주','군산','원주','제주']
+    # ══════════════════════════════════════════════════════════════
+    # 데이터
+    # ══════════════════════════════════════════════════════════════
+    REMICON_FACTORIES = ['안양','인천','파주','김포','부산','서부산','김해',
+                         '정관','양산','창원','대구','울산','아산','전주','군산','원주','제주']
 
-@st.cache_data
-def get_data(year, month):
-    return load_factory_data(year, month)
+    @st.cache_data
+    def get_data(year, month):
+        return load_factory_data(year, month)
 
-df_all = get_data(selected_year, selected_month)
-if df_all is None:
-    st.error(f"{selected_year}년 {selected_month}월 데이터를 찾을 수 없습니다.")
-    st.stop()
+    df_all = get_data(selected_year, selected_month)
+    if df_all is None:
+        st.error(f"{selected_year}년 {selected_month}월 데이터를 찾을 수 없습니다.")
+        st.stop()
 
-df_rc      = df_all[df_all['공장명'].isin(REMICON_FACTORIES)].copy()
-df_summary = df_all[df_all['공장명'].isin(['레미콘 계','건자재','골재 계','기타','합계'])].copy()
+    df_rc      = df_all[df_all['공장명'].isin(REMICON_FACTORIES)].copy()
+    df_summary = df_all[df_all['공장명'].isin(['레미콘 계','건자재','골재 계','기타','합계'])].copy()
 
 # ══════════════════════════════════════════════════════════════
 # 헬퍼
@@ -615,4 +652,77 @@ elif current_page in ["건자재_손익","골재_손익","임대_손익"]:
     nm={"건자재_손익":"건자재","골재_손익":"골재","임대_손익":"임대"}[current_page]
     stitle(f"{nm} 손익")
     st.markdown(f'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;"><div style="font-size:3.5em;margin-bottom:20px;opacity:0.35;">🚧</div><div style="font-size:1.3em;font-weight:700;color:#374151;margin-bottom:8px;">{nm} 손익 페이지</div><div style="color:#9ca3af;">준비 중입니다.</div></div>', unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════
+# 통합관리시스템
+# ══════════════════════════════════════════════════════════════
+elif current_page == "__admin__":
+    if st.session_state.get("username") != ADMIN_USER:
+        st.error("접근 권한이 없습니다.")
+        st.stop()
+
+    st.markdown("""
+    <style>
+    .admin-wrap { max-width:760px; margin:0 auto; padding:24px 0; }
+    .admin-section { background:white; border-radius:10px; padding:28px 32px;
+                     box-shadow:0 1px 6px rgba(0,0,0,0.07); margin-bottom:22px; }
+    .admin-title { font-size:1.05em; font-weight:700; color:#1f2937; margin-bottom:18px;
+                   padding-bottom:12px; border-bottom:1px solid #f3f4f6;
+                   display:flex; align-items:center; gap:8px; }
+    .admin-title::before { content:''; display:inline-block; width:4px; height:15px;
+                            background:#1d4ed8; border-radius:2px; flex-shrink:0; }
+    .user-row { display:flex; align-items:center; justify-content:space-between;
+                padding:10px 0; border-bottom:1px solid #f9fafb; font-size:0.9em; }
+    .user-row:last-child { border-bottom:none; }
+    .user-id { font-weight:600; color:#1f2937; }
+    .user-badge { background:#eff6ff; color:#1d4ed8; font-size:0.75em;
+                  padding:2px 8px; border-radius:12px; font-weight:600; margin-left:8px; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="admin-wrap">', unsafe_allow_html=True)
+    st.markdown('<div class="admin-section"><div class="admin-title">⚙️ 통합관리시스템 — 계정 관리</div>', unsafe_allow_html=True)
+
+    current_users = load_users()
+
+    # 사용자 목록
+    st.markdown("**현재 등록된 계정**")
+    for uid, pw in current_users.items():
+        cols = st.columns([3, 1])
+        badge = '<span class="user-badge">관리자</span>' if uid == ADMIN_USER else ''
+        cols[0].markdown(f'<div class="user-id">{uid}{badge}</div>', unsafe_allow_html=True)
+        if uid != ADMIN_USER:
+            if cols[1].button("삭제", key=f"del_{uid}", type="secondary"):
+                del current_users[uid]
+                save_users({k: v for k, v in current_users.items()
+                            if k not in dict(st.secrets.get("users", {}))})
+                st.success(f"'{uid}' 계정이 삭제되었습니다.")
+                st.rerun()
+        else:
+            cols[1].markdown('<span style="color:#9ca3af;font-size:0.8em;">삭제 불가</span>', unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # 새 계정 추가
+    st.markdown("**새 계정 추가**")
+    c1, c2, c3 = st.columns([2, 2, 1])
+    new_id = c1.text_input("아이디", placeholder="새 아이디", label_visibility="collapsed", key="new_uid")
+    new_pw = c2.text_input("패스워드", placeholder="패스워드", label_visibility="collapsed",
+                           type="password", key="new_pw")
+    if c3.button("추가", type="primary", use_container_width=True):
+        if not new_id.strip():
+            st.warning("아이디를 입력하세요.")
+        elif new_id in current_users:
+            st.warning(f"'{new_id}' 아이디가 이미 존재합니다.")
+        elif not new_pw.strip():
+            st.warning("패스워드를 입력하세요.")
+        else:
+            current_users[new_id] = new_pw
+            secrets_users = dict(st.secrets.get("users", {}))
+            override = {k: v for k, v in current_users.items() if k not in secrets_users or secrets_users[k] != v}
+            save_users(override)
+            st.success(f"'{new_id}' 계정이 추가되었습니다.")
+            st.rerun()
+
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
