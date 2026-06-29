@@ -17,6 +17,10 @@ if st.query_params.get("logout") == "1":
     st.query_params.clear()
     st.rerun()
 
+if st.session_state.get("do_logout"):
+    st.session_state.clear()
+    st.rerun()
+
 
 USERS = st.secrets.get("users", {"tongyang": "6150"})
 
@@ -303,7 +307,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>
-        <a class="nav-logout-btn" href="?logout=1" target="_top">로그아웃</a>
+        <button class="nav-logout-btn" onclick="doLogout()">로그아웃</button>
     </div>
 </div>
 
@@ -319,11 +323,24 @@ function navTo(page) {{
     }}
 }}
 function doLogout() {{
-    var loc = window.top ? window.top.location : window.location;
-    loc.href = loc.href.split('?')[0] + '?logout=1';
+    var doc = (window.parent && window.parent.document) ? window.parent.document : document;
+    var btns = doc.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++) {{
+        if (btns[i].textContent.trim() === '__logout__') {{
+            btns[i].click();
+            return;
+        }}
+    }}
 }}
 </script>
 """, unsafe_allow_html=True)
+
+# 숨겨진 로그아웃 버튼 (JS가 클릭)
+st.markdown('<div style="display:none">', unsafe_allow_html=True)
+if st.button("__logout__", key="hidden_logout"):
+    st.session_state.clear()
+    st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════
