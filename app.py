@@ -343,6 +343,10 @@ st.markdown(f"""
 .nav-admin-btn:hover {{ border-color:#1d4ed8 !important; background:#eff6ff !important; color:#1d4ed8 !important; text-decoration:none !important; }}
 .nav-admin-btn:visited {{ color:#6b7280 !important; text-decoration:none !important; }}
 
+/* 페이지 전환 페이드인 */
+@keyframes fadeIn {{ from {{ opacity:0; }} to {{ opacity:1; }} }}
+[data-testid="stMainBlockContainer"] {{ animation: fadeIn 0.3s ease-in; }}
+
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
 
