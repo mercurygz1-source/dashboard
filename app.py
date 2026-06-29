@@ -544,14 +544,15 @@ if current_page == "건재손익_총괄":
         rc_row_ov = df_ov[df_ov['구분']=='레미콘'].iloc[0] if not df_ov[df_ov['구분']=='레미콘'].empty else None
 
         # ── KPI 카드 ──
-        rc_detail = df_all[df_all['공장명']=='레미콘 계'].iloc[0] if not df_all[df_all['공장명']=='레미콘 계'].empty else None
+        rc_detail   = df_all[df_all['공장명']=='레미콘 계'].iloc[0] if not df_all[df_all['공장명']=='레미콘 계'].empty else None
+        total_all   = df_all[df_all['공장명']=='합계'].iloc[0]       if not df_all[df_all['공장명']=='합계'].empty       else None
         c1,c2,c3,c4 = st.columns(4)
         if rc_row_ov is not None:
             c1.markdown(kpi("레미콘 판매량",f(rc_row_ov.get('물량_실적'),1),"천㎥",rc_row_ov.get('물량_차이'),"계획","amber"), unsafe_allow_html=True)
-        if total_row is not None:
-            c2.markdown(kpi("매출액",f(total_row.get('매출_실적')),"백만원",total_row.get('매출_차이'),"계획"), unsafe_allow_html=True)
-            c3.markdown(kpi("영업이익",f(total_row.get('영업이익_실적')),"백만원",total_row.get('영업이익_차이'),"계획",
-                            "green" if (total_row.get('영업이익_실적') or 0)>=0 else "red"), unsafe_allow_html=True)
+        if total_all is not None:
+            c2.markdown(kpi("매출액",f(total_all.get('매출_실적')),"백만원",total_all.get('매출_차이'),"계획"), unsafe_allow_html=True)
+            c3.markdown(kpi("영업이익",f(total_all.get('영업이익_실적')),"백만원",total_all.get('영업이익_차이'),"계획",
+                            "green" if (total_all.get('영업이익_실적') or 0)>=0 else "red"), unsafe_allow_html=True)
         if rc_detail is not None:
             c4.markdown(kpi("공헌이익",f(rc_detail.get('공헌이익_실적')),"원/㎥",
                             rc_detail.get('공헌이익_실적',0)-rc_detail.get('공헌이익_계획',0) if pd.notna(rc_detail.get('공헌이익_계획')) else None,"계획",
