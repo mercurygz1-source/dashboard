@@ -615,9 +615,6 @@ if current_page == "건재손익_요약":
             bc(fig2); fig2.update_layout(barmode='group')
             st.plotly_chart(fig2,use_container_width=True); st.markdown('</div>', unsafe_allow_html=True)
 
-        # ── 손익 상세 테이블 ──
-        st.markdown(f'<div class="card"><div class="card-title">사업부문별 손익 상세 — {selected_period}</div><div class="tbl-wrap">', unsafe_allow_html=True)
-        st.markdown(build_overview_table(df_ov, _sfx) + "</div></div>", unsafe_allow_html=True)
     else:
         st.error("손익총괄 데이터를 불러올 수 없습니다.")
 
@@ -626,7 +623,63 @@ if current_page == "건재손익_요약":
 elif current_page == "건재손익_부문별":
     stitle("건재 부문별 손익")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
-    st.info("부문별 손익 페이지 — 준비 중입니다.")
+    if "sel_period" not in st.session_state:
+        st.session_state["sel_period"] = "당월"
+    _bm_period = st.session_state.get("sel_period", "당월")
+    _bm_sfx = "누계" if _bm_period == "누계" else ""
+
+    @st.cache_data(ttl=600)
+    def _get_overview_bm(year, month):
+        return load_overview(year, month)
+
+    df_ov_bm = _get_overview_bm(selected_year, selected_month)
+
+    def _oir_bm(sale, oi):
+        try:
+            return f"{float(oi)/float(sale)*100:.1f}%"
+        except:
+            return "-"
+
+    def _build_overview_table_bm(df_src, sfx=""):
+        p = lambda col: col + ('_누계계획' if sfx else '_계획')
+        r_col = lambda col: col + ('_누계실적' if sfx else '_실적')
+        d_col = lambda col: col + ('_누계차이' if sfx else '_차이')
+        html = """<table class="pl-table">
+        <thead>
+        <tr>
+          <th rowspan="2">구분</th>
+          <th colspan="3">물량 (천㎥)</th>
+          <th colspan="3">매출액 (백만원)</th>
+          <th colspan="3">영업이익 (백만원)</th>
+          <th colspan="2">영업이익률</th>
+        </tr>
+        <tr>
+          <th>계획</th><th>실적</th><th>차이</th>
+          <th>계획</th><th>실적</th><th>차이</th>
+          <th>계획</th><th>실적</th><th>차이</th>
+          <th>계획</th><th>실적</th>
+        </tr></thead><tbody>"""
+        for _, row in df_src.iterrows():
+            name = row['구분']
+            tc = ' class="total"' if name == '합계' else ''
+            m_p = row.get(p('물량')); m_r = row.get(r_col('물량')); m_d = row.get(d_col('물량'))
+            s_p = row.get(p('매출')); s_r = row.get(r_col('매출')); s_d = row.get(d_col('매출'))
+            o_p = row.get(p('영업이익')); o_r = row.get(r_col('영업이익')); o_d = row.get(d_col('영업이익'))
+            html += f"""<tr{tc}>
+              <td>{name}</td>
+              <td>{f(m_p,1)}</td><td>{f(m_r,1)}</td>{td_d(m_d,1)}
+              <td>{f(s_p)}</td><td>{f(s_r)}</td>{td_d(s_d)}
+              <td>{f(o_p)}</td><td>{f(o_r)}</td>{td_d(o_d)}
+              <td>{_oir_bm(s_p,o_p)}</td><td>{_oir_bm(s_r,o_r)}</td>
+            </tr>"""
+        html += "</tbody></table>"
+        return html
+
+    if df_ov_bm is not None:
+        st.markdown(f'<div class="card"><div class="card-title">사업부문별 손익 상세 — {_bm_period}</div><div class="tbl-wrap">', unsafe_allow_html=True)
+        st.markdown(_build_overview_table_bm(df_ov_bm, _bm_sfx) + "</div></div>", unsafe_allow_html=True)
+    else:
+        st.error("손익총괄 데이터를 불러올 수 없습니다.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif current_page == "건재손익_공장별":
