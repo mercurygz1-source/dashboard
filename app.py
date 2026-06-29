@@ -363,25 +363,31 @@ function navTo(page) {{
     }}
 }}
 
-// 네이티브 st.button(관리자)을 nav 우측으로 이동
+// 네이티브 st.button(⚙️)을 찾아 nav 로그아웃 왼쪽에 고정 배치
 (function moveAdminBtn() {{
     try {{
         var pd = window.parent.document;
-        var sentinel = pd.getElementById('admin-nav-sentinel');
-        if (!sentinel) {{ setTimeout(moveAdminBtn, 200); return; }}
-        var stMarkdown = sentinel.closest('[data-testid="stMarkdownContainer"]') ||
-                         sentinel.closest('[class*="stMarkdown"]') ||
-                         sentinel.parentElement;
-        var stBtn = stMarkdown ? stMarkdown.nextElementSibling : null;
-        if (!stBtn) {{ setTimeout(moveAdminBtn, 200); return; }}
-        stBtn.style.cssText = 'position:fixed !important;top:18px !important;right:82px !important;z-index:10000 !important;margin:0 !important;padding:0 !important;display:inline-flex !important;align-items:center !important;';
-        var btn = stBtn.querySelector('button');
-        if (btn) {{
-            btn.style.cssText = 'background:none !important;border:1px solid #d1d5db !important;border-radius:4px !important;width:34px !important;height:34px !important;min-height:34px !important;padding:0 !important;font-size:1.1em !important;color:#6b7280 !important;cursor:pointer !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-shadow:none !important;';
-            btn.onmouseenter = function(){{ this.style.borderColor='#1d4ed8'; this.style.background='#eff6ff'; this.style.color='#1d4ed8'; }};
-            btn.onmouseleave = function(){{ this.style.borderColor='#d1d5db'; this.style.background='none'; this.style.color='#6b7280'; }};
+        // ⚙️ 텍스트를 가진 버튼을 부모 문서에서 탐색
+        var found = null;
+        pd.querySelectorAll('button').forEach(function(b) {{
+            if (b.textContent.trim() === '⚙️') found = b;
+        }});
+        if (!found) {{ setTimeout(moveAdminBtn, 300); return; }}
+        // 버튼의 최상위 래퍼(element-container)까지 올라감
+        var wrapper = found;
+        for (var i = 0; i < 6; i++) {{
+            if (!wrapper.parentElement) break;
+            wrapper = wrapper.parentElement;
+            if (wrapper.getAttribute && (
+                wrapper.getAttribute('data-testid') === 'element-container' ||
+                wrapper.classList.contains('element-container')
+            )) break;
         }}
-    }} catch(e) {{ setTimeout(moveAdminBtn, 200); }}
+        wrapper.style.cssText = 'position:fixed !important;top:18px !important;right:82px !important;z-index:10000 !important;margin:0 !important;padding:0 !important;display:inline-flex !important;align-items:center !important;';
+        found.style.cssText = 'background:none !important;border:1px solid #d1d5db !important;border-radius:4px !important;width:34px !important;height:34px !important;min-height:34px !important;padding:0 !important;font-size:1.1em !important;color:#6b7280 !important;cursor:pointer !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-shadow:none !important;';
+        found.onmouseenter = function(){{ this.style.borderColor='#1d4ed8'; this.style.background='#eff6ff'; this.style.color='#1d4ed8'; }};
+        found.onmouseleave = function(){{ this.style.borderColor='#d1d5db'; this.style.background='none'; this.style.color='#6b7280'; }};
+    }} catch(e) {{ setTimeout(moveAdminBtn, 300); }}
 }})();
 </script>
 """, unsafe_allow_html=True)
