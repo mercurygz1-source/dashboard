@@ -236,6 +236,8 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
+admin_btn_html = '<a class="nav-admin-btn" href="?page=ADMIN_PAGE" target="_self" title="통합관리시스템">&#9881;&#65039;</a>' if st.session_state.get("username") == ADMIN_USER else ""
+
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
@@ -345,7 +347,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>
-        {'<a class="nav-admin-btn" href="?page=ADMIN_PAGE" target="_self" title="통합관리시스템">⚙️</a>' if st.session_state.get('username') == ADMIN_USER else ''}
+        {admin_btn_html}
         <a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a>
     </div>
 </div>
