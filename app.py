@@ -371,19 +371,33 @@ function navTo(page) {{
         }}
     }}
 }}
-function positionAdminBtn() {{
+function placeAdminBtn() {{
+    var navRight = document.querySelector('.nav-right');
+    if (!navRight) {{ setTimeout(placeAdminBtn, 200); return; }}
+    if (navRight.querySelector('.admin-btn-clone')) return;
     var btns = document.querySelectorAll('button');
+    var original = null;
     for (var i = 0; i < btns.length; i++) {{
-        if (btns[i].textContent.trim() === '⚙') {{
-            var wrap = btns[i].closest('[data-testid="stButton"]') || btns[i].parentElement;
-            wrap.style.cssText = 'position:fixed!important;top:18px!important;right:110px!important;z-index:10001!important;margin:0!important;padding:0!important;';
-            btns[i].style.cssText = 'width:34px!important;height:34px!important;min-height:0!important;padding:0!important;background:none!important;border:1px solid #d1d5db!important;border-radius:4px!important;font-size:1.1em!important;color:#6b7280!important;line-height:1!important;';
-            return;
-        }}
+        if (btns[i].textContent.trim() === '⚙') {{ original = btns[i]; break; }}
     }}
-    setTimeout(positionAdminBtn, 150);
+    if (!original) {{ setTimeout(placeAdminBtn, 200); return; }}
+    var clone = document.createElement('button');
+    clone.className = 'admin-btn-clone';
+    clone.innerHTML = '⚙️';
+    clone.title = '통합관리시스템';
+    clone.style.cssText = 'background:none;border:1px solid #d1d5db;border-radius:4px;width:34px;height:34px;padding:0;font-size:1.1em;color:#6b7280;cursor:pointer;margin:0 6px;flex-shrink:0;transition:all 0.15s;';
+    clone.onmouseover = function(){{ this.style.borderColor='#1d4ed8'; this.style.background='#eff6ff'; }};
+    clone.onmouseout  = function(){{ this.style.borderColor='#d1d5db'; this.style.background='none'; }};
+    clone.onclick = function(e){{ e.preventDefault(); original.click(); }};
+    var stBtn = original.closest('[data-testid="stButton"]');
+    if (stBtn) stBtn.style.display = 'none';
+    var logout = navRight.querySelector('.nav-logout-btn');
+    navRight.insertBefore(clone, logout);
 }}
-setTimeout(positionAdminBtn, 100);
+setInterval(function(){{
+    var navRight = document.querySelector('.nav-right');
+    if (navRight && !navRight.querySelector('.admin-btn-clone')) placeAdminBtn();
+}}, 300);
 </script>
 """, unsafe_allow_html=True)
 
