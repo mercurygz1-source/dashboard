@@ -232,7 +232,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<button class="nav-admin-btn" onclick="goAdmin()" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = '<button class="nav-admin-btn" onclick="navTo(\'go-admin\')" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -353,20 +353,6 @@ function navTo(page) {{
         var btns = allDocs[d].querySelectorAll('button');
         for (var i = 0; i < btns.length; i++) {{
             if (btns[i].textContent.trim() === page) {{
-                btns[i].click();
-                return;
-            }}
-        }}
-    }}
-}}
-function goAdmin() {{
-    var allDocs = [];
-    try {{ allDocs.push(document); }} catch(e) {{}}
-    try {{ if (window.parent && window.parent.document !== document) allDocs.push(window.parent.document); }} catch(e) {{}}
-    for (var d = 0; d < allDocs.length; d++) {{
-        var btns = allDocs[d].querySelectorAll('button');
-        for (var i = 0; i < btns.length; i++) {{
-            if (btns[i].textContent.trim() === 'go-admin') {{
                 btns[i].click();
                 return;
             }}
