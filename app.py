@@ -423,10 +423,14 @@ if current_page == "건재손익_총괄":
             <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.05em;font-weight:600;">{selected_year}년 {selected_month}월</span>
         </div>""", unsafe_allow_html=True)
     with _yc:
+        st.markdown('<div style="padding-top:10px;">', unsafe_allow_html=True)
         st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
     with _mc:
+        st.markdown('<div style="padding-top:10px;">', unsafe_allow_html=True)
         _months = get_available_months(selected_year)
         st.selectbox("월", _months, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
     @st.cache_data
