@@ -325,20 +325,24 @@ if not st.session_state["logged_in"]:
 # ══════════════════════════════════════════════════════════════
 NAV_STRUCTURE = {
     "건재손익": ["건재손익_요약", "건재손익_부문별"],
-    "레미콘":   ["레미콘_공헌이익", "레미콘_공장별"],
-    "건자재":   ["건자재_손익"],
-    "골재":     ["골재_손익"],
-    "임대":     ["임대_손익"],
+    "레미콘":   ["레미콘_손익요약", "레미콘_공장별", "레미콘_공헌이익"],
+    "건자재":   ["건자재_손익요약", "건자재_손익"],
+    "골재":     ["골재_손익요약", "골재_손익"],
+    "임대":     ["임대_손익요약", "임대_손익"],
 }
 PAGE_LABELS = {
     "건재손익_요약":   "요약",
     "건재손익_부문별": "사업부문별",
     "건재손익_총괄":   "손익 총괄",
     "건재손익_공장별": "공장별 손익",
+    "레미콘_손익요약": "손익 요약",
     "레미콘_공헌이익": "공헌이익 분석",
     "레미콘_공장별":   "공장별 손익",
+    "건자재_손익요약": "손익 요약",
     "건자재_손익":    "건자재 손익",
+    "골재_손익요약":  "손익 요약",
     "골재_손익":      "골재 손익",
+    "임대_손익요약":  "손익 요약",
     "임대_손익":      "임대 손익",
 }
 all_pages_flat = [pg for pages in NAV_STRUCTURE.values() for pg in pages]
@@ -1209,6 +1213,11 @@ elif current_page == "레미콘_공장별":
         fig2=go.Figure(go.Bar(x=df_rank['영업이익_실적'],y=df_rank['공장명'],orientation='h',marker_color=cs,text=df_rank['영업이익_실적'].apply(lambda x:f(x)),textposition='outside',textfont=dict(size=10)))
         fig2.add_vline(x=0,line_color='#374151',line_width=1.5); bc(fig2,380); st.plotly_chart(fig2,use_container_width=True); st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
+
+elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_손익요약","임대_손익요약"]:
+    nm={"레미콘_손익요약":"레미콘","건자재_손익요약":"건자재","골재_손익요약":"골재","임대_손익요약":"임대"}[current_page]
+    stitle(f"{nm} 손익 요약")
+    st.markdown(f'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;"><div style="font-size:3.5em;margin-bottom:20px;opacity:0.35;">🚧</div><div style="font-size:1.3em;font-weight:700;color:#374151;margin-bottom:8px;">{nm} 손익 요약</div><div style="color:#9ca3af;">준비 중입니다.</div></div>', unsafe_allow_html=True)
 
 elif current_page in ["건자재_손익","골재_손익","임대_손익"]:
     nm={"건자재_손익":"건자재","골재_손익":"골재","임대_손익":"임대"}[current_page]
