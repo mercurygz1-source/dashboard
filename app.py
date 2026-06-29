@@ -205,9 +205,6 @@ with st.sidebar:
         if st.button(pg, key=f"_nav_{pg}"):
             st.session_state["page"] = pg
             st.rerun()
-    if st.button("go-admin", key="_nav_go_admin"):
-        st.session_state["page"] = "ADMIN_PAGE"
-        st.rerun()
 
 # 드롭다운 HTML 생성
 def make_dd(pages):
@@ -232,7 +229,7 @@ for menu, pages in NAV_STRUCTURE.items():
     label = NAV_LABELS.get(menu, menu)
     menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
 
-admin_btn_html = '<button class="nav-admin-btn" onclick="navTo(\'go-admin\')" title="통합관리시스템">⚙️</button>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = ""  # 관리자 버튼은 nav HTML 밖에서 네이티브 st.button으로 처리
 
 st.markdown(f"""
 <style>
@@ -347,7 +344,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 
 <script>
 function navTo(page) {{
-    function tryClick(attempt) {{
+    function tryClick() {{
         var allDocs = [];
         try {{ allDocs.push(document); }} catch(e) {{}}
         try {{ if (window.parent && window.parent.document !== document) allDocs.push(window.parent.document); }} catch(e) {{}}
@@ -355,24 +352,46 @@ function navTo(page) {{
             var btns = allDocs[d].querySelectorAll('button');
             for (var i = 0; i < btns.length; i++) {{
                 var t = btns[i].textContent.replace(/\\s+/g, ' ').trim();
-                if (t === page) {{
-                    btns[i].click();
-                    return true;
-                }}
+                if (t === page) {{ btns[i].click(); return true; }}
             }}
         }}
         return false;
     }}
     if (!tryClick()) {{
         var tries = 0;
-        var timer = setInterval(function() {{
-            tries++;
-            if (tryClick() || tries >= 10) clearInterval(timer);
-        }}, 100);
+        var timer = setInterval(function() {{ if (tryClick() || ++tries >= 10) clearInterval(timer); }}, 100);
     }}
 }}
+
+// 네이티브 st.button(관리자)을 nav 우측으로 이동
+(function moveAdminBtn() {{
+    try {{
+        var pd = window.parent.document;
+        var sentinel = pd.getElementById('admin-nav-sentinel');
+        if (!sentinel) {{ setTimeout(moveAdminBtn, 200); return; }}
+        var stMarkdown = sentinel.closest('[data-testid="stMarkdownContainer"]') ||
+                         sentinel.closest('[class*="stMarkdown"]') ||
+                         sentinel.parentElement;
+        var stBtn = stMarkdown ? stMarkdown.nextElementSibling : null;
+        if (!stBtn) {{ setTimeout(moveAdminBtn, 200); return; }}
+        stBtn.style.cssText = 'position:fixed !important;top:18px !important;right:82px !important;z-index:10000 !important;margin:0 !important;padding:0 !important;display:inline-flex !important;align-items:center !important;';
+        var btn = stBtn.querySelector('button');
+        if (btn) {{
+            btn.style.cssText = 'background:none !important;border:1px solid #d1d5db !important;border-radius:4px !important;width:34px !important;height:34px !important;min-height:34px !important;padding:0 !important;font-size:1.1em !important;color:#6b7280 !important;cursor:pointer !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;box-shadow:none !important;';
+            btn.onmouseenter = function(){{ this.style.borderColor='#1d4ed8'; this.style.background='#eff6ff'; this.style.color='#1d4ed8'; }};
+            btn.onmouseleave = function(){{ this.style.borderColor='#d1d5db'; this.style.background='none'; this.style.color='#6b7280'; }};
+        }}
+    }} catch(e) {{ setTimeout(moveAdminBtn, 200); }}
+}})();
 </script>
 """, unsafe_allow_html=True)
+
+# 통합관리시스템 네이티브 버튼 (JS가 position:fixed로 nav 우측에 배치)
+if st.session_state.get("username") == ADMIN_USER:
+    st.markdown('<div id="admin-nav-sentinel" style="display:none"></div>', unsafe_allow_html=True)
+    if st.button("⚙️", key="go_admin_native_btn", help="통합관리시스템"):
+        st.session_state["page"] = "ADMIN_PAGE"
+        st.rerun()
 
 
 # ══════════════════════════════════════════════════════════════
