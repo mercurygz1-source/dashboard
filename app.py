@@ -380,23 +380,22 @@ function navTo(page) {{
             ].join('');
             pd.head.appendChild(s);
         }}
-        // ADMIN_TRIGGER 버튼 숨김 (재시도)
-        function hideAdminTrigger() {{
-            var hidden = false;
-            pd.querySelectorAll('button').forEach(function(b) {{
+        // ADMIN_TRIGGER 버튼 숨김 (MutationObserver로 영구 감시)
+        function hideAdminTrigger(doc) {{
+            doc.querySelectorAll('button').forEach(function(b) {{
                 if (b.textContent.trim() === 'ADMIN_TRIGGER') {{
-                    b.style.display = 'none';
-                    if (b.parentElement) b.parentElement.style.display = 'none';
-                    if (b.parentElement && b.parentElement.parentElement)
-                        b.parentElement.parentElement.style.display = 'none';
-                    if (b.parentElement && b.parentElement.parentElement && b.parentElement.parentElement.parentElement)
-                        b.parentElement.parentElement.parentElement.style.display = 'none';
-                    hidden = true;
+                    var el = b;
+                    for (var i = 0; i < 5; i++) {{
+                        if (el) {{ el.style.cssText = 'display:none!important'; el = el.parentElement; }}
+                    }}
                 }}
             }});
-            if (!hidden) setTimeout(hideAdminTrigger, 300);
         }}
-        setTimeout(hideAdminTrigger, 200);
+        hideAdminTrigger(document);
+        hideAdminTrigger(pd);
+        var obs = new MutationObserver(function() {{ hideAdminTrigger(document); hideAdminTrigger(pd); }});
+        obs.observe(document.body || document.documentElement, {{childList: true, subtree: true}});
+        try {{ obs.observe(pd.body || pd.documentElement, {{childList: true, subtree: true}}); }} catch(e) {{}}
     }} catch(e) {{}}
 }})();
 </script>
