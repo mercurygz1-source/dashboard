@@ -1,8 +1,13 @@
-﻿import streamlit as st
+import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import base64, os, json
+import base64, os, json, uuid
 from data_loader import get_available_years, get_available_months, load_factory_data, load_overview
+
+@st.cache_resource
+def _token_store():
+    """로그인 토큰 저장소 — 서버 메모리에 유지되므로 새로고침 후에도 로그인 유지"""
+    return {}  # {token: username}
 
 ADMIN_USER = "tongyang"
 USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
@@ -24,16 +29,40 @@ def save_users(users: dict):
 
 st.set_page_config(page_title="동양 건재사업본부 손익", page_icon="📊", layout="wide")
 
+TOKEN_STORE = _token_store()
+
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 if "page" not in st.session_state:
     st.session_state["page"] = "건재손익_요약"
 
-# 로그아웃 처리
-if st.query_params.get("logout") == "1":
+# ── URL 파라미터 처리 ──
+_qp = st.query_params.to_dict()
+
+# 로그아웃
+if _qp.get("logout") == "1":
+    _t = st.session_state.get("auth_token")
+    if _t and _t in TOKEN_STORE:
+        del TOKEN_STORE[_t]
     st.session_state.clear()
     st.query_params.clear()
     st.rerun()
+
+# 토큰으로 로그인 복원 (새로고침 후에도 유지)
+if not st.session_state.get("logged_in"):
+    _t = _qp.get("t")
+    if _t and _t in TOKEN_STORE:
+        st.session_state["logged_in"] = True
+        st.session_state["username"] = TOKEN_STORE[_t]
+        st.session_state["auth_token"] = _t
+
+# 페이지 이동 (nav + token 파라미터)
+if _qp.get("nav") and st.session_state.get("logged_in"):
+    _nav_t = _qp.get("t", "")
+    if _nav_t and _nav_t in TOKEN_STORE:
+        st.session_state["page"] = _qp["nav"]
+        st.query_params.clear()
+        st.rerun()
 
 
 
@@ -151,8 +180,11 @@ if not st.session_state["logged_in"]:
 
     if st.button("로그인", use_container_width=True):
         if username in USERS and USERS[username] == password:
+            _new_token = str(uuid.uuid4())
+            TOKEN_STORE[_new_token] = username
             st.session_state["logged_in"] = True
             st.session_state["username"] = username
+            st.session_state["auth_token"] = _new_token
             st.rerun()
         else:
             st.error("아이디 또는 패스워드가 올바르지 않습니다.")
@@ -202,24 +234,8 @@ def get_parent(page):
 
 active_menu = get_parent(current_page)
 
-# 숨겨진 네비 버튼 — sidebar에 배치 (sidebar는 CSS로 display:none, JS로는 접근 가능)
-with st.sidebar:
-    for pg in all_pages_flat:
-        if st.button(pg, key=f"_nav_{pg}"):
-            st.session_state["page"] = pg
-            st.rerun()
-    if st.session_state.get("username") == ADMIN_USER:
-        if st.button("ADMIN_PAGE", key="_nav_ADMIN_PAGE"):
-            st.session_state["page"] = "ADMIN_PAGE"
-            st.rerun()
 
-# 드롭다운 HTML 생성
-def make_dd(pages):
-    items = "".join(
-        f'<div class="dd-item{"  active" if pg == current_page else ""}" onclick="navTo(\'{pg}\')">{PAGE_LABELS[pg]}</div>'
-        for pg in pages
-    )
-    return f'<div class="dropdown">{items}</div>'
+_tok = st.session_state.get("auth_token", "")
 
 NAV_LABELS = {
     "건재손익": "건재 손익",
@@ -229,14 +245,24 @@ NAV_LABELS = {
     "임대":     "임대",
 }
 
+def nav_href(page):
+    return f"?nav={page}&t={_tok}"
+
+def make_dd(pages):
+    items = "".join(
+        f'<a class="dd-item{"  active" if pg == current_page else ""}" href="{nav_href(pg)}" target="_self">{PAGE_LABELS[pg]}</a>'
+        for pg in pages
+    )
+    return f'<div class="dropdown">{items}</div>'
+
 menu_html = ""
 for menu, pages in NAV_STRUCTURE.items():
     ac = " active" if menu == active_menu else ""
     dd = make_dd(pages) if len(pages) > 1 else ""
     label = NAV_LABELS.get(menu, menu)
-    menu_html += f'<li class="nav-item"><a class="nav-link{ac}" onclick="navTo(\'{pages[0]}\')">{label}</a>{dd}</li>'
+    menu_html += f'<li class="nav-item"><a class="nav-link{ac}" href="{nav_href(pages[0])}" target="_self">{label}</a>{dd}</li>'
 
-admin_btn_html = '<button class="nav-admin-btn" onclick="navTo(\'ADMIN_PAGE\')">ADMIN_TRIGGER</button>' if st.session_state.get("username") == ADMIN_USER else ""
+admin_btn_html = f'<a class="nav-admin-btn" href="{nav_href("ADMIN_PAGE")}" target="_self">ADMIN_TRIGGER</a>' if st.session_state.get("username") == ADMIN_USER else ""
 
 st.markdown(f"""
 <style>
@@ -285,9 +311,9 @@ st.markdown(f"""
 }}
 .nav-item:hover .dropdown {{ opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }}
 .dd-item {{
-    padding:13px 14px; color:#374151; font-size:1.0em; font-weight:500; text-align:center;
-    border-bottom:1px solid #f3f4f6; cursor:pointer;
-    transition:background 0.13s,color 0.13s,padding-left 0.13s;
+    display:block; padding:13px 14px; color:#374151; font-size:1.0em; font-weight:500; text-align:center;
+    border-bottom:1px solid #f3f4f6; cursor:pointer; text-decoration:none !important;
+    transition:background 0.13s,color 0.13s;
 }}
 .dd-item:last-child {{ border-bottom:none; }}
 .dd-item:hover {{ background:#eff6ff; color:#1d4ed8; }}
@@ -351,33 +377,10 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 </style>
 
 <div class="top-nav">
-    <div class="nav-logo" onclick="navTo('건재손익_요약')">{logo_html}</div>
+    <a class="nav-logo" href="{nav_href('건재손익_요약')}" target="_self">{logo_html}</a>
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right"><span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>{admin_btn_html}<a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a></div>
 </div>
-
-<script>
-function navTo(page) {{
-    function tryClick() {{
-        var allDocs = [];
-        try {{ allDocs.push(document); }} catch(e) {{}}
-        try {{ if (window.parent && window.parent.document !== document) allDocs.push(window.parent.document); }} catch(e) {{}}
-        for (var d = 0; d < allDocs.length; d++) {{
-            var btns = allDocs[d].querySelectorAll('button');
-            for (var i = 0; i < btns.length; i++) {{
-                var t = btns[i].textContent.replace(/\\s+/g, ' ').trim();
-                if (t === page) {{ btns[i].click(); return true; }}
-            }}
-        }}
-        return false;
-    }}
-    if (!tryClick()) {{
-        var tries = 0;
-        var timer = setInterval(function() {{ if (tryClick() || ++tries >= 10) clearInterval(timer); }}, 100);
-    }}
-}}
-
-</script>
 """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
