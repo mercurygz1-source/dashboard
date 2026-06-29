@@ -417,7 +417,7 @@ else:
     REMICON_FACTORIES = ['안양','인천','파주','김포','부산','서부산','김해',
                          '정관','양산','창원','대구','울산','아산','전주','군산','원주','제주']
 
-    @st.cache_data
+    @st.cache_data(ttl=600)
     def get_data(year, month):
         return load_factory_data(year, month)
 
@@ -490,7 +490,7 @@ if current_page == "건재손익_총괄":
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
-    @st.cache_data
+    @st.cache_data(ttl=600)
     def get_overview(year, month):
         return load_overview(year, month)
 
