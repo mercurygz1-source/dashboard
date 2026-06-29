@@ -869,6 +869,12 @@ if current_page == "건재손익_요약":
         c1, c2, c3, c4 = st.columns(4)
         _kpi_total = total_row if _sfx else (total_all if total_all is not None else total_row)
 
+        # 스파크라인용 억원 단위 컬럼 추가
+        if trend_df is not None and not trend_df.empty:
+            for col_name in ['매출_계획','매출_실적','영업이익_계획','영업이익_실적']:
+                if col_name in trend_df.columns:
+                    trend_df[col_name + '_억'] = trend_df[col_name] / 100
+
         if rc_row_ov is not None:
             kpi_spark(c1, "레미콘 판매량",
                       f(rc_row_ov.get(_ov_col('물량','실적')), 1), "천㎥",
@@ -879,16 +885,23 @@ if current_page == "건재손익_요약":
 
         if _kpi_total is not None:
             _매출실적 = _kpi_total.get(_ov_col('매출','실적'))
+            _매출차이 = _kpi_total.get(_ov_col('매출','차이'))
             _oi실적   = _kpi_total.get(_ov_col('영업이익','실적'))
+            _oi차이   = _kpi_total.get(_ov_col('영업이익','차이'))
+
+            def to억(v):
+                if v is None or (isinstance(v, float) and pd.isna(v)): return None
+                return v / 100
+
             kpi_spark(c2, "매출액",
-                      f(_매출실적), "백만원",
-                      _kpi_total.get(_ov_col('매출','차이')), "",
-                      trend_df, "매출_계획", "매출_실적")
+                      f(to억(_매출실적), 1), "억원",
+                      to억(_매출차이), "",
+                      trend_df, "매출_계획_억", "매출_실적_억")
             kpi_spark(c3, "영업이익",
-                      f(_oi실적), "백만원",
-                      _kpi_total.get(_ov_col('영업이익','차이')),
+                      f(to억(_oi실적), 1), "억원",
+                      to억(_oi차이),
                       "green" if (_oi실적 or 0)>=0 else "red",
-                      trend_df, "영업이익_계획", "영업이익_실적")
+                      trend_df, "영업이익_계획_억", "영업이익_실적_억")
 
         if rc_detail is not None:
             _공헌실적 = rc_detail.get('공헌이익_실적')
