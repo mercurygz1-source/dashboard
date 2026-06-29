@@ -270,6 +270,7 @@ st.markdown(f"""
     background: linear-gradient(180deg, transparent 30%, #dbeafe 100%);
     border-bottom: 3px solid #1d4ed8;
     padding-bottom: 0;
+    padding-left: 28px; padding-right: 28px;
 }}
 
 /* 드롭다운 */
