@@ -246,7 +246,8 @@ st.markdown(f"""
 [data-testid="stMain"],
 .main {{ background:#f0f2f5 !important; }}
 [data-testid="stHeader"] {{ display:none; }}
-[data-testid="stSidebar"] {{ display:none; }}
+[data-testid="stSidebar"] {{ position:fixed !important; left:-9999px !important; top:0 !important; width:1px !important; height:1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; z-index:-1 !important; }}
+[data-testid="stSidebarCollapsedControl"] {{ display:none !important; }}
 .block-container {{ padding-top:82px !important; padding-left:56px !important; padding-right:56px !important; padding-bottom:0 !important; max-width:100% !important; }}
 
 /* 상단 네비 */
@@ -365,7 +366,7 @@ function navTo(page) {{
         for (var d = 0; d < allDocs.length; d++) {{
             var btns = allDocs[d].querySelectorAll('button');
             for (var i = 0; i < btns.length; i++) {{
-                var t = btns[i].textContent.replace(/\\s+/g, ' ').trim();
+                var t = (btns[i].innerText || btns[i].textContent || '').replace(/[\s ]+/g, ' ').trim();
                 if (t === page) {{ btns[i].click(); return true; }}
             }}
         }}
@@ -373,10 +374,9 @@ function navTo(page) {{
     }}
     if (!tryClick()) {{
         var tries = 0;
-        var timer = setInterval(function() {{ if (tryClick() || ++tries >= 10) clearInterval(timer); }}, 100);
+        var timer = setInterval(function() {{ if (tryClick() || ++tries >= 30) clearInterval(timer); }}, 200);
     }}
 }}
-
 </script>
 """, unsafe_allow_html=True)
 
