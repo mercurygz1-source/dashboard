@@ -35,6 +35,13 @@ if st.query_params.get("logout") == "1":
     st.query_params.clear()
     st.rerun()
 
+# query param으로 페이지 이동 처리
+if st.query_params.get("page"):
+    _qp = st.query_params.get("page")
+    st.session_state["page"] = _qp
+    st.query_params.clear()
+    st.rerun()
+
 if st.session_state.get("do_logout"):
     st.session_state.clear()
     st.rerun()
@@ -296,9 +303,9 @@ st.markdown(f"""
     background:none; border:1px solid #d1d5db; color:#6b7280;
     width:34px; height:34px; border-radius:4px; font-size:1em; cursor:pointer;
     display:inline-flex; align-items:center; justify-content:center;
-    transition:all 0.15s; padding:0;
+    transition:all 0.15s; padding:0; user-select:none;
 }}
-.nav-admin-btn:hover {{ border-color:#1d4ed8; background:#eff6ff; }}
+.nav-admin-btn:hover {{ border-color:#1d4ed8; background:#eff6ff; color:#1d4ed8; }}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
@@ -338,7 +345,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>
-        {'<button class="nav-admin-btn" onclick="navTo(\'ADMIN_PAGE\')" title="통합관리시스템">⚙️</button>' if st.session_state.get('username') == ADMIN_USER else ''}
+        {'<a class="nav-admin-btn" href="?page=ADMIN_PAGE" target="_self" title="통합관리시스템">⚙️</a>' if st.session_state.get('username') == ADMIN_USER else ''}
         <a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a>
     </div>
 </div>
