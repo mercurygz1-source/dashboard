@@ -676,7 +676,7 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol):
     ds = ""
     if delta is not None and not (isinstance(delta, float) and pd.isna(delta)):
         arrow = "▲" if delta>=0 else "▼"; cls = "pos" if delta>=0 else "neg"
-        ds = f'<div class="kpi-delta {cls}">{arrow} {f(abs(delta))}<span class="kpi-delta-sub"> vs 계획</span></div>'
+        ds = f'<span class="kpi-delta {cls}" style="font-size:0.82em;font-weight:600;margin-left:6px;white-space:nowrap;">계획대비 {arrow} {f(abs(delta))}</span>'
     with col:
         st.markdown(f"""
         <div style="background:white;border-radius:10px 10px 0 0;padding:18px 20px 12px;
@@ -684,8 +684,10 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol):
                     box-shadow:0 1px 0 rgba(0,0,0,0.04);
                     border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;">
             <div style="font-size:1.15em;font-weight:800;color:#1f2937;margin-bottom:10px;letter-spacing:0.01em;">{label}</div>
-            <div class="kpi-value">{value_str}<span class="kpi-unit"> {unit}</span></div>
-            {ds}
+            <div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:0;">
+                <div class="kpi-value" style="margin-bottom:0;">{value_str}<span class="kpi-unit"> {unit}</span></div>
+                {ds}
+            </div>
         </div>
         """, unsafe_allow_html=True)
         fig = spark(trend_df, pcol, acol)
