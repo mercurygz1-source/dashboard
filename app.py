@@ -368,7 +368,7 @@ function navTo(page) {{
 function clickAdminTrigger() {{
     var btns = document.querySelectorAll('button');
     for (var i = 0; i < btns.length; i++) {{
-        if (btns[i].textContent.trim() === 'ADMIN_TRIGGER') {{
+        if (btns[i].textContent.trim() === 'ADMIN_TRIGGER' && !btns[i].classList.contains('nav-admin-btn')) {{
             btns[i].click();
             return;
         }}
@@ -379,7 +379,7 @@ function clickAdminTrigger() {{
     function tryHide() {{
         var btns = document.querySelectorAll('button');
         for (var i = 0; i < btns.length; i++) {{
-            if (btns[i].textContent.trim() === 'ADMIN_TRIGGER') {{
+            if (btns[i].textContent.trim() === 'ADMIN_TRIGGER' && !btns[i].classList.contains('nav-admin-btn')) {{
                 var el = btns[i];
                 for (var j = 0; j < 8; j++) {{
                     if (!el.parentElement) break;
