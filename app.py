@@ -380,19 +380,23 @@ function navTo(page) {{
             ].join('');
             pd.head.appendChild(s);
         }}
-        // ADMIN_TRIGGER 버튼 화면 밖으로 숨김
-        setTimeout(function() {{
+        // ADMIN_TRIGGER 버튼 숨김 (재시도)
+        function hideAdminTrigger() {{
+            var hidden = false;
             pd.querySelectorAll('button').forEach(function(b) {{
                 if (b.textContent.trim() === 'ADMIN_TRIGGER') {{
-                    var w = b;
-                    for (var i = 0; i < 5; i++) {{
-                        if (!w.parentElement) break;
-                        w = w.parentElement;
-                    }}
-                    w.style.cssText = 'position:absolute !important;left:-9999px !important;top:0 !important;width:1px !important;height:1px !important;overflow:hidden !important;';
+                    b.style.display = 'none';
+                    if (b.parentElement) b.parentElement.style.display = 'none';
+                    if (b.parentElement && b.parentElement.parentElement)
+                        b.parentElement.parentElement.style.display = 'none';
+                    if (b.parentElement && b.parentElement.parentElement && b.parentElement.parentElement.parentElement)
+                        b.parentElement.parentElement.parentElement.style.display = 'none';
+                    hidden = true;
                 }}
             }});
-        }}, 500);
+            if (!hidden) setTimeout(hideAdminTrigger, 300);
+        }}
+        setTimeout(hideAdminTrigger, 200);
     }} catch(e) {{}}
 }})();
 </script>
