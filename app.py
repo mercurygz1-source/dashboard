@@ -345,7 +345,7 @@ st.markdown(f"""
 
 /* 페이지 전환 페이드인 */
 @keyframes fadeIn {{ from {{ opacity:0; }} to {{ opacity:1; }} }}
-[data-testid="stMainBlockContainer"] {{ animation: fadeIn 0.3s ease-in; }}
+[data-testid="stAppViewContainer"] {{ animation: fadeIn 0.3s ease-in; }}
 
 /* 컨텐츠 */
 .content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
