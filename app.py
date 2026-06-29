@@ -689,7 +689,6 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol, a
         st.markdown(f"""
         <div style="background:white;border-radius:10px 10px 0 0;padding:18px 20px 12px;
                     border-top:4px solid {border};
-                    box-shadow:0 1px 0 rgba(0,0,0,0.04);
                     border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;">
             <div style="font-size:1.15em;font-weight:800;color:#1f2937;margin-bottom:10px;letter-spacing:0.01em;">{label}</div>
             <div style="display:flex;align-items:baseline;flex-wrap:nowrap;gap:0;overflow:hidden;">
@@ -697,6 +696,8 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol, a
                 {ds}
             </div>
         </div>
+        <div style="background:white;border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;
+                    border-top:1px solid #e5e7eb;margin:0;padding:0;"></div>
         """, unsafe_allow_html=True)
         fig = spark(trend_df, pcol, acol)
         if fig:
