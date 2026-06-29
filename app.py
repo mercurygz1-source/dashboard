@@ -475,7 +475,7 @@ st.markdown(f"""
 .kpi-card.red    {{ border-top-color:#dc2626; }}
 .kpi-card.amber  {{ border-top-color:#d97706; }}
 .kpi-card.purple {{ border-top-color:#7c3aed; }}
-.kpi-label {{ color:#9ca3af; font-size:0.77em; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; margin-bottom:8px; }}
+.kpi-label {{ color:#4a5568; font-size:0.88em; font-weight:700; letter-spacing:0.4px; margin-bottom:8px; }}
 .kpi-value {{ color:#111827; font-size:1.8em; font-weight:900; line-height:1; margin-bottom:6px; }}
 .kpi-unit  {{ font-size:0.46em; color:#9ca3af; font-weight:400; vertical-align:middle; }}
 .kpi-delta {{ font-size:0.82em; font-weight:600; }}
@@ -599,7 +599,7 @@ def get_kpi_trend(year, up_to_month):
         })
     return pd.DataFrame(rows) if rows else None
 
-def spark(df, pcol, acol, height=100):
+def spark(df, pcol, acol, height=180):
     """계획/실적 선 그래프 스파크라인."""
     if df is None or df.empty:
         return None
@@ -609,33 +609,39 @@ def spark(df, pcol, acol, height=100):
         fig.add_trace(go.Scatter(
             x=mlabels, y=df[pcol], mode='lines+markers', name='계획',
             line=dict(color='#93c5fd', width=2, dash='dot'),
-            marker=dict(size=4, color='#93c5fd'),
+            marker=dict(size=5, color='#93c5fd'),
         ))
     if acol in df.columns:
+        yvals = df[acol]
+        # 실적 수치 레이블: 마지막 포인트는 위, 나머지는 위
+        textvals = [f"{v:,.0f}" if v is not None and not (isinstance(v, float) and pd.isna(v)) else "" for v in yvals]
         fig.add_trace(go.Scatter(
-            x=mlabels, y=df[acol], mode='lines+markers', name='실적',
+            x=mlabels, y=yvals, mode='lines+markers+text', name='실적',
             line=dict(color='#1d4ed8', width=2.5),
-            marker=dict(size=5, color='#1d4ed8'),
+            marker=dict(size=6, color='#1d4ed8'),
+            text=textvals,
+            textposition='top center',
+            textfont=dict(size=10, color='#1d4ed8'),
         ))
     fig.update_layout(
         height=height,
-        margin=dict(l=4, r=4, t=4, b=2),
+        margin=dict(l=6, r=6, t=24, b=4),
         plot_bgcolor='white', paper_bgcolor='white',
         showlegend=True,
         legend=dict(
-            orientation='h', x=1, y=1.1, xanchor='right', yanchor='top',
-            font=dict(size=9, color='#6b7280'), bgcolor='rgba(0,0,0,0)',
+            orientation='h', x=1, y=1.12, xanchor='right', yanchor='top',
+            font=dict(size=10, color='#6b7280'), bgcolor='rgba(0,0,0,0)',
             itemwidth=30, traceorder='normal',
         ),
         xaxis=dict(
-            showgrid=False, tickfont=dict(size=8, color='#9ca3af'),
+            showgrid=False, tickfont=dict(size=10, color='#9ca3af'),
             linecolor='#e5e7eb', showline=True, tickangle=0,
         ),
         yaxis=dict(
             showgrid=True, showticklabels=False, gridcolor='#f3f4f6',
         ),
         font=dict(family='Noto Sans KR'),
-        hoverlabel=dict(font_size=10, font_family='Noto Sans KR'),
+        hoverlabel=dict(font_size=11, font_family='Noto Sans KR'),
     )
     return fig
 
@@ -648,11 +654,11 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol):
         ds = f'<div class="kpi-delta {cls}">{arrow} {f(abs(delta))}<span class="kpi-delta-sub"> vs 계획</span></div>'
     with col:
         st.markdown(f"""
-        <div style="background:white;border-radius:10px 10px 0 0;padding:16px 18px 10px;
+        <div style="background:white;border-radius:10px 10px 0 0;padding:18px 20px 12px;
                     border-top:4px solid {border};
                     box-shadow:0 1px 0 rgba(0,0,0,0.04);
                     border-left:1px solid #eef0f4;border-right:1px solid #eef0f4;">
-            <div class="kpi-label">{label}</div>
+            <div style="font-size:1.0em;font-weight:700;color:#374151;margin-bottom:8px;letter-spacing:0.01em;">{label}</div>
             <div class="kpi-value">{value_str}<span class="kpi-unit"> {unit}</span></div>
             {ds}
         </div>
