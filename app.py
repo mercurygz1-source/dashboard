@@ -754,9 +754,9 @@ if current_page == "건재손익_요약":
     with _tc:
         st.markdown(f"""
         <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
-            <div style="width:4px;height:30px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
-            <span style="font-size:2.1em;font-weight:900;color:#1f2937;">건재사업본부 손익 요약</span>
-            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:2.1em;font-weight:600;">{selected_year}년 {selected_month}월{"" if st.session_state.get("sel_period","당월")=="당월" else " 누계"}</span>
+            <div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
+            <span style="font-size:1.7em;font-weight:900;color:#1f2937;">건재사업본부 손익 요약</span>
+            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.7em;font-weight:600;">{selected_year}년 {selected_month}월{"" if st.session_state.get("sel_period","당월")=="당월" else " 누계"}</span>
         </div>""", unsafe_allow_html=True)
     with _rc:
         _cy, _cm, _cp = st.columns([1,1,1], gap="small")
