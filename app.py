@@ -467,7 +467,7 @@ st.markdown(f"""
 [data-testid="stAppViewContainer"] {{ animation: fadeIn 0.3s ease-in; }}
 
 /* 컨텐츠 */
-.content-wrap {{ padding:24px 0; max-width:1500px; margin:0 auto; }}
+.content-wrap {{ padding:6px 0; max-width:1500px; margin:0 auto; }}
 
 /* KPI 카드 */
 .kpi-card {{ background:white; border-radius:10px; padding:20px 22px; box-shadow:0 1px 6px rgba(0,0,0,0.06); border-top:4px solid #1d4ed8; height:100%; }}
@@ -599,7 +599,7 @@ def get_kpi_trend(year, up_to_month):
         })
     return pd.DataFrame(rows) if rows else None
 
-def spark(df, pcol, acol, height=320):
+def spark(df, pcol, acol, height=420):
     """계획/실적 선 그래프 스파크라인."""
     if df is None or df.empty:
         return None
@@ -628,7 +628,7 @@ def spark(df, pcol, acol, height=320):
         plot_bgcolor='white', paper_bgcolor='white',
         showlegend=True,
         legend=dict(
-            orientation='h', x=1, y=1.08, xanchor='right', yanchor='top',
+            orientation='h', x=1, y=1.18, xanchor='right', yanchor='top',
             font=dict(size=14, color='#6b7280'), bgcolor='rgba(0,0,0,0)',
             itemwidth=30, traceorder='normal',
         ),
@@ -721,7 +721,7 @@ if current_page == "건재손익_요약":
     _tc, _rc = st.columns([0.76, 0.24], gap="small")
     with _tc:
         st.markdown(f"""
-        <div style="padding:18px 0 0;display:flex;align-items:center;gap:12px;">
+        <div style="padding:6px 0 0;display:flex;align-items:center;gap:12px;">
             <div style="width:4px;height:22px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
             <span style="font-size:1.6em;font-weight:900;color:#1f2937;">요약</span>
             <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.05em;font-weight:600;">{selected_year}년 {selected_month}월</span>
