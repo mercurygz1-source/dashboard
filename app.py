@@ -307,7 +307,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right">
         <span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>
-        <button class="nav-logout-btn" onclick="doLogout()">로그아웃</button>
+        <button class="nav-logout-btn" onclick="doLogout()" id="logout-html-btn">로그아웃</button>
     </div>
 </div>
 
@@ -323,13 +323,19 @@ function navTo(page) {{
     }}
 }}
 function doLogout() {{
-    var base = window.parent ? window.parent.location.pathname : window.location.pathname;
-    window.parent.location.href = base + '?logout=1';
+    try {{ window.top.location.search = 'logout=1'; }} catch(e) {{
+        window.location.search = 'logout=1';
+    }}
 }}
 </script>
 """, unsafe_allow_html=True)
 
-
+# 숨겨진 로그아웃 버튼 — JS 폴백용 (CSS로 시각적으로 숨기되 DOM에 존재)
+st.markdown('<div style="position:absolute;top:-9999px;left:-9999px;overflow:hidden;height:1px;">', unsafe_allow_html=True)
+if st.button("__logout__", key="hidden_logout"):
+    st.session_state.clear()
+    st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
 # 연/월 필터 (우측 상단)
