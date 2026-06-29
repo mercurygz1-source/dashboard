@@ -365,16 +365,21 @@ function setupAdminBtn() {{
     var btns = document.querySelectorAll('button');
     var stBtn = null;
     for (var i = 0; i < btns.length; i++) {{
+        if (btns[i].id === 'nav-admin-visible-btn') continue;
         var t = btns[i].textContent.trim();
         if (t === '⚙' || t === '⚙️') {{ stBtn = btns[i]; break; }}
     }}
     if (!stBtn) {{ setTimeout(setupAdminBtn, 200); return; }}
     var container = stBtn.closest('[data-testid="stButton"]') || stBtn.parentElement;
-    if (container) container.style.display = 'none';
+    if (container) container.style.cssText = 'display:none !important;';
     visibleBtn.onclick = function(e) {{ e.preventDefault(); stBtn.click(); }};
     visibleBtn._wired = true;
 }}
 setupAdminBtn();
+setInterval(function() {{
+    var visibleBtn = document.getElementById('nav-admin-visible-btn');
+    if (visibleBtn && !visibleBtn._wired) setupAdminBtn();
+}}, 300);
 </script>
 """, unsafe_allow_html=True)
 
