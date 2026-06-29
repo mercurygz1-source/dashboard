@@ -670,17 +670,20 @@ def spark(df, pcol, acol, height=420):
     )
     return fig
 
-def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol, plan_val=None):
+def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol, actual_val=None, plan_val=None):
     """KPI 헤더 + 스파크라인을 하나의 카드처럼 렌더링."""
     border = {"amber":"#d97706","green":"#16a34a","red":"#dc2626","purple":"#7c3aed"}.get(color,"#1d4ed8")
     ds = ""
     if delta is not None and not (isinstance(delta, float) and pd.isna(delta)):
         arrow = "▲" if delta>=0 else "▼"; cls = "pos" if delta>=0 else "neg"
         pct_str = ""
-        if plan_val is not None and plan_val != 0 and not (isinstance(plan_val, float) and pd.isna(plan_val)):
-            pct = delta / plan_val * 100
-            pct_arrow = "▲" if pct>=0 else "▼"
-            pct_str = f' {pct_arrow}{abs(pct):.1f}%'
+        try:
+            if actual_val is not None and plan_val is not None and plan_val != 0 \
+               and not pd.isna(actual_val) and not pd.isna(plan_val):
+                ratio = actual_val / plan_val * 100
+                pct_str = f' · 실적률 {ratio:.1f}%'
+        except Exception:
+            pass
         ds = f'<span class="kpi-delta {cls}" style="font-size:1.0em;font-weight:700;margin-left:8px;white-space:nowrap;flex-shrink:0;">(계획대비 {arrow} {f(abs(delta))}{pct_str})</span>'
     with col:
         st.markdown(f"""
@@ -871,6 +874,7 @@ if current_page == "건재손익_요약":
                       f(rc_row_ov.get(_ov_col('물량','실적')), 1), "천㎥",
                       rc_row_ov.get(_ov_col('물량','차이')), "amber",
                       trend_df, "판매량_계획", "판매량_실적",
+                      actual_val=rc_row_ov.get(_ov_col('물량','실적')),
                       plan_val=rc_row_ov.get(_ov_col('물량','계획')))
 
         if _kpi_total is not None:
