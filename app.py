@@ -418,8 +418,8 @@ if current_page == "건재손익_총괄":
         st.markdown(f"""
         <div style="padding:18px 32px 0;display:flex;align-items:center;gap:12px;">
             <div style="width:4px;height:22px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
-            <span style="font-size:1.15em;font-weight:900;color:#1f2937;">손익 총괄</span>
-            <span style="background:#eff6ff;color:#1d4ed8;padding:3px 12px;border-radius:20px;font-size:0.78em;font-weight:600;">{selected_year}년 {selected_month}월</span>
+            <span style="font-size:1.6em;font-weight:900;color:#1f2937;">손익 총괄</span>
+            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.05em;font-weight:600;">{selected_year}년 {selected_month}월</span>
         </div>""", unsafe_allow_html=True)
     with _yc:
         st.selectbox("연도", years, key="sel_year", label_visibility="collapsed")
