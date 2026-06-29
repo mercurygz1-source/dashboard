@@ -323,24 +323,12 @@ function navTo(page) {{
     }}
 }}
 function doLogout() {{
-    var doc = (window.parent && window.parent.document) ? window.parent.document : document;
-    var btns = doc.querySelectorAll('button');
-    for (var i = 0; i < btns.length; i++) {{
-        if (btns[i].textContent.trim() === '__logout__') {{
-            btns[i].click();
-            return;
-        }}
-    }}
+    var base = window.parent ? window.parent.location.pathname : window.location.pathname;
+    window.parent.location.href = base + '?logout=1';
 }}
 </script>
 """, unsafe_allow_html=True)
 
-# 숨겨진 로그아웃 버튼 (JS가 클릭)
-st.markdown('<div style="display:none">', unsafe_allow_html=True)
-if st.button("__logout__", key="hidden_logout"):
-    st.session_state.clear()
-    st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════
