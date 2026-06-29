@@ -476,12 +476,14 @@ if current_page == "건재손익_요약":
     if "sel_period" not in st.session_state:
         st.session_state["sel_period"] = "당월"
     st.markdown("""<style>
-    /* 요약 페이지 드롭다운 간격 최소화 */
-    div[data-testid="column"]:has(> div > div > div[data-testid="stSelectbox"][data-key="sel_year"]),
-    div[data-testid="column"]:has(> div > div > div[data-testid="stSelectbox"][data-key="sel_month"]),
-    div[data-testid="column"]:has(> div > div > div[data-testid="stSelectbox"][data-key="sel_period"]) {
+    /* 드롭다운만 있는 컬럼 패딩 제거 */
+    div[data-testid="stColumn"]:has(> div > div > div[data-testid="stSelectbox"]) {
         padding-left: 2px !important;
         padding-right: 2px !important;
+    }
+    /* 드롭다운 컬럼들이 속한 행의 gap 최소화 */
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="stColumn"] > div > div > div[data-testid="stSelectbox"]) {
+        gap: 4px !important;
     }
     </style>""", unsafe_allow_html=True)
     _tc, _rc = st.columns([0.76, 0.24], gap="small")
