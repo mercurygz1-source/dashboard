@@ -1298,7 +1298,7 @@ elif current_page == "건재손익_요약2":
                         title=dict(text=title, font=dict(size=13, color='#6b7280', family='Noto Sans KR'), x=0.5, xanchor='center'),
                         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0, max(max(pcts)*1.55, 150)]),
                         yaxis=dict(showgrid=False, tickfont=dict(size=13, family='Noto Sans KR', color='#374151'), autorange='reversed'),
-                        margin=dict(t=28, b=8, l=8, r=48), height=350,
+                        margin=dict(t=28, b=8, l=8, r=48), height=345,
                         paper_bgcolor='white', plot_bgcolor='white',
                         showlegend=False,
                         font=dict(family='Noto Sans KR'),
