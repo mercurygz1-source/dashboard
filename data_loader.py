@@ -163,6 +163,12 @@ def load_sijangbyul_raw(year, month, period="당월"):
             except Exception:
                 return None
 
+        # 판매단가/변동비/공헌이익은 레미콘 행(수도권/영남권/중부권/계 포함)에만 존재.
+        # 골재·기타 행은 해당 컬럼 위치에 판매단가 미니 테이블 데이터가 겹쳐서
+        # 잘못된 값이 읽히므로, 레미콘 섹션 행에만 값을 유지하고 나머지는 None 처리.
+        _REMICON_NAMES = set(REMICON_FACTORIES) | {'수도권', '영남권', '중부권', '레미콘 계'}
+        has_unit_data = (name in _REMICON_NAMES)
+
         rows_data.append({
             '구분': name,
             '섹션': section,
@@ -181,15 +187,15 @@ def load_sijangbyul_raw(year, month, period="당월"):
             '영업이익_차이':    n(row[21]),
             '영업이익_전년':    n(row[22]),
             '영업이익_전년차이':n(row[23]),
-            '판매단가_계획':    n(row[24]),
-            '판매단가_실적':    n(row[25]),
-            '판매단가_전년':    n(row[26]),
-            '변동비_계획':      n(row[27]),
-            '변동비_실적':      n(row[28]),
-            '변동비_전년':      n(row[29]),
-            '공헌이익_계획':    n(row[30]),
-            '공헌이익_실적':    n(row[31]),
-            '공헌이익_전년':    n(row[32]) if len(row) > 32 else None,
+            '판매단가_계획':    n(row[24]) if has_unit_data else None,
+            '판매단가_실적':    n(row[25]) if has_unit_data else None,
+            '판매단가_전년':    n(row[26]) if has_unit_data else None,
+            '변동비_계획':      n(row[27]) if has_unit_data else None,
+            '변동비_실적':      n(row[28]) if has_unit_data else None,
+            '변동비_전년':      n(row[29]) if has_unit_data else None,
+            '공헌이익_계획':    n(row[30]) if has_unit_data else None,
+            '공헌이익_실적':    n(row[31]) if has_unit_data else None,
+            '공헌이익_전년':    (n(row[32]) if len(row) > 32 else None) if has_unit_data else None,
         })
 
     wb.close()

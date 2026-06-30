@@ -1173,10 +1173,10 @@ elif current_page == "건재손익_사업장별":
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
     @st.cache_data(ttl=600)
-    def _get_sjb(year, month, period):
+    def _get_sjb_v2(year, month, period):
         return load_sijangbyul_raw(year, month, period)
 
-    _sjb_rows = _get_sjb(selected_year, selected_month, _sjb_period)
+    _sjb_rows = _get_sjb_v2(selected_year, selected_month, _sjb_period)
 
     if not _sjb_rows:
         st.warning("데이터를 불러올 수 없습니다.")
