@@ -1058,7 +1058,7 @@ elif current_page == "건재손익_요약2":
             if val is None: return ""
             c = "#dc2626" if val < 0 else "#1d4ed8"
             a = "▲" if val >= 0 else "▼"
-            s = (f"{abs(val):,.1f}" if per else f"{abs(int(round(val))):,}") + " " + unit
+            s = f"{abs(int(round(val))):,}" + " " + unit
             return '<span style="font-size:0.78em;font-weight:600;color:' + c + ';">' + a + " " + s + '</span>'
 
         # ══ 1-A. KPI 4개 — 한 줄 HTML 블록 ══════════════════════
@@ -1091,20 +1091,20 @@ elif current_page == "건재손익_요약2":
 
         _kc1, _kc2, _kc3, _kc4, _kc5 = st.columns(5, gap="small")
         _kpi_card(_kc1, "레미콘 판매량",
-                  f"{rc물량실적:,.1f}" if rc물량실적 else "-", "천㎥",
-                  _dv(rc물량차이, "천㎥", per=True), rc달성)
+                  f"{rc물량실적:,.0f}" if rc물량실적 else "-", "천㎥",
+                  _dv(rc물량차이, "천㎥"), rc달성)
         _kpi_card(_kc2, "매출액",
-                  f"{_to억(매출실적):,.1f}" if 매출실적 else "-", "억원",
-                  _dv(_to억(매출차이), "억원", per=True), 매출달성 or 0)
+                  f"{_to억(매출실적):,.0f}" if 매출실적 else "-", "억원",
+                  _dv(_to억(매출차이), "억원"), 매출달성 or 0)
         _kpi_card(_kc3, "영업이익",
-                  f"{_to억(oi실적):,.1f}" if oi실적 is not None else "-", "억원",
-                  _dv(_to억(oi차이), "억원", per=True), oi달성 or 0)
+                  f"{_to억(oi실적):,.0f}" if oi실적 is not None else "-", "억원",
+                  _dv(_to억(oi차이), "억원"), oi달성 or 0)
         _kpi_card(_kc4, "영업이익률",
-                  f"{oi율실적:.1f}" if oi율실적 is not None else "-", "%",
-                  _dv(oi율차이, "%p", per=True), _oir_pct)
+                  f"{oi율실적:.0f}" if oi율실적 is not None else "-", "%",
+                  _dv(oi율차이, "%p"), _oir_pct)
         _kpi_card(_kc5, "공헌이익 (레미콘)",
                   f"{공헌이익실적:,.0f}" if 공헌이익실적 is not None else "-", "원/㎥",
-                  _dv(공헌이익차이, "원/㎥", per=True), 공헌이익달성)
+                  _dv(공헌이익차이, "원/㎥"), 공헌이익달성)
         st.markdown('<div style="margin-bottom:40px;"></div>', unsafe_allow_html=True)
 
         # ══ 1-B. 부문별 현황 테이블 ══════════════════════════════
