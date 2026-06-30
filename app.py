@@ -48,7 +48,7 @@ TOKEN_STORE = _token_store()
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 if "page" not in st.session_state:
-    st.session_state["page"] = "건재손익_요약"
+    st.session_state["page"] = "건재손익_요약2"
 if "auth_view" not in st.session_state:
     st.session_state["auth_view"] = "login"  # "login" | "signup"
 
@@ -506,7 +506,7 @@ table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#
 </style>
 
 <div class="top-nav">
-    <a class="nav-logo" href="{nav_href('건재손익_요약')}" target="_self">{logo_html}</a>
+    <a class="nav-logo" href="{nav_href('건재손익_요약2')}" target="_self">{logo_html}</a>
     <ul class="nav-menu">{menu_html}</ul>
     <div class="nav-right"><span class="nav-user">👤 <span style="font-family:Arial,sans-serif;">{st.session_state.get('username','')}</span></span>{admin_btn_html}<a class="nav-logout-btn" href="?logout=1" target="_self">로그아웃</a></div>
 </div>
