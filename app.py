@@ -1147,10 +1147,12 @@ elif current_page == "건재손익_요약2":
         # ── 좌: 레미콘 판매량 권역별 계획 vs 실적 ──────────────────────
         with left_col:
             st.markdown(
-                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">'
+                '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
+                '<div style="display:flex;align-items:center;gap:8px;">'
                 '<div style="width:4px;height:16px;background:#1d4ed8;border-radius:2px;"></div>'
                 '<span style="font-size:1.3em;font-weight:700;color:#1f2937;">권역별 판매량</span>'
-                '<span style="font-size:0.95em;color:#9ca3af;margin-left:6px;">천㎥</span>'
+                '</div>'
+                '<span style="font-size:0.85em;color:#9ca3af;">(단위 : 천㎥)</span>'
                 '</div>', unsafe_allow_html=True)
 
             _REGIONS = ['수도권', '영남권', '중부권']
