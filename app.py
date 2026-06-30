@@ -1269,6 +1269,7 @@ elif current_page == "건재손익_사업장별":
                 + _td(d.get('변동비_전년'),  'int', is_bold, False)
                 + _td(d.get('공헌이익_계획'),'int', is_bold)
                 + _td(d.get('공헌이익_실적'),'int', is_bold)
+                + _td(d.get('공헌이익_전년'), 'int', is_bold)
                 + '</tr>'
             )
 
@@ -1386,7 +1387,7 @@ elif current_page == "건재손익_사업장별":
   <th colspan="5">영업이익(공통비 배부전)</th>
   <th colspan="3">판매단가</th>
   <th colspan="3">변동비</th>
-  <th colspan="2">공헌이익</th>
+  <th colspan="3">공헌이익</th>
 </tr>
 <tr>
   <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">차이</th><th class="th-sub">전년</th><th class="th-sub">차이</th>
@@ -1394,7 +1395,7 @@ elif current_page == "건재손익_사업장별":
   <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">차이</th><th class="th-sub">전년</th><th class="th-sub">차이</th>
   <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">전년</th>
   <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">전년</th>
-  <th class="th-sub">계획</th><th class="th-sub">실적</th>
+  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">전년</th>
 </tr>
 </thead>
 <tbody>

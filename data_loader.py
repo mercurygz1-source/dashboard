@@ -189,6 +189,7 @@ def load_sijangbyul_raw(year, month, period="당월"):
             '변동비_전년':      n(row[29]),
             '공헌이익_계획':    n(row[30]),
             '공헌이익_실적':    n(row[31]),
+            '공헌이익_전년':    n(row[32]) if len(row) > 32 else None,
         })
 
     wb.close()
