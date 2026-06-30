@@ -1041,87 +1041,77 @@ elif current_page == "건재손익_요약2":
               <div style="font-size:0.72em;color:#9ca3af;margin-top:4px;">계획 달성률 {bar_pct:.1f}%</div>
             </div>"""
 
-        # ══ 1-A. 핵심 KPI — st.columns 방식 ══════════════════════
+        # ══ 공통 헬퍼 ═══════════════════════════════════════════
         rc달성  = (rc물량실적/rc물량계획*100) if rc물량실적 and rc물량계획 else 0
 
-        def _ach_color(pct):
-            return "#22c55e" if pct >= 100 else ("#f59e0b" if pct >= 90 else "#ef4444")
+        def _ac(pct):
+            return "#16a34a" if pct >= 100 else ("#f59e0b" if pct >= 90 else "#dc2626")
 
-        def _diff_row(val, unit, per=False):
+        def _bw(pct): return str(int(min(max(pct, 0), 100)))
+
+        def _dv(val, unit, per=False):
+            """차이 문자열 (HTML)"""
             if val is None: return ""
-            c = "#ef4444" if val < 0 else "#22c55e"
+            c = "#dc2626" if val < 0 else "#16a34a"
             a = "▲" if val >= 0 else "▼"
-            s = f"{abs(val):,.1f}" if per else f"{abs(int(round(val))):,}"
-            return (
-                '<div style="font-size:0.8em;font-weight:600;color:' + c + ';margin-top:4px;">'
-                + a + ' ' + s + ' ' + unit
-                + ' <span style="color:#94a3b8;font-weight:400;">vs 계획</span></div>'
-            )
+            s = (f"{abs(val):,.1f}" if per else f"{abs(int(round(val))):,}") + " " + unit
+            return '<span style="font-size:0.78em;font-weight:600;color:' + c + ';">' + a + " " + s + '</span>'
 
-        def _kpi_card(col, label, value_str, unit, diff_html, pct):
-            ac = _ach_color(pct)
-            bar_w = min(max(pct, 0), 100)
-            with col:
-                st.markdown(
-                    '<div style="background:white;border-radius:10px;border:1px solid #e2e8f0;'
-                    'box-shadow:0 1px 3px rgba(0,0,0,0.06);padding:18px 20px 14px;">'
-                    '<div style="font-size:0.72em;font-weight:600;color:#64748b;letter-spacing:0.05em;margin-bottom:8px;">'
-                    + label +
-                    '</div>'
-                    '<div style="font-size:2.0em;font-weight:900;color:#0f172a;line-height:1.1;">'
-                    + value_str +
-                    '<span style="font-size:0.35em;font-weight:500;color:#94a3b8;margin-left:5px;">' + unit + '</span>'
-                    '</div>'
-                    + diff_html +
-                    '<div style="margin-top:12px;">'
-                    '<div style="background:#e2e8f0;border-radius:99px;height:4px;">'
-                    '<div style="width:' + str(int(bar_w)) + '%;height:100%;background:' + ac + ';border-radius:99px;"></div>'
-                    '</div>'
-                    '<div style="font-size:0.7em;font-weight:600;color:' + ac + ';margin-top:3px;">계획 달성률 ' + f'{pct:.1f}' + '%</div>'
-                    '</div>'
-                    '</div>',
-                    unsafe_allow_html=True
-                )
-
-        kc1, kc2, kc3, kc4 = st.columns(4, gap="small")
-        _kpi_card(kc1, "레미콘 판매량",
-                  f"{rc물량실적:,.1f}" if rc물량실적 else "-", "천㎥",
-                  _diff_row(rc물량차이, "천㎥", per=True), rc달성)
-        _kpi_card(kc2, "총 매출액",
-                  f"{_to억(매출실적):,.1f}" if 매출실적 else "-", "억원",
-                  _diff_row(_to억(매출차이), "억원", per=True), 매출달성 or 0)
-        _oi_diff_html = _diff_row(_to억(oi차이), "억원", per=True)
-        _kpi_card(kc3, "영업이익",
-                  f"{_to억(oi실적):,.1f}" if oi실적 is not None else "-", "억원",
-                  _oi_diff_html, oi달성 or 0)
-        # 영업이익률 — 달성률 계산 별도
-        _oir_pct = min((oi율실적/(oi율계획 or 1)*100) if oi율실적 and oi율계획 else 0, 150)
-        _kpi_card(kc4, "영업이익률",
-                  f"{oi율실적:.1f}" if oi율실적 is not None else "-", "%",
-                  _diff_row(oi율차이, "%p", per=True), _oir_pct)
-
-        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-
-        # ══ 1-B. 부문별 현황 — 하나의 카드 테이블 ════════════════
+        # ══ 1-A. KPI 4개 — 한 줄 HTML 블록 ══════════════════════
         _DIVS = ['레미콘','골재','건자재','기타']
         _DIV_COLORS = {'레미콘':'#1d4ed8','골재':'#0891b2','건자재':'#059669','기타':'#7c3aed'}
         df_div2 = df_ov2[df_ov2['구분'].isin(_DIVS)].set_index('구분')
 
-        # 헤더
+        _oir_pct = min((oi율실적/(oi율계획)*100) if oi율실적 and oi율계획 else 0, 150)
+
+        def _kpi_cell(label, val_str, unit, diff_html, pct, border_right=True):
+            ac = _ac(pct); bw = _bw(pct)
+            br = "border-right:1px solid #f1f5f9;" if border_right else ""
+            return (
+                '<td style="padding:14px 18px;vertical-align:top;' + br + 'width:25%;">'
+                '<div style="font-size:0.7em;font-weight:600;color:#6b7280;margin-bottom:5px;">' + label + '</div>'
+                '<div style="font-size:1.9em;font-weight:900;color:#111827;line-height:1;">' + val_str
+                + '<span style="font-size:0.32em;font-weight:400;color:#9ca3af;margin-left:4px;">' + unit + '</span></div>'
+                '<div style="margin-top:3px;">' + diff_html + ' <span style="font-size:0.72em;color:#9ca3af;">vs 계획</span></div>'
+                '<div style="margin-top:8px;background:#f3f4f6;border-radius:99px;height:3px;">'
+                '<div style="width:' + bw + '%;height:100%;background:' + ac + ';border-radius:99px;"></div></div>'
+                '<div style="font-size:0.68em;color:' + ac + ';font-weight:600;margin-top:2px;">달성률 ' + f'{pct:.1f}%' + '</div>'
+                '</td>'
+            )
+
+        _kpi_block = (
+            '<div style="background:white;border-radius:10px;border:1px solid #e8eaed;'
+            'box-shadow:0 1px 3px rgba(0,0,0,0.05);margin-bottom:12px;overflow:hidden;">'
+            '<table style="width:100%;border-collapse:collapse;">'
+            '<tr>'
+            + _kpi_cell("레미콘 판매량",
+                        f"{rc물량실적:,.1f}" if rc물량실적 else "-", "천㎥",
+                        _dv(rc물량차이, "천㎥", per=True), rc달성)
+            + _kpi_cell("총 매출액",
+                        f"{_to억(매출실적):,.1f}" if 매출실적 else "-", "억원",
+                        _dv(_to억(매출차이), "억원", per=True), 매출달성 or 0)
+            + _kpi_cell("영업이익",
+                        f"{_to억(oi실적):,.1f}" if oi실적 is not None else "-", "억원",
+                        _dv(_to억(oi차이), "억원", per=True), oi달성 or 0)
+            + _kpi_cell("영업이익률",
+                        f"{oi율실적:.1f}" if oi율실적 is not None else "-", "%",
+                        _dv(oi율차이, "%p", per=True), _oir_pct, border_right=False)
+            + '</tr></table></div>'
+        )
+        st.markdown(_kpi_block, unsafe_allow_html=True)
+
+        # ══ 1-B. 부문별 현황 테이블 ══════════════════════════════
         _tbl = (
-            '<div style="background:white;border-radius:10px;border:1px solid #e2e8f0;'
-            'box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;margin-bottom:20px;">'
-            '<div style="background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:10px 20px;">'
-            '<span style="font-size:0.75em;font-weight:700;color:#475569;letter-spacing:0.06em;">부문별 손익 현황</span>'
-            '</div>'
-            '<table style="width:100%;border-collapse:collapse;font-size:0.86em;">'
-            '<thead><tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;">'
-            '<th style="padding:10px 20px;text-align:left;font-weight:600;color:#64748b;width:80px;">구분</th>'
-            '<th style="padding:10px 16px;text-align:right;font-weight:600;color:#64748b;">매출 실적</th>'
-            '<th style="padding:10px 16px;text-align:right;font-weight:600;color:#64748b;">매출 달성률</th>'
-            '<th style="padding:10px 16px;text-align:right;font-weight:600;color:#64748b;">영업이익 실적</th>'
-            '<th style="padding:10px 16px;text-align:right;font-weight:600;color:#64748b;">이익 달성률</th>'
-            '<th style="padding:10px 20px;text-align:right;font-weight:600;color:#64748b;">이익률</th>'
+            '<div style="background:white;border-radius:10px;border:1px solid #e8eaed;'
+            'box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;margin-bottom:12px;">'
+            '<table style="width:100%;border-collapse:collapse;font-size:0.85em;">'
+            '<thead><tr style="background:#f9fafb;border-bottom:1px solid #e8eaed;">'
+            '<th style="padding:8px 18px;text-align:left;font-weight:600;color:#6b7280;font-size:0.85em;">구분</th>'
+            '<th style="padding:8px 14px;text-align:right;font-weight:600;color:#6b7280;font-size:0.85em;">매출 실적</th>'
+            '<th style="padding:8px 14px;text-align:center;font-weight:600;color:#6b7280;font-size:0.85em;">매출 달성률</th>'
+            '<th style="padding:8px 14px;text-align:right;font-weight:600;color:#6b7280;font-size:0.85em;">영업이익</th>'
+            '<th style="padding:8px 14px;text-align:center;font-weight:600;color:#6b7280;font-size:0.85em;">이익 달성률</th>'
+            '<th style="padding:8px 18px;text-align:right;font-weight:600;color:#6b7280;font-size:0.85em;">이익률</th>'
             '</tr></thead><tbody>'
         )
         for _dn in _DIVS:
@@ -1130,40 +1120,33 @@ elif current_page == "건재손익_요약2":
             _sr2 = df_div2.loc[_dn, _r2c('매출')] or 0
             _op2 = df_div2.loc[_dn, _p2('영업이익')] or 0
             _or2 = df_div2.loc[_dn, _r2c('영업이익')]
-            _매출달성 = (_sr2/_sp2*100) if _sp2 != 0 else 0
-            _oi달성   = (_or2/_op2*100) if _op2 != 0 and _or2 is not None else 0
-            _ach_c  = _ach_color(_매출달성)
-            _oi_c   = "#22c55e" if _or2 is not None and _or2 >= 0 else "#ef4444"
-            _oid_c  = _ach_color(_oi달성)
-            _bar_w  = int(min(max(_매출달성, 0), 100))
-            _oid_w  = int(min(max(abs(_oi달성), 0), 100))
-            _bar_매출 = (
-                '<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">'
-                '<div style="width:80px;background:#f1f5f9;border-radius:99px;height:5px;">'
-                '<div style="width:' + str(_bar_w) + '%;height:100%;background:' + _ach_c + ';border-radius:99px;"></div>'
-                '</div>'
-                '<span style="font-weight:700;color:' + _ach_c + ';white-space:nowrap;">' + f'{_매출달성:.1f}%' + '</span>'
-                '</div>'
-            )
-            _bar_oi = (
-                '<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">'
-                '<div style="width:80px;background:#f1f5f9;border-radius:99px;height:5px;">'
-                '<div style="width:' + str(_oid_w) + '%;height:100%;background:' + _oid_c + ';border-radius:99px;"></div>'
-                '</div>'
-                '<span style="font-weight:700;color:' + _oid_c + ';white-space:nowrap;">' + f'{_oi달성:.1f}%' + '</span>'
-                '</div>'
-            )
-            _oir_str = f"{_or2/_sr2*100:.1f}%" if _sr2 and _or2 is not None and _sr2 != 0 else "-"
+            _md  = (_sr2/_sp2*100) if _sp2 else 0
+            _od  = (_or2/_op2*100) if _op2 and _or2 is not None else 0
+            _mc  = _ac(_md); _oc = "#16a34a" if _or2 is not None and _or2>=0 else "#dc2626"; _odc = _ac(_od)
+            _mw  = _bw(_md); _ow = _bw(abs(_od))
+            _oir2 = (f"{_or2/_sr2*100:.1f}%" if _sr2 and _or2 is not None and _sr2!=0 else "-")
             _tbl += (
-                '<tr style="border-bottom:1px solid #f1f5f9;">'
-                '<td style="padding:12px 20px;font-weight:700;color:#374151;">' + _dn + '</td>'
-                '<td style="padding:12px 16px;text-align:right;font-weight:600;color:#0f172a;">'
-                + (f"{int(_sr2):,}" if _sr2 else "-") + ' <span style="font-size:0.75em;color:#94a3b8;">백만원</span></td>'
-                '<td style="padding:12px 16px;">' + _bar_매출 + '</td>'
-                '<td style="padding:12px 16px;text-align:right;font-weight:600;color:' + _oi_c + ';">'
-                + (f"{int(_or2):,}" if _or2 is not None else "-") + ' <span style="font-size:0.75em;color:#94a3b8;">백만원</span></td>'
-                '<td style="padding:12px 16px;">' + _bar_oi + '</td>'
-                '<td style="padding:12px 20px;text-align:right;font-weight:700;color:' + _oi_c + ';">' + _oir_str + '</td>'
+                '<tr style="border-bottom:1px solid #f3f4f6;">'
+                '<td style="padding:9px 18px;font-weight:700;color:#1f2937;font-size:0.9em;">' + _dn + '</td>'
+                '<td style="padding:9px 14px;text-align:right;color:#374151;font-weight:600;">'
+                + (f"{int(_sr2):,}" if _sr2 else "-")
+                + '<span style="font-size:0.72em;color:#9ca3af;margin-left:3px;">백만원</span></td>'
+                '<td style="padding:9px 14px;">'
+                '<div style="display:flex;align-items:center;gap:6px;">'
+                '<div style="flex:1;background:#f3f4f6;border-radius:99px;height:5px;">'
+                '<div style="width:' + _mw + '%;height:100%;background:' + _mc + ';border-radius:99px;"></div></div>'
+                '<span style="font-size:0.82em;font-weight:700;color:' + _mc + ';white-space:nowrap;">' + f'{_md:.1f}%' + '</span>'
+                '</div></td>'
+                '<td style="padding:9px 14px;text-align:right;font-weight:600;color:' + _oc + ';">'
+                + (f"{int(_or2):,}" if _or2 is not None else "-")
+                + '<span style="font-size:0.72em;color:#9ca3af;margin-left:3px;">백만원</span></td>'
+                '<td style="padding:9px 14px;">'
+                '<div style="display:flex;align-items:center;gap:6px;">'
+                '<div style="flex:1;background:#f3f4f6;border-radius:99px;height:5px;">'
+                '<div style="width:' + _ow + '%;height:100%;background:' + _odc + ';border-radius:99px;"></div></div>'
+                '<span style="font-size:0.82em;font-weight:700;color:' + _odc + ';white-space:nowrap;">' + f'{_od:.1f}%' + '</span>'
+                '</div></td>'
+                '<td style="padding:9px 18px;text-align:right;font-weight:700;color:' + _oc + ';">' + _oir2 + '</td>'
                 '</tr>'
             )
         _tbl += '</tbody></table></div>'
@@ -1191,17 +1174,15 @@ elif current_page == "건재손익_요약2":
                 ))
                 _총매출 = sum(_pv)
                 _fig_d2.update_layout(
-                    title=dict(text="매출 구성 비중", font=dict(size=14,color='#1f2937'), x=0.5, xanchor='center'),
+                    title=dict(text="매출 구성 비중", font=dict(size=13,color='#374151'), x=0.5, xanchor='center'),
                     showlegend=True,
-                    legend=dict(orientation='h', yanchor='bottom', y=-0.15, xanchor='center', x=0.5, font=dict(size=12)),
-                    margin=dict(t=44,b=50,l=10,r=10), height=320,
+                    legend=dict(orientation='h', yanchor='bottom', y=-0.08, xanchor='center', x=0.5, font=dict(size=11)),
+                    margin=dict(t=36,b=36,l=0,r=0), height=280,
                     paper_bgcolor='white', plot_bgcolor='white',
-                    annotations=[dict(
-                        text=f"매출<br><b>{int(_총매출):,}</b><br><span style='font-size:10px'>백만원</span>",
-                        x=0.5, y=0.5, font_size=12, showarrow=False, font_color='#374151'
-                    )]
+                    annotations=[dict(text=f"<b>{int(_총매출):,}</b><br>백만원",
+                        x=0.5, y=0.5, font_size=13, showarrow=False, font_color='#374151')]
                 )
-                st.markdown('<div style="background:white;border-radius:12px;padding:8px 8px 0;box-shadow:0 2px 10px rgba(0,0,0,0.07);">', unsafe_allow_html=True)
+                st.markdown('<div style="background:white;border-radius:10px;border:1px solid #e8eaed;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:4px 0 0;">', unsafe_allow_html=True)
                 st.plotly_chart(_fig_d2, use_container_width=True, config={"displayModeBar":False})
                 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1235,17 +1216,20 @@ elif current_page == "건재손익_요약2":
                     textfont=dict(color='white', size=11),
                     hovertemplate='실적: <b>%{x:,.0f}</b> 백만원<extra></extra>',
                 ))
+                # x축 범위: 실적/계획 중 절댓값 최대에 맞춤
+                _xmax = max(abs(v) for v in _bp + _br) if (_bp + _br) else 100
                 _fig_b2.update_layout(
-                    title=dict(text="부문별 영업이익 계획 vs 실적 (백만원)", font=dict(size=14,color='#1f2937'), x=0.5, xanchor='center'),
-                    barmode='group', bargap=0.28, bargroupgap=0.08,
-                    xaxis=dict(showgrid=True, gridcolor='#f3f4f6', zeroline=True, zerolinecolor='#9ca3af'),
+                    title=dict(text="부문별 영업이익 계획 vs 실적 (백만원)", font=dict(size=13,color='#374151'), x=0.5, xanchor='center'),
+                    barmode='group', bargap=0.3, bargroupgap=0.06,
+                    xaxis=dict(showgrid=True, gridcolor='#f3f4f6', zeroline=True, zerolinecolor='#9ca3af',
+                               range=[-_xmax*0.1, _xmax*1.25]),
                     yaxis=dict(showgrid=False),
-                    legend=dict(orientation='h', yanchor='bottom', y=-0.18, xanchor='center', x=0.5, font=dict(size=12)),
-                    margin=dict(t=44,b=50,l=10,r=10), height=320,
+                    legend=dict(orientation='h', yanchor='bottom', y=-0.1, xanchor='center', x=0.5, font=dict(size=11)),
+                    margin=dict(t=36,b=36,l=0,r=8), height=280,
                     paper_bgcolor='white', plot_bgcolor='white',
                     font=dict(family='Noto Sans KR'),
                 )
-                st.markdown('<div style="background:white;border-radius:12px;padding:8px 8px 0;box-shadow:0 2px 10px rgba(0,0,0,0.07);">', unsafe_allow_html=True)
+                st.markdown('<div style="background:white;border-radius:10px;border:1px solid #e8eaed;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:4px 0 0;">', unsafe_allow_html=True)
                 st.plotly_chart(_fig_b2, use_container_width=True, config={"displayModeBar":False})
                 st.markdown('</div>', unsafe_allow_html=True)
 
