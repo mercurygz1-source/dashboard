@@ -1118,6 +1118,11 @@ elif current_page == "건재손익_요약2":
                     unsafe_allow_html=True
                 )
 
+        st.markdown("""<style>
+        div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(5)) {
+            gap: 6px !important;
+        }
+        </style>""", unsafe_allow_html=True)
         _kc1, _kc2, _kc3, _kc4, _kc5 = st.columns(5, gap="small")
         _kpi_card(_kc1, "레미콘 판매량",
                   f"{rc물량실적:,.0f}" if rc물량실적 else "-", "천㎥",
