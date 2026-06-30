@@ -1078,7 +1078,7 @@ elif current_page == "건재손익_요약2":
                     unsafe_allow_html=True
                 )
 
-        _kpad_l, _kmain, _kpad_r = st.columns([0.12, 0.76, 0.12])
+        _kmain, _kpad_r = st.columns([0.76, 0.24])
         with _kmain:
             _kc1, _kc2, _kc3, _kc4 = st.columns(4, gap="small")
         _kpi_card(_kc1, "레미콘 판매량",
