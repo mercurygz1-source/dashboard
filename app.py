@@ -1246,10 +1246,10 @@ elif current_page == "건재손익_요약2":
             _df_div3 = df_ov2[df_ov2['구분'].isin(_DIVS2)].set_index('구분') if df_ov2 is not None else None
 
             if _df_div3 is not None:
-                _kpi_cols2 = st.columns(4, gap="small")
-                for _i2, _dn2 in enumerate(_DIVS2):
-                    if _dn2 not in _df_div3.index:
-                        continue
+                # 데이터 미리 계산
+                _div_data2 = []
+                for _dn2 in _DIVS2:
+                    if _dn2 not in _df_div3.index: continue
                     _row3 = _df_div3.loc[_dn2]
                     _sp3 = _row3.get(_p2('매출')); _sr3 = _row3.get(_r2c('매출'))
                     _op3 = _row3.get(_p2('영업이익')); _or3 = _row3.get(_r2c('영업이익'))
@@ -1261,17 +1261,32 @@ elif current_page == "건재손익_요약2":
                     _oi_diff2_str = (f"+{int(_oi_diff2):,}" if _oi_diff2 >= 0 else f"{int(_oi_diff2):,}") if _oi_diff2 is not None else "-"
                     _oi_diff2_clr = "#1d4ed8" if (_oi_diff2 is not None and _oi_diff2 >= 0) else "#dc2626"
                     _oi_rate2 = f"{_or3/_sr3*100:.1f}%" if (_sr3 and _or3 and _sr3 != 0) else "-"
-                    with _kpi_cols2[_i2]:
+                    _div_data2.append((_dn2, _clr2, _sr3, _ach2_str, _ach2_clr, _or3, _oi_diff2_str, _oi_diff2_clr, _oi_rate2))
+
+                # 행 1: 매출 실적 카드
+                _row1_cols = st.columns(4, gap="small")
+                for _i2, (_dn2, _clr2, _sr3, _ach2_str, _ach2_clr, _or3, _oi_diff2_str, _oi_diff2_clr, _oi_rate2) in enumerate(_div_data2):
+                    with _row1_cols[_i2]:
                         st.markdown(f"""
-                        <div style="background:white;border-radius:12px;padding:28px 16px 24px;border-top:4px solid {_clr2};box-shadow:0 1px 6px rgba(0,0,0,0.08);height:100%;">
-                          <div style="font-size:1.05em;font-weight:800;color:{_clr2};margin-bottom:10px;">{_dn2}</div>
+                        <div style="background:white;border-radius:12px;padding:20px 16px 18px;border-top:4px solid {_clr2};box-shadow:0 1px 6px rgba(0,0,0,0.08);">
+                          <div style="font-size:1.0em;font-weight:800;color:{_clr2};margin-bottom:8px;">{_dn2}</div>
                           <div style="font-size:0.72em;color:#9ca3af;margin-bottom:2px;">매출 실적</div>
                           <div style="font-size:1.45em;font-weight:800;color:#1f2937;line-height:1.2;">{f"{int(_sr3):,}" if _sr3 else "-"}<span style="font-size:0.45em;font-weight:400;color:#9ca3af;"> 백만원</span></div>
-                          <div style="font-size:0.8em;color:{_ach2_clr};font-weight:600;margin-bottom:10px;">계획대비 {_ach2_str}</div>
-                          <div style="height:1px;background:#f3f4f6;margin:8px 0;"></div>
+                          <div style="font-size:0.8em;color:{_ach2_clr};font-weight:600;margin-top:4px;">계획대비 {_ach2_str}</div>
+                        </div>""", unsafe_allow_html=True)
+
+                st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
+
+                # 행 2: 영업이익 카드
+                _row2_cols = st.columns(4, gap="small")
+                for _i2, (_dn2, _clr2, _sr3, _ach2_str, _ach2_clr, _or3, _oi_diff2_str, _oi_diff2_clr, _oi_rate2) in enumerate(_div_data2):
+                    with _row2_cols[_i2]:
+                        st.markdown(f"""
+                        <div style="background:white;border-radius:12px;padding:20px 16px 18px;border-top:4px solid {_clr2};box-shadow:0 1px 6px rgba(0,0,0,0.08);">
+                          <div style="font-size:1.0em;font-weight:800;color:{_clr2};margin-bottom:8px;">{_dn2}</div>
                           <div style="font-size:0.72em;color:#9ca3af;margin-bottom:2px;">영업이익</div>
-                          <div style="font-size:1.15em;font-weight:700;color:#1f2937;">{f"{int(_or3):,}" if _or3 is not None else "-"}<span style="font-size:0.45em;font-weight:400;color:#9ca3af;"> 백만원</span></div>
-                          <div style="font-size:0.78em;color:{_oi_diff2_clr};font-weight:600;">차이 {_oi_diff2_str}</div>
+                          <div style="font-size:1.45em;font-weight:800;color:#1f2937;line-height:1.2;">{f"{int(_or3):,}" if _or3 is not None else "-"}<span style="font-size:0.45em;font-weight:400;color:#9ca3af;"> 백만원</span></div>
+                          <div style="font-size:0.78em;color:{_oi_diff2_clr};font-weight:600;margin-top:4px;">차이 {_oi_diff2_str}</div>
                           <div style="font-size:0.72em;color:#9ca3af;">이익률 {_oi_rate2}</div>
                         </div>""", unsafe_allow_html=True)
 
