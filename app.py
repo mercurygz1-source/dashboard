@@ -1234,37 +1234,47 @@ elif current_page == "건재손익_사업장별":
 
         _DIVIDER_ROWS = {'김포', '울산', '제주'}
 
+        def _ge(cell):
+            """그룹 마지막 셀에 우측 구분선 추가"""
+            return cell.replace('class="sjb-num"', 'class="sjb-num sjb-ge"', 1)
+
         def _row_html(label, d, style='normal', section_td=''):
-            is_bold  = style in ('subtotal', 'total', 'grand_total')
+            is_bold = style in ('subtotal', 'total', 'grand_total')
             is_divider = label in _DIVIDER_ROWS
-            tr_class = ' class="sjb-divider"' if is_divider else ''
-            fw = 'font-weight:700;' if is_bold else ''
+            tr_classes = []
+            if is_divider:   tr_classes.append('sjb-divider')
+            if style == 'region':     tr_classes.append('sjb-region')
+            elif style == 'subtotal': tr_classes.append('sjb-subtotal')
+            elif style == 'total':    tr_classes.append('sjb-total')
+            elif style == 'grand_total': tr_classes.append('sjb-grand')
+            tr_cls = f' class="{" ".join(tr_classes)}"' if tr_classes else ''
+            fw = 'font-weight:600;' if is_bold else ''
             label_td = f'<td class="sjb-label" style="{fw}">{label}</td>'
             return (
-                f'<tr{tr_class}>'
+                f'<tr{tr_cls}>'
                 + section_td
                 + label_td
                 + _td(d.get('물량_계획'),    'int', is_bold)
                 + _td(d.get('물량_실적'),    'int', is_bold)
                 + _tdiff(d.get('물량_차이'), is_bold)
                 + _td(d.get('물량_전년'),    'int', is_bold)
-                + _tdiff(d.get('물량_전년차이'), is_bold)
+                + _ge(_tdiff(d.get('물량_전년차이'), is_bold))
                 + _td(d.get('매출_계획'),    'int', is_bold)
                 + _td(d.get('매출_실적'),    'int', is_bold)
                 + _tdiff(d.get('매출_차이'), is_bold)
                 + _td(d.get('매출_전년'),    'int', is_bold)
-                + _tdiff(d.get('매출_전년차이'), is_bold)
+                + _ge(_tdiff(d.get('매출_전년차이'), is_bold))
                 + _td(d.get('영업이익_계획'),'int', is_bold)
                 + _td(d.get('영업이익_실적'),'int', is_bold)
                 + _tdiff(d.get('영업이익_차이'), is_bold)
                 + _td(d.get('영업이익_전년'),'int', is_bold)
-                + _tdiff(d.get('영업이익_전년차이'), is_bold)
+                + _ge(_tdiff(d.get('영업이익_전년차이'), is_bold))
                 + _td(d.get('판매단가_계획'),'int', is_bold, False)
                 + _td(d.get('판매단가_실적'),'int', is_bold, False)
-                + _td(d.get('판매단가_전년'),'int', is_bold, False)
+                + _ge(_td(d.get('판매단가_전년'),'int', is_bold, False))
                 + _td(d.get('변동비_계획'),  'int', is_bold, False)
                 + _td(d.get('변동비_실적'),  'int', is_bold, False)
-                + _td(d.get('변동비_전년'),  'int', is_bold, False)
+                + _ge(_td(d.get('변동비_전년'),  'int', is_bold, False))
                 + _td(d.get('공헌이익_계획'),'int', is_bold)
                 + _td(d.get('공헌이익_실적'),'int', is_bold)
                 + _td(d.get('공헌이익_전년'), 'int', is_bold)
@@ -1332,73 +1342,146 @@ elif current_page == "건재손익_사업장별":
         rows_html.append(_row_html('합계', d_all, 'grand_total',
             '<td class="sjb-sec" style="font-weight:700;"></td>'))
 
-        _unit = "누계" if _sjb_period == "누계" else "당월"
         html = f"""
 <style>
-.sjb-wrap {{ overflow-x: auto; }}
+/* ── 사업장별 테이블 ── */
+.sjb-wrap {{ overflow-x: auto; margin-top: 4px; }}
 .sjb-tbl {{
     border-collapse: collapse;
-    font-size: 0.75em;
-    width: 100%;
+    font-size: 0.72em;
     white-space: nowrap;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    width: 100%;
 }}
-.sjb-tbl th {{
-    background: #1e3a5f;
-    color: white;
+
+/* 헤더 1행 – 그룹명 */
+.sjb-tbl thead tr:first-child th {{
+    padding: 7px 8px 6px;
     text-align: center;
+    font-weight: 700;
+    font-size: 1.0em;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    border-right: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    letter-spacing: 0.03em;
+}}
+/* 헤더 그룹 색상 */
+.sjb-tbl th.th-hdr  {{ background: #1e293b; }}
+.sjb-tbl th.th-vol  {{ background: #475569; }}
+.sjb-tbl th.th-sale {{ background: #1d4ed8; }}
+.sjb-tbl th.th-oi   {{ background: #4338ca; }}
+.sjb-tbl th.th-uprc {{ background: #0f766e; }}
+.sjb-tbl th.th-vc   {{ background: #15803d; }}
+.sjb-tbl th.th-cm   {{ background: #7c3aed; }}
+
+/* 헤더 2행 – 서브 컬럼 */
+.sjb-tbl thead tr:last-child th {{
     padding: 4px 6px;
-    border: 1px solid #374151;
-    font-weight: 600;
+    text-align: center;
+    font-size: 0.88em;
+    font-weight: 500;
+    color: rgba(255,255,255,0.88);
+    border-right: 1px solid rgba(255,255,255,0.12);
 }}
-.sjb-tbl th.th-sub {{
-    background: #2d4f7c;
-}}
+.sjb-tbl th.ts-vol  {{ background: #64748b; }}
+.sjb-tbl th.ts-sale {{ background: #2563eb; }}
+.sjb-tbl th.ts-oi   {{ background: #4f46e5; }}
+.sjb-tbl th.ts-uprc {{ background: #0d9488; }}
+.sjb-tbl th.ts-vc   {{ background: #16a34a; }}
+.sjb-tbl th.ts-cm   {{ background: #7c3aed; }}
+
+/* 데이터 셀 공통 */
 .sjb-tbl td {{
     border: none;
-    border-right: 1px solid #e5e7eb;
-    padding: 3px 6px;
-    background: white;
+    border-right: 1px solid #e2e8f0;
+    padding: 3px 7px;
+    background: #fff;
+    color: #1e293b;
+    vertical-align: middle;
 }}
-.sjb-tbl td:last-child {{ border-right: none; }}
-.sjb-tbl tr.sjb-divider td {{ border-bottom: 2px solid #64748b; }}
+/* 그룹 마지막 셀 구분선 */
+.sjb-tbl td.sjb-ge {{ border-right: 2px solid #94a3b8 !important; }}
+
+/* 지브라 */
+.sjb-tbl tbody tr:nth-child(even) td {{ background: #f8fafc; }}
+.sjb-tbl tbody tr:nth-child(even) td.sjb-ge {{ background: #f8fafc; }}
+
+/* 구분 & 이름 셀 */
 .sjb-sec {{
     text-align: center;
-    font-size: 0.85em;
-    min-width: 36px;
-    border-right: 1px solid #e5e7eb !important;
+    font-size: 0.82em;
+    font-weight: 700;
+    min-width: 34px;
+    border-right: 2px solid #cbd5e1 !important;
+    letter-spacing: 0.05em;
 }}
 .sjb-label {{
     text-align: left;
-    padding-left: 8px;
-    min-width: 64px;
+    padding-left: 10px;
+    min-width: 70px;
+    border-right: 2px solid #e2e8f0 !important;
+    color: #334155;
 }}
-.sjb-num {{
-    text-align: right;
-    min-width: 52px;
+
+/* 숫자 셀 */
+.sjb-num {{ text-align: right; min-width: 50px; }}
+
+/* 행 타입별 */
+.sjb-tbl tr.sjb-region td {{
+    background: #f1f5f9 !important;
+    color: #475569;
+    font-style: italic;
 }}
-.sjb-tbl tr:hover td {{ background: #f8fafc !important; }}
-.sjb-unit {{ text-align:right; color:#6b7280; font-size:0.8em; margin-bottom:4px; }}
+.sjb-tbl tr.sjb-subtotal td {{
+    background: #fef9c3 !important;
+    font-weight: 700;
+    border-top: 1px solid #fde047;
+    border-bottom: 1px solid #fde047;
+    color: #713f12;
+}}
+.sjb-tbl tr.sjb-total td {{
+    background: #fef08a !important;
+    font-weight: 700;
+    border-top: 2px solid #ca8a04;
+    border-bottom: 2px solid #ca8a04;
+    color: #713f12;
+}}
+.sjb-tbl tr.sjb-grand td {{
+    background: #fde047 !important;
+    font-weight: 800;
+    border-top: 2px solid #a16207;
+    border-bottom: 2px solid #a16207;
+    color: #1c1917;
+}}
+/* 권역 구분선 */
+.sjb-tbl tr.sjb-divider td {{ border-bottom: 2px solid #475569 !important; }}
+
+/* 호버 */
+.sjb-tbl tbody tr:hover td {{ background: #dbeafe !important; transition: background 0.1s; }}
+
+/* 단위 */
+.sjb-unit {{ text-align:right; color:#94a3b8; font-size:0.76em; margin-bottom:3px; }}
 </style>
-<div class="sjb-unit">[단위: 천㎥, 백만원]</div>
+<div class="sjb-unit">[단위 : 천㎥, 백만원]</div>
 <div class="sjb-wrap">
 <table class="sjb-tbl">
 <thead>
 <tr>
-  <th rowspan="2" colspan="2" style="min-width:100px;">구분</th>
-  <th colspan="5">물량</th>
-  <th colspan="5">매출</th>
-  <th colspan="5">영업이익(공통비 배부전)</th>
-  <th colspan="3">판매단가</th>
-  <th colspan="3">변동비</th>
-  <th colspan="3">공헌이익</th>
+  <th class="th-hdr" rowspan="2" colspan="2" style="min-width:104px;">구분</th>
+  <th class="th-vol"  colspan="5">물량</th>
+  <th class="th-sale" colspan="5">매출</th>
+  <th class="th-oi"   colspan="5">영업이익 (공통비 배부전)</th>
+  <th class="th-uprc" colspan="3">판매단가</th>
+  <th class="th-vc"   colspan="3">변동비</th>
+  <th class="th-cm"   colspan="3">공헌이익</th>
 </tr>
 <tr>
-  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">차이</th><th class="th-sub">전년</th><th class="th-sub">차이</th>
-  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">차이</th><th class="th-sub">전년</th><th class="th-sub">차이</th>
-  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">차이</th><th class="th-sub">전년</th><th class="th-sub">차이</th>
-  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">전년</th>
-  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">전년</th>
-  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">전년</th>
+  <th class="ts-vol">계획</th><th class="ts-vol">실적</th><th class="ts-vol">차이</th><th class="ts-vol">전년</th><th class="ts-vol">차이</th>
+  <th class="ts-sale">계획</th><th class="ts-sale">실적</th><th class="ts-sale">차이</th><th class="ts-sale">전년</th><th class="ts-sale">차이</th>
+  <th class="ts-oi">계획</th><th class="ts-oi">실적</th><th class="ts-oi">차이</th><th class="ts-oi">전년</th><th class="ts-oi">차이</th>
+  <th class="ts-uprc">계획</th><th class="ts-uprc">실적</th><th class="ts-uprc">전년</th>
+  <th class="ts-vc">계획</th><th class="ts-vc">실적</th><th class="ts-vc">전년</th>
+  <th class="ts-cm">계획</th><th class="ts-cm">실적</th><th class="ts-cm">전년</th>
 </tr>
 </thead>
 <tbody>
