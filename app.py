@@ -1139,6 +1139,115 @@ elif current_page == "건재손익_요약2":
         _kpi_card(_kc5, "공헌이익 (레미콘)",
                   f"{공헌이익실적:,.0f}" if 공헌이익실적 is not None else "-", "원/㎥",
                   _dv(공헌이익차이, "원/㎥"), 공헌이익달성)
+        st.markdown('<div style="margin-bottom:24px;"></div>', unsafe_allow_html=True)
+
+        # ══ 2. 레미콘 판매량 (권역별) + 부문별 매출/영업이익 ══════════
+        left_col, right_col = st.columns([1, 1.6], gap="medium")
+
+        # ── 좌: 레미콘 판매량 권역별 계획 vs 실적 ──────────────────────
+        with left_col:
+            st.markdown(
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">'
+                '<div style="width:4px;height:16px;background:#1d4ed8;border-radius:2px;"></div>'
+                '<span style="font-size:1.05em;font-weight:700;color:#1f2937;">레미콘 판매량 권역별 현황</span>'
+                '<span style="font-size:0.8em;color:#9ca3af;margin-left:4px;">천㎥</span>'
+                '</div>', unsafe_allow_html=True)
+
+            _REGIONS = ['수도권', '영남권', '중부권']
+            _reg_colors = {'수도권': '#1d4ed8', '영남권': '#0891b2', '중부권': '#059669'}
+
+            for _rg in _REGIONS:
+                _rg_row = next((r for r in _sij_rows if r.get('구분') == _rg), None)
+                if _rg_row is None:
+                    continue
+                _rp = _rg_row.get('물량_계획') or 0
+                _rr = _rg_row.get('물량_실적') or 0
+                _rd = _rr - _rp
+                _rpct = (_rr / _rp * 100) if _rp else 0
+                _bar_w = min(max(_rpct, 0), 150) / 150 * 100
+                _bar_c = '#1d4ed8' if _rpct >= 100 else '#dc2626'
+                _diff_c = '#1d4ed8' if _rd >= 0 else '#dc2626'
+                _diff_a = '▲' if _rd >= 0 else '▼'
+                _color = _reg_colors[_rg]
+                st.markdown(f"""
+                <div style="background:white;border-radius:10px;border:1px solid #e8eaed;
+                            padding:14px 18px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-size:0.95em;font-weight:700;color:{_color};">{_rg}</span>
+                    <span style="font-size:0.82em;color:#6b7280;">계획 <b style="color:#374151;">{f(_rp,1)}</b> · 실적 <b style="color:#111827;">{f(_rr,1)}</b></span>
+                  </div>
+                  <div style="background:#f3f4f6;border-radius:99px;height:8px;margin-bottom:6px;">
+                    <div style="width:{_bar_w:.1f}%;height:100%;background:{_bar_c};border-radius:99px;"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.82em;font-weight:700;color:{_diff_c};">{_diff_a} {f(abs(_rd),1)} 천㎥</span>
+                    <span style="font-size:0.82em;font-weight:700;color:{_bar_c};">{_rpct:.1f}% 달성</span>
+                  </div>
+                </div>""", unsafe_allow_html=True)
+
+        # ── 우: 부문별 매출액 / 영업이익 차이 ────────────────────────────
+        with right_col:
+            st.markdown(
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">'
+                '<div style="width:4px;height:16px;background:#7c3aed;border-radius:2px;"></div>'
+                '<span style="font-size:1.05em;font-weight:700;color:#1f2937;">부문별 매출액 · 영업이익 계획대비</span>'
+                '<span style="font-size:0.8em;color:#9ca3af;margin-left:4px;">백만원</span>'
+                '</div>', unsafe_allow_html=True)
+
+            _DIVS2 = ['레미콘', '건자재', '골재', '임대', '기타']
+            _DIV_C2 = {'레미콘':'#1d4ed8','건자재':'#059669','골재':'#0891b2','임대':'#d97706','기타':'#7c3aed'}
+
+            _df_div3 = df_ov2[df_ov2['구분'].isin(_DIVS2)].set_index('구분') if df_ov2 is not None else None
+
+            if _df_div3 is not None:
+                # 헤더
+                st.markdown(
+                    '<div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:0;'
+                    'background:#f9fafb;border:1px solid #e8eaed;border-radius:8px 8px 0 0;'
+                    'padding:8px 14px;font-size:0.8em;font-weight:700;color:#6b7280;">'
+                    '<span>구분</span><span style="text-align:center;">매출액 계획대비</span>'
+                    '<span style="text-align:center;">영업이익 계획대비</span></div>',
+                    unsafe_allow_html=True)
+
+                for i, _dn in enumerate(_DIVS2):
+                    if _dn not in _df_div3.index:
+                        continue
+                    _row3 = _df_div3.loc[_dn]
+                    _sp3 = _row3.get(_p2('매출')) or 0
+                    _sr3 = _row3.get(_r2c('매출')) or 0
+                    _sd3 = _sr3 - _sp3
+                    _op3 = _row3.get(_p2('영업이익')) or 0
+                    _or3 = _row3.get(_r2c('영업이익'))
+                    _od3 = (_or3 - _op3) if _or3 is not None else None
+                    _spct3 = (_sr3/_sp3*100) if _sp3 else 0
+                    _opct3 = (_or3/_op3*100) if _op3 and _or3 is not None else 0
+                    _color3 = _DIV_C2[_dn]
+
+                    def _bar_cell(diff, pct, plan):
+                        if plan == 0: return '<div style="color:#9ca3af;font-size:0.8em;text-align:center;">-</div>'
+                        bw = min(max(abs(pct), 0), 200) / 200 * 100
+                        bc = '#1d4ed8' if pct >= 100 else '#dc2626'
+                        dc = '#1d4ed8' if diff >= 0 else '#dc2626'
+                        da = '▲' if diff >= 0 else '▼'
+                        return (
+                            f'<div style="font-size:0.82em;font-weight:700;color:{dc};margin-bottom:3px;">'
+                            f'{da} {abs(int(round(diff))):,}</div>'
+                            f'<div style="background:#f3f4f6;border-radius:99px;height:5px;">'
+                            f'<div style="width:{bw:.0f}%;height:100%;background:{bc};border-radius:99px;"></div></div>'
+                            f'<div style="font-size:0.75em;color:{bc};font-weight:700;margin-top:2px;">{pct:.1f}% 달성</div>'
+                        )
+
+                    _border_b = '' if i < len(_DIVS2)-1 else 'border-radius:0 0 8px 8px;'
+                    st.markdown(
+                        f'<div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:0;'
+                        f'background:white;border:1px solid #e8eaed;border-top:0;{_border_b}'
+                        f'padding:10px 14px;align-items:center;">'
+                        f'<span style="font-size:0.9em;font-weight:700;color:{_color3};">{_dn}</span>'
+                        f'<div style="padding:0 8px;">{_bar_cell(_sd3, _spct3, _sp3)}</div>'
+                        f'<div style="padding:0 8px;">{_bar_cell(_od3 or 0, _opct3, _op3) if _od3 is not None else _bar_cell(0,0,0)}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True)
+
         st.markdown('<div style="margin-bottom:40px;"></div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
