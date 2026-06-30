@@ -535,7 +535,7 @@ else:
         st.session_state["sel_month"] = _init_months[-1] if _init_months else 1
     selected_month = st.session_state["sel_month"]
 
-    _pages_with_own_header = ("건재손익_요약", "건재손익_부문별", "ADMIN_PAGE",
+    _pages_with_own_header = ("건재손익_요약", "건재손익_부문별", "건재손익_사업장별", "ADMIN_PAGE",
                                "레미콘_손익요약", "건자재_손익요약", "골재_손익요약", "임대_손익요약")
     if current_page not in _pages_with_own_header:
         _s, _y, _m = st.columns([0.82, 0.09, 0.09])
