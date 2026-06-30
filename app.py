@@ -1272,6 +1272,7 @@ elif current_page == "건재손익_요약2":
                     fig = go.Figure()
                     fig.add_trace(go.Bar(
                         x=pcts, y=divs, orientation='h',
+                        width=0.4,
                         marker_color=colors, marker_line_width=0,
                         text=[f"  {p:.0f}%" for p in pcts],
                         textposition='outside',
