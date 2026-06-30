@@ -1312,7 +1312,7 @@ elif current_page == "건재손익_요약2":
                         'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
                         '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
                         'padding:12px 20px;text-align:center;">'
-                        '<span style="font-size:1.1em;font-weight:700;color:#374151;">매출액 달성률</span>'
+                        '<span style="font-size:1.1em;font-weight:700;color:#374151;">매출액</span>'
                         '</div>', unsafe_allow_html=True)
                     st.plotly_chart(_make_hbar(_valid_divs, _s_pcts, _s_diffs, _s_actuals, ''),
                                     use_container_width=True, config={'displayModeBar': False})
@@ -1323,7 +1323,7 @@ elif current_page == "건재손익_요약2":
                         'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
                         '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
                         'padding:12px 20px;text-align:center;">'
-                        '<span style="font-size:1.1em;font-weight:700;color:#374151;">영업이익 달성률</span>'
+                        '<span style="font-size:1.1em;font-weight:700;color:#374151;">영업이익</span>'
                         '</div>', unsafe_allow_html=True)
                     st.plotly_chart(_make_hbar(_valid_divs, _o_pcts, _o_diffs, _o_actuals, ''),
                                     use_container_width=True, config={'displayModeBar': False})
