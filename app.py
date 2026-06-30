@@ -1123,7 +1123,7 @@ elif current_page == "건재손익_요약2":
             gap: 2px !important;
         }
         </style>""", unsafe_allow_html=True)
-        _kc1, _kc2, _kc3, _kc4, _kc5 = st.columns([0.85, 0.85, 0.85, 0.85, 1.3], gap="small")
+        _kc1, _kc2, _kc3, _kc4, _kc5 = st.columns([0.9, 0.9, 0.9, 0.9, 1.1], gap="small")
         _kpi_card(_kc1, "레미콘 판매량",
                   f"{rc물량실적:,.0f}" if rc물량실적 else "-", "천㎥",
                   _dv(rc물량차이, "천㎥"), rc달성)
