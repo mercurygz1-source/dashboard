@@ -1294,10 +1294,6 @@ elif current_page == "건재손익_요약2":
                         customdata=diff_texts,
                         hovertemplate='%{customdata}<extra></extra>',
                     ))
-                    fig.add_vline(x=100, line_color='#9ca3af', line_width=1.5, line_dash='dash',
-                                  annotation_text='목표', annotation_position='top',
-                                  annotation_font=dict(size=11, color='#9ca3af', family='Noto Sans KR'),
-                                  annotation_yshift=8)
                     fig.update_layout(
                         title=dict(text=title, font=dict(size=13, color='#6b7280', family='Noto Sans KR'), x=0.5, xanchor='center'),
                         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0, max(max(pcts)*1.55, 150)]),
