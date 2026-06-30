@@ -1158,6 +1158,43 @@ elif current_page == "건재손익_요약2":
                     '<td style="padding:10px 16px;text-align:center;font-weight:700;color:' + _oc + ';">' + _oir2 + '</td>'
                     '</tr>'
                 )
+            # 합계 행 추가
+            tot2_row = df_ov2[df_ov2['구분']=='합계']
+            if not tot2_row.empty:
+                _tr = tot2_row.iloc[0]
+                _tsp = _tr.get(_p2('매출')) or 0
+                _tsr = _tr.get(_r2c('매출')) or 0
+                _top = _tr.get(_p2('영업이익')) or 0
+                _tor = _tr.get(_r2c('영업이익'))
+                _tmd = (_tsr/_tsp*100) if _tsp else 0
+                _tod = (_tor/_top*100) if _top and _tor is not None else 0
+                _tmc = _ac(_tmd); _toc = "#16a34a" if _tor is not None and _tor>=0 else "#dc2626"; _todc = _ac(_tod)
+                _tmw = _bw(_tmd); _tow = _bw(abs(_tod))
+                _toir = (f"{_tor/_tsr*100:.1f}%" if _tsr and _tor is not None and _tsr!=0 else "-")
+                _tbl += (
+                    '<tr style="border-top:2px solid #e8eaed;background:#f9fafb;">'
+                    '<td style="padding:10px 16px;font-weight:800;color:#111827;text-align:center;">합계</td>'
+                    '<td style="padding:10px 12px;text-align:center;color:#111827;font-weight:800;">'
+                    + (f"{int(_tsr):,}" if _tsr else "-")
+                    + '<span style="font-size:0.75em;color:#9ca3af;margin-left:3px;">백만원</span></td>'
+                    '<td style="padding:10px 12px;">'
+                    '<div style="display:flex;align-items:center;gap:6px;">'
+                    '<div style="flex:1;background:#f3f4f6;border-radius:99px;height:5px;">'
+                    '<div style="width:' + _tmw + '%;height:100%;background:' + _tmc + ';border-radius:99px;"></div></div>'
+                    '<span style="font-weight:800;color:' + _tmc + ';white-space:nowrap;">' + f'{_tmd:.1f}%' + '</span>'
+                    '</div></td>'
+                    '<td style="padding:10px 12px;text-align:center;font-weight:800;color:' + _toc + ';">'
+                    + (f"{int(_tor):,}" if _tor is not None else "-")
+                    + '<span style="font-size:0.75em;color:#9ca3af;margin-left:3px;">백만원</span></td>'
+                    '<td style="padding:10px 12px;">'
+                    '<div style="display:flex;align-items:center;gap:6px;">'
+                    '<div style="flex:1;background:#f3f4f6;border-radius:99px;height:5px;">'
+                    '<div style="width:' + _tow + '%;height:100%;background:' + _todc + ';border-radius:99px;"></div></div>'
+                    '<span style="font-weight:800;color:' + _todc + ';white-space:nowrap;">' + f'{_tod:.1f}%' + '</span>'
+                    '</div></td>'
+                    '<td style="padding:10px 16px;text-align:center;font-weight:800;color:' + _toc + ';">' + _toir + '</td>'
+                    '</tr>'
+                )
             _tbl += '</tbody></table></div>'
             st.markdown(_tbl, unsafe_allow_html=True)
 
