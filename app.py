@@ -1248,6 +1248,7 @@ elif current_page == "건재손익_요약2":
 
             if _df_div3 is not None:
                 _s_pcts, _o_pcts, _s_diffs, _o_diffs = [], [], [], []
+                _s_actuals, _o_actuals = [], []
                 _valid_divs = []
                 for _dn in _DIVS2:
                     if _dn not in _df_div3.index:
@@ -1261,20 +1262,23 @@ elif current_page == "건재손익_요약2":
                     _s_diffs.append(_sr3 - _sp3)
                     _o_pcts.append((_or3/_op3*100) if _op3 and _or3 is not None else 0)
                     _o_diffs.append((_or3 - _op3) if _or3 is not None else 0)
+                    _s_actuals.append(_sr3)
+                    _o_actuals.append(_or3 if _or3 is not None else 0)
                     _valid_divs.append(_dn)
 
-                def _make_hbar(divs, pcts, diffs, title):
+                def _make_hbar(divs, pcts, diffs, actuals, title):
                     colors = ['#1d4ed8' if p >= 100 else '#dc2626' for p in pcts]
                     diff_texts = [
                         f"{'▲' if d>=0 else '▼'} {abs(int(round(d))):,}  <b>{p:.0f}%</b>"
                         for d, p in zip(diffs, pcts)
                     ]
+                    bar_labels = [f"  {int(round(a)):,} ({p:.0f}%)" for a, p in zip(actuals, pcts)]
                     fig = go.Figure()
                     fig.add_trace(go.Bar(
                         x=pcts, y=divs, orientation='h',
                         width=0.4,
                         marker_color=colors, marker_line_width=0,
-                        text=[f"  {p:.0f}%" for p in pcts],
+                        text=bar_labels,
                         textposition='outside',
                         textfont=dict(size=13, family='Noto Sans KR'),
                         customdata=diff_texts,
@@ -1283,7 +1287,7 @@ elif current_page == "건재손익_요약2":
                     fig.add_vline(x=100, line_color='#9ca3af', line_width=1.5, line_dash='dash')
                     fig.update_layout(
                         title=dict(text=title, font=dict(size=13, color='#6b7280', family='Noto Sans KR'), x=0.5, xanchor='center'),
-                        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0, max(max(pcts)*1.25, 120)]),
+                        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0, max(max(pcts)*1.55, 150)]),
                         yaxis=dict(showgrid=False, tickfont=dict(size=13, family='Noto Sans KR', color='#374151'), autorange='reversed'),
                         margin=dict(t=8, b=8, l=8, r=48), height=300,
                         paper_bgcolor='white', plot_bgcolor='white',
@@ -1301,7 +1305,7 @@ elif current_page == "건재손익_요약2":
                         'padding:12px 20px;text-align:center;">'
                         '<span style="font-size:1.1em;font-weight:700;color:#374151;">매출액 달성률</span>'
                         '</div>', unsafe_allow_html=True)
-                    st.plotly_chart(_make_hbar(_valid_divs, _s_pcts, _s_diffs, ''),
+                    st.plotly_chart(_make_hbar(_valid_divs, _s_pcts, _s_diffs, _s_actuals, ''),
                                     use_container_width=True, config={'displayModeBar': False})
                     st.markdown('</div>', unsafe_allow_html=True)
                 with _ch2:
@@ -1312,7 +1316,7 @@ elif current_page == "건재손익_요약2":
                         'padding:12px 20px;text-align:center;">'
                         '<span style="font-size:1.1em;font-weight:700;color:#374151;">영업이익 달성률</span>'
                         '</div>', unsafe_allow_html=True)
-                    st.plotly_chart(_make_hbar(_valid_divs, _o_pcts, _o_diffs, ''),
+                    st.plotly_chart(_make_hbar(_valid_divs, _o_pcts, _o_diffs, _o_actuals, ''),
                                     use_container_width=True, config={'displayModeBar': False})
                     st.markdown('</div>', unsafe_allow_html=True)
 
