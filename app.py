@@ -1230,7 +1230,7 @@ elif current_page == "건재손익_요약2":
             st.plotly_chart(_fig_rg, use_container_width=True, config={'displayModeBar': False})
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # ── 우: 부문별 매출액 / 영업이익 차이 ────────────────────────────
+        # ── 우: 부문별 손익 카드 (레미콘/골재/건자재/기타) ──────────────
         with right_col:
             st.markdown(
                 '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
@@ -1241,93 +1241,39 @@ elif current_page == "건재손익_요약2":
                 '<span style="font-size:0.85em;color:#9ca3af;">(단위 : 백만원)</span>'
                 '</div>', unsafe_allow_html=True)
 
-            _DIVS2 = ['레미콘', '건자재', '골재', '임대', '기타']
-            _DIV_C2 = {'레미콘':'#1d4ed8','건자재':'#059669','골재':'#0891b2','임대':'#d97706','기타':'#7c3aed'}
-
+            _DIVS2 = ['레미콘', '골재', '건자재', '기타']
+            _DIV_C2 = {'레미콘':'#1d4ed8','건자재':'#059669','골재':'#0891b2','기타':'#7c3aed'}
             _df_div3 = df_ov2[df_ov2['구분'].isin(_DIVS2)].set_index('구분') if df_ov2 is not None else None
 
             if _df_div3 is not None:
-                _s_pcts, _o_pcts, _s_diffs, _o_diffs = [], [], [], []
-                _s_actuals, _o_actuals = [], []
-                _valid_divs = []
-                for _dn in _DIVS2:
-                    if _dn not in _df_div3.index:
+                _kpi_cols2 = st.columns(4, gap="small")
+                for _i2, _dn2 in enumerate(_DIVS2):
+                    if _dn2 not in _df_div3.index:
                         continue
-                    _row3 = _df_div3.loc[_dn]
-                    _sp3 = _row3.get(_p2('매출')) or 0
-                    _sr3 = _row3.get(_r2c('매출')) or 0
-                    _op3 = _row3.get(_p2('영업이익')) or 0
-                    _or3 = _row3.get(_r2c('영업이익'))
-                    def _pct_safe(actual, plan):
-                        if not plan or actual is None: return 0
-                        if plan < 0 and actual < 0:
-                            return (plan / actual) * 100  # 손실 목표: 실제가 적을수록 좋음
-                        return (actual / plan) * 100
-                    _s_pcts.append(_pct_safe(_sr3, _sp3))
-                    _s_diffs.append(_sr3 - _sp3)
-                    _o_pcts.append(_pct_safe(_or3, _op3))
-                    _o_diffs.append((_or3 - _op3) if _or3 is not None else 0)
-                    _s_actuals.append(_sr3)
-                    _o_actuals.append(_or3 if _or3 is not None else 0)
-                    _valid_divs.append(_dn)
-
-                def _make_hbar(divs, pcts, diffs, actuals, title):
-                    # 음수 pct(계획이익→실제손실)는 시각화 불가 → 0으로 클램프 후 라벨에 표기
-                    display_pcts = [max(p, 0) for p in pcts]
-                    colors = ['#1d4ed8' if p >= 100 else '#dc2626' for p in pcts]
-                    diff_texts = [
-                        f"{'▲' if d>=0 else '▼'} {abs(int(round(d))):,}  <b>{p:.0f}%</b>"
-                        for d, p in zip(diffs, pcts)
-                    ]
-                    def _bar_label(a, p):
-                        if p < 0: return f"  {int(round(a)):,} (손실전환)"
-                        return f"  {int(round(a)):,} ({p:.0f}%)"
-                    bar_labels = [_bar_label(a, p) for a, p in zip(actuals, pcts)]
-                    fig = go.Figure()
-                    fig.add_trace(go.Bar(
-                        x=display_pcts, y=divs, orientation='h',
-                        width=0.4,
-                        marker_color=colors, marker_line_width=0,
-                        text=bar_labels,
-                        textposition='outside',
-                        textfont=dict(size=13, family='Noto Sans KR'),
-                        customdata=diff_texts,
-                        hovertemplate='%{customdata}<extra></extra>',
-                    ))
-                    fig.update_layout(
-                        title=dict(text=title, font=dict(size=13, color='#6b7280', family='Noto Sans KR'), x=0.5, xanchor='center'),
-                        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0, max(max(pcts)*1.55, 150)]),
-                        yaxis=dict(showgrid=False, tickfont=dict(size=13, family='Noto Sans KR', color='#374151'), autorange='reversed'),
-                        margin=dict(t=28, b=8, l=8, r=48), height=345,
-                        paper_bgcolor='white', plot_bgcolor='white',
-                        showlegend=False,
-                        font=dict(family='Noto Sans KR'),
-                    )
-                    return fig
-
-                _ch1, _ch2 = st.columns(2, gap="small")
-                with _ch1:
-                    st.markdown(
-                        '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
-                        'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
-                        '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
-                        'padding:12px 20px;text-align:center;">'
-                        '<span style="font-size:1.1em;font-weight:700;color:#374151;">매출액</span>'
-                        '</div>', unsafe_allow_html=True)
-                    st.plotly_chart(_make_hbar(_valid_divs, _s_pcts, _s_diffs, _s_actuals, ''),
-                                    use_container_width=True, config={'displayModeBar': False})
-                    st.markdown('</div>', unsafe_allow_html=True)
-                with _ch2:
-                    st.markdown(
-                        '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
-                        'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
-                        '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
-                        'padding:12px 20px;text-align:center;">'
-                        '<span style="font-size:1.1em;font-weight:700;color:#374151;">영업이익</span>'
-                        '</div>', unsafe_allow_html=True)
-                    st.plotly_chart(_make_hbar(_valid_divs, _o_pcts, _o_diffs, _o_actuals, ''),
-                                    use_container_width=True, config={'displayModeBar': False})
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    _row3 = _df_div3.loc[_dn2]
+                    _sp3 = _row3.get(_p2('매출')); _sr3 = _row3.get(_r2c('매출'))
+                    _op3 = _row3.get(_p2('영업이익')); _or3 = _row3.get(_r2c('영업이익'))
+                    _clr2 = _DIV_C2[_dn2]
+                    _ach2 = (_sr3/_sp3*100) if (_sp3 and _sr3 and _sp3 != 0) else None
+                    _ach2_str = f"{_ach2:.0f}%" if _ach2 is not None else "-"
+                    _ach2_clr = "#1d4ed8" if (_ach2 and _ach2 >= 100) else "#dc2626"
+                    _oi_diff2 = (_or3 - _op3) if (_or3 is not None and _op3 is not None) else None
+                    _oi_diff2_str = (f"+{int(_oi_diff2):,}" if _oi_diff2 >= 0 else f"{int(_oi_diff2):,}") if _oi_diff2 is not None else "-"
+                    _oi_diff2_clr = "#1d4ed8" if (_oi_diff2 is not None and _oi_diff2 >= 0) else "#dc2626"
+                    _oi_rate2 = f"{_or3/_sr3*100:.1f}%" if (_sr3 and _or3 and _sr3 != 0) else "-"
+                    with _kpi_cols2[_i2]:
+                        st.markdown(f"""
+                        <div style="background:white;border-radius:12px;padding:18px 16px 14px;border-top:4px solid {_clr2};box-shadow:0 1px 6px rgba(0,0,0,0.08);height:100%;">
+                          <div style="font-size:1.05em;font-weight:800;color:{_clr2};margin-bottom:10px;">{_dn2}</div>
+                          <div style="font-size:0.72em;color:#9ca3af;margin-bottom:2px;">매출 실적</div>
+                          <div style="font-size:1.45em;font-weight:800;color:#1f2937;line-height:1.2;">{f"{int(_sr3):,}" if _sr3 else "-"}<span style="font-size:0.45em;font-weight:400;color:#9ca3af;"> 백만원</span></div>
+                          <div style="font-size:0.8em;color:{_ach2_clr};font-weight:600;margin-bottom:10px;">계획대비 {_ach2_str}</div>
+                          <div style="height:1px;background:#f3f4f6;margin:8px 0;"></div>
+                          <div style="font-size:0.72em;color:#9ca3af;margin-bottom:2px;">영업이익</div>
+                          <div style="font-size:1.15em;font-weight:700;color:#1f2937;">{f"{int(_or3):,}" if _or3 is not None else "-"}<span style="font-size:0.45em;font-weight:400;color:#9ca3af;"> 백만원</span></div>
+                          <div style="font-size:0.78em;color:{_oi_diff2_clr};font-weight:600;">차이 {_oi_diff2_str}</div>
+                          <div style="font-size:0.72em;color:#9ca3af;">이익률 {_oi_rate2}</div>
+                        </div>""", unsafe_allow_html=True)
 
         st.markdown('<div style="margin-bottom:40px;"></div>', unsafe_allow_html=True)
 
