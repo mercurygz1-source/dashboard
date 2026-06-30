@@ -1222,7 +1222,7 @@ elif current_page == "건재손익_요약2":
                     xanchor='center',
                     text=f"<b>{int(round(_rr)):,}</b>",
                     showarrow=False,
-                    font=dict(size=14, color=_fc, family='Noto Sans KR'),
+                    font=dict(size=17, color=_fc, family='Noto Sans KR'),
                     bgcolor=_bg, borderpad=4, borderwidth=0,
                     opacity=1,
                 )
