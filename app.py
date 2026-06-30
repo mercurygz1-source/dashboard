@@ -1258,9 +1258,14 @@ elif current_page == "건재손익_요약2":
                     _sr3 = _row3.get(_r2c('매출')) or 0
                     _op3 = _row3.get(_p2('영업이익')) or 0
                     _or3 = _row3.get(_r2c('영업이익'))
-                    _s_pcts.append((_sr3/_sp3*100) if _sp3 else 0)
+                    def _pct_safe(actual, plan):
+                        if not plan or actual is None: return 0
+                        if plan < 0 and actual < 0:
+                            return (plan / actual) * 100  # 손실 목표: 실제가 적을수록 좋음
+                        return (actual / plan) * 100
+                    _s_pcts.append(_pct_safe(_sr3, _sp3))
                     _s_diffs.append(_sr3 - _sp3)
-                    _o_pcts.append((_or3/_op3*100) if _op3 and _or3 is not None else 0)
+                    _o_pcts.append(_pct_safe(_or3, _op3))
                     _o_diffs.append((_or3 - _op3) if _or3 is not None else 0)
                     _s_actuals.append(_sr3)
                     _o_actuals.append(_or3 if _or3 is not None else 0)
@@ -1284,7 +1289,9 @@ elif current_page == "건재손익_요약2":
                         customdata=diff_texts,
                         hovertemplate='%{customdata}<extra></extra>',
                     ))
-                    fig.add_vline(x=100, line_color='#9ca3af', line_width=1.5, line_dash='dash')
+                    fig.add_vline(x=100, line_color='#9ca3af', line_width=1.5, line_dash='dash',
+                                  annotation_text='목표', annotation_position='top',
+                                  annotation_font=dict(size=11, color='#9ca3af', family='Noto Sans KR'))
                     fig.update_layout(
                         title=dict(text=title, font=dict(size=13, color='#6b7280', family='Noto Sans KR'), x=0.5, xanchor='center'),
                         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0, max(max(pcts)*1.55, 150)]),
