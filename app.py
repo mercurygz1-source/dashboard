@@ -572,6 +572,21 @@ def f(val, d=0):
     if val is None or (isinstance(val, float) and pd.isna(val)): return "-"
     return f"{{:,.{d}f}}".format(val)
 
+def _is_money_unit(unit):
+    """% 계열이 아닌 금액/물량 단위 여부."""
+    return "%" not in unit
+
+def fmt_money_val(val, unit):
+    """음수 금액을 (3) 빨간색 HTML로, 양수는 검정 그대로. % 단위는 변환 안 함."""
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return "-", "#111827"
+    if not _is_money_unit(unit):
+        return f(val), "#111827"
+    if val < 0:
+        disp = f"({f(abs(val))})"
+        return disp, "#dc2626"
+    return f(val), "#111827"
+
 def kpi(label, value, unit, delta=None, dl="계획대비", color=""):
     ds = ""
     if delta is not None and not (isinstance(delta, float) and pd.isna(delta)):
@@ -681,6 +696,12 @@ def spark(df, pcol, acol, height=420):
 def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol, actual_val=None, plan_val=None):
     """KPI 헤더 + 스파크라인을 하나의 카드처럼 렌더링."""
     border = {"amber":"#d97706","green":"#16a34a","red":"#dc2626","purple":"#7c3aed"}.get(color,"#1d4ed8")
+    # 음수 금액 표시 변환
+    try:
+        _sv_num = float(str(value_str).replace(",", ""))
+        _sv_disp, _sv_color = fmt_money_val(_sv_num, unit)
+    except Exception:
+        _sv_disp, _sv_color = value_str, "#111827"
     ds = ""
     if delta is not None and not (isinstance(delta, float) and pd.isna(delta)):
         arrow = "▲" if delta>=0 else "▼"; cls = "pos" if delta>=0 else "neg"
@@ -702,7 +723,7 @@ def kpi_spark(col, label, value_str, unit, delta, color, trend_df, pcol, acol, a
                     box-shadow:0 1px 6px rgba(0,0,0,0.06);margin-bottom:8px;">
             <div style="font-size:1.3em;font-weight:900;color:white;background:{border};display:inline-block;padding:3px 12px;border-radius:6px;margin-bottom:12px;letter-spacing:0.02em;">{label}</div>
             <div style="display:flex;align-items:baseline;flex-wrap:nowrap;gap:0;overflow:hidden;">
-                <div class="kpi-value" style="flex-shrink:1;min-width:0;">{value_str}<span class="kpi-unit"> {unit}</span></div>
+                <div class="kpi-value" style="flex-shrink:1;min-width:0;color:{_sv_color};">{_sv_disp}<span class="kpi-unit"> {unit}</span></div>
                 {ds}
             </div>
         </div>
@@ -1070,18 +1091,12 @@ elif current_page == "건재손익_요약2":
 
         def _kpi_card(col, label, val_str, unit, diff_html, pct):
             ac = _ac(pct); bw = _bw(pct)
-            # 마이너스 값 처리: "-3" → "(3)" 빨간색
+            # 마이너스 금액: (3) 빨간색 / % 단위는 원본 유지
             try:
                 _num = float(val_str.replace(",", ""))
-                if _num < 0:
-                    _disp = f"({abs(int(_num)):,})" if _num == int(_num) else f"({abs(_num):,.1f})"
-                    _val_color = "#dc2626"
-                else:
-                    _disp = val_str
-                    _val_color = "#111827"
+                _disp, _val_color = fmt_money_val(_num, unit)
             except Exception:
-                _disp = val_str
-                _val_color = "#111827"
+                _disp, _val_color = val_str, "#111827"
             with col:
                 st.markdown(
                     '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
@@ -2129,7 +2144,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
                         box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:5px solid {color_theme};">
               <div style="font-size:0.85em;font-weight:700;color:#6b7280;letter-spacing:0.05em;margin-bottom:6px;">{label}</div>
               <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:14px;">
-                <span style="font-size:2.2em;font-weight:900;color:#1f2937;">{f(actual,1) if actual is not None else '-'}</span>
+                <span style="font-size:2.2em;font-weight:900;color:{fmt_money_val(actual,unit)[1] if actual is not None else '#111827'};">{fmt_money_val(actual,unit)[0] if actual is not None else '-'}</span>
                 <span style="font-size:1em;color:#6b7280;font-weight:500;">{unit}</span>
               </div>
               <div style="background:#f3f4f6;border-radius:6px;height:8px;margin-bottom:8px;">
@@ -2236,7 +2251,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
                             box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:14px;
                             border-top:5px solid {border_color};">
                   <div style="font-size:0.82em;font-weight:700;color:{border_color};letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">{label}</div>
-                  <div style="font-size:2.8em;font-weight:900;color:#1f2937;line-height:1;">{f(actual_억,1) if actual_억 is not None else '-'}</div>
+                  <div style="font-size:2.8em;font-weight:900;color:{fmt_money_val(actual_억,unit)[1] if actual_억 is not None else '#111827'};line-height:1;">{fmt_money_val(actual_억,unit)[0] if actual_억 is not None else '-'}</div>
                   <div style="font-size:1em;color:#6b7280;margin-bottom:14px;">{unit}</div>
                   <div style="background:#f3f4f6;border-radius:6px;height:6px;margin-bottom:10px;">
                     <div style="background:{pct_color};width:{bar_w:.1f}%;height:6px;border-radius:6px;"></div>
@@ -2322,14 +2337,20 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
                 arrow = '▲' if diff >= 0 else '▼'
                 diff_color = '#1d4ed8' if diff >= 0 else '#dc2626'
                 diff_str = f'<span style="color:{diff_color};font-weight:700;margin-left:8px;">{arrow} {f(abs(diff),1)}</span>'
-            disp = actual_display if actual_display is not None else (f(actual,1) if actual is not None else '-')
+            if actual_display is not None:
+                _disp_color = fmt_money_val(actual, unit)[1] if actual is not None else "#1f2937"
+                disp = actual_display
+            elif actual is not None:
+                _d, _disp_color = fmt_money_val(actual, unit); disp = _d
+            else:
+                disp = '-'; _disp_color = "#1f2937"
             return f"""
             <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid #e5e7eb;
                         box-shadow:0 2px 8px rgba(0,0,0,0.06);">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
                 <div>
                   <div style="font-size:0.8em;font-weight:700;color:#0891b2;margin-bottom:4px;">{label}</div>
-                  <div style="font-size:2.4em;font-weight:900;color:#1f2937;line-height:1.1;">{disp}
+                  <div style="font-size:2.4em;font-weight:900;color:{_disp_color};line-height:1.1;">{disp}
                     <span style="font-size:0.4em;color:#6b7280;font-weight:500;">{unit}</span>
                   </div>
                   <div style="font-size:0.82em;color:#6b7280;margin-top:4px;">계획 {f(plan,1) if plan else '-'} {unit}{diff_str}</div>
