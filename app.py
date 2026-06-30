@@ -1053,13 +1053,13 @@ elif current_page == "건재손익_요약2":
 
         def _bw(pct): return str(int(min(max(pct, 0), 100)))
 
-        def _dv(val, unit, per=False):
-            """차이 문자열 (HTML)"""
-            if val is None: return ""
+        def _dv(val, unit):
+            """차이 문자열 (HTML) — (diff_html, unit_str) 반환"""
+            if val is None: return "", unit
             c = "#dc2626" if val < 0 else "#1d4ed8"
             a = "▲" if val >= 0 else "▼"
-            s = f"{abs(int(round(val))):,}" + " " + unit
-            return '<span style="font-size:0.78em;font-weight:600;color:' + c + ';">' + a + " " + s + '</span>'
+            s = f"{abs(int(round(val))):,}"
+            return '<span style="font-size:0.85em;font-weight:700;color:' + c + ';">' + a + " " + s + '</span>', unit
 
         # ══ 1-A. KPI 4개 — 한 줄 HTML 블록 ══════════════════════
         _DIVS = ['레미콘','골재','건자재','기타']
@@ -1068,8 +1068,9 @@ elif current_page == "건재손익_요약2":
 
         _oir_pct = min((oi율실적/(oi율계획)*100) if oi율실적 and oi율계획 else 0, 150)
 
-        def _kpi_card(col, label, val_str, unit, diff_html, pct):
+        def _kpi_card(col, label, val_str, unit, diff_tuple, pct):
             ac = _ac(pct); bw = _bw(pct)
+            diff_html, diff_unit = diff_tuple if isinstance(diff_tuple, tuple) else (diff_tuple, "")
             with col:
                 st.markdown(
                     '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
@@ -1081,7 +1082,10 @@ elif current_page == "건재손익_요약2":
                     '<div style="padding:18px 24px 18px;text-align:left;">'
                     '<div style="font-size:2.8em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
                     + '<span style="font-size:0.32em;font-weight:500;color:#9ca3af;margin-left:6px;">' + unit + '</span></div>'
-                    '<div style="margin-top:7px;font-size:1em;"><span style="color:#9ca3af;font-size:0.85em;">계획대비 </span>' + diff_html + '</div>'
+                    '<div style="margin-top:7px;display:flex;justify-content:space-between;align-items:center;">'
+                    '<span style="font-size:0.85em;"><span style="color:#9ca3af;">계획대비 </span>' + diff_html + '</span>'
+                    '<span style="font-size:0.78em;color:#9ca3af;font-weight:500;">' + diff_unit + '</span>'
+                    '</div>'
                     '<div style="margin-top:12px;background:#f3f4f6;border-radius:99px;height:5px;">'
                     '<div style="width:' + bw + '%;height:100%;background:' + ac + ';border-radius:99px;"></div></div>'
                     '<div style="font-size:0.9em;color:' + ac + ';font-weight:600;margin-top:5px;">달성률 ' + f'{pct:.1f}%' + '</div>'
