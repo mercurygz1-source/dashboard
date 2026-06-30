@@ -1191,7 +1191,7 @@ elif current_page == "건재손익_요약2":
             _fig_rg.update_layout(
                 barmode='group', bargap=0.35, bargroupgap=0.08,
                 yaxis=dict(showgrid=True, gridcolor='#f3f4f6', zeroline=False,
-                           tickfont=dict(size=11), title='천㎥', title_font=dict(size=11, color='#9ca3af')),
+                           tickfont=dict(size=11), title='', showticklabels=False),
                 xaxis=dict(showgrid=False, tickfont=dict(size=13, family='Noto Sans KR')),
                 legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, font=dict(size=12)),
                 margin=dict(t=36, b=8, l=8, r=8), height=300,
