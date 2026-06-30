@@ -1120,7 +1120,7 @@ elif current_page == "건재손익_요약2":
 
         st.markdown("""<style>
         div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(5)) {
-            gap: 6px !important;
+            gap: 2px !important;
         }
         </style>""", unsafe_allow_html=True)
         _kc1, _kc2, _kc3, _kc4, _kc5 = st.columns(5, gap="small")
