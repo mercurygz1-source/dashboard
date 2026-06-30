@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import base64, os, json, uuid
-from data_loader import get_available_years, get_available_months, load_factory_data, load_overview
+from data_loader import get_available_years, get_available_months, load_factory_data, load_overview, load_sijangbyul_raw
 
 @st.cache_resource
 def _token_store():
@@ -324,7 +324,7 @@ if not st.session_state["logged_in"]:
 # 네비게이션 구조
 # ══════════════════════════════════════════════════════════════
 NAV_STRUCTURE = {
-    "건재손익": ["건재손익_요약", "건재손익_부문별"],
+    "건재손익": ["건재손익_요약", "건재손익_부문별", "건재손익_사업장별"],
     "레미콘":   ["레미콘_손익요약", "레미콘_공장별", "레미콘_공헌이익"],
     "건자재":   ["건자재_손익요약", "건자재_손익"],
     "골재":     ["골재_손익요약", "골재_손익"],
@@ -332,7 +332,8 @@ NAV_STRUCTURE = {
 }
 PAGE_LABELS = {
     "건재손익_요약":   "요약",
-    "건재손익_부문별": "사업부문별",
+    "건재손익_부문별":  "사업부문별",
+    "건재손익_사업장별": "사업장별",
     "건재손익_총괄":   "손익 총괄",
     "건재손익_공장별": "공장별 손익",
     "레미콘_손익요약": "요약",
@@ -1135,6 +1136,275 @@ elif current_page == "건재손익_부문별":
         st.markdown(_build_overview_table_bm(df_ov_bm, _bm_sfx), unsafe_allow_html=True)
     else:
         st.error("손익총괄 데이터를 불러올 수 없습니다.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+elif current_page == "건재손익_사업장별":
+    if "sel_period" not in st.session_state:
+        st.session_state["sel_period"] = "당월"
+    st.markdown("""<style>
+    [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
+    </style>""", unsafe_allow_html=True)
+    _tc, _rc = st.columns([0.76, 0.24], gap="small")
+    with _tc:
+        _sjb_period = st.session_state.get("sel_period", "당월")
+        st.markdown(f"""
+        <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
+            <div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
+            <span style="font-size:1.7em;font-weight:900;color:#1f2937;">사업장별 손익실적</span>
+            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.7em;font-weight:600;">{selected_year}년 {selected_month}월{"" if _sjb_period=="당월" else " 누계"}</span>
+        </div>""", unsafe_allow_html=True)
+    with _rc:
+        _cy2, _cm2, _cp2 = st.columns([1,1,1], gap="small")
+        with _cy2:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+        with _cm2:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            _months_sjb = get_available_months(selected_year)
+            st.selectbox("월", _months_sjb, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+        with _cp2:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    _sjb_period = st.session_state.get("sel_period", "당월")
+    st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
+
+    @st.cache_data(ttl=600)
+    def _get_sjb(year, month, period):
+        return load_sijangbyul_raw(year, month, period)
+
+    _sjb_rows = _get_sjb(selected_year, selected_month, _sjb_period)
+
+    if not _sjb_rows:
+        st.warning("데이터를 불러올 수 없습니다.")
+    else:
+        # ── 행 그룹 정의 ────────────────────────────────────────────
+        REMICON_FACTORIES = ['안양','인천','파주','김포','부산','서부산','김해',
+                             '정관','양산','창원','대구','울산','아산','전주',
+                             '군산','원주','제주']
+        REGION_ROWS  = ['수도권','영남권','중부권']
+        GOLCHAE_ROWS = ['부산모래장','서부산CR','부산CR']
+        GITA_ROWS    = ['레미콘임대','임대','공통비','OPC 소급분','OPC소급분',
+                        '대손','미운영 공장','퇴직위로금','기타']
+
+        SUBTOTAL_ROWS  = {'레미콘 계','골재 계','기타 계'}
+        TOTAL_ROWS     = {'합계'}
+        BOLD_ROWS      = SUBTOTAL_ROWS | TOTAL_ROWS | {'건자재'}
+
+        # 데이터를 dict로 변환 (이름→행, 순서 유지)
+        # 합계가 두 번 나올 수 있어 리스트로 유지
+        _sjb_by_name = {}
+        for r in _sjb_rows:
+            nm = r['구분']
+            if nm not in _sjb_by_name:
+                _sjb_by_name[nm] = r
+            else:
+                # 두 번째 합계 = 건자재 포함 전체합계 → 별도 키로 저장
+                _sjb_by_name[nm + '_전체'] = r
+
+        def _get(name):
+            return _sjb_by_name.get(name) or _sjb_by_name.get(name + '_전체') or {}
+
+        # ── HTML 테이블 빌드 ─────────────────────────────────────────
+        def _td(v, fmt='int', bold=False, red_neg=True):
+            """숫자 셀 반환"""
+            if v is None:
+                return '<td class="sjb-num"></td>'
+            try:
+                fv = float(v)
+            except Exception:
+                return f'<td class="sjb-num"></td>'
+            neg = fv < 0
+            if fmt == 'int':
+                s = f"{abs(int(round(fv))):,}"
+            elif fmt == 'dec1':
+                s = f"{abs(fv):,.1f}"
+            else:
+                s = f"{abs(int(round(fv))):,}"
+            display = f"({s})" if neg else s
+            color = 'color:#dc2626;' if (neg and red_neg) else ''
+            fw = 'font-weight:700;' if bold else ''
+            return f'<td class="sjb-num" style="{color}{fw}">{display}</td>'
+
+        def _tdiff(v, bold=False):
+            return _td(v, 'int', bold, red_neg=True)
+
+        def _row_html(label, d, style='normal', section_td=''):
+            is_bold  = style in ('subtotal', 'total', 'grand_total')
+            bg = ''
+            if style == 'subtotal':   bg = 'background:#fef9c3;'
+            elif style == 'total':    bg = 'background:#fef9c3;'
+            elif style == 'grand_total': bg = 'background:#fef9c3;'
+            elif style == 'region':   bg = 'background:#f0f9ff;'
+
+            fw = 'font-weight:700;' if is_bold else ''
+            label_td = f'<td class="sjb-label" style="{bg}{fw}">{label}</td>'
+            return (
+                f'<tr style="{bg}">'
+                + section_td
+                + label_td
+                + _td(d.get('물량_계획'),    'int', is_bold)
+                + _td(d.get('물량_실적'),    'int', is_bold)
+                + _tdiff(d.get('물량_차이'), is_bold)
+                + _td(d.get('물량_전년'),    'int', is_bold)
+                + _tdiff(d.get('물량_전년차이'), is_bold)
+                + _td(d.get('매출_계획'),    'int', is_bold)
+                + _td(d.get('매출_실적'),    'int', is_bold)
+                + _tdiff(d.get('매출_차이'), is_bold)
+                + _td(d.get('매출_전년'),    'int', is_bold)
+                + _tdiff(d.get('매출_전년차이'), is_bold)
+                + _td(d.get('영업이익_계획'),'int', is_bold)
+                + _td(d.get('영업이익_실적'),'int', is_bold)
+                + _tdiff(d.get('영업이익_차이'), is_bold)
+                + _td(d.get('영업이익_전년'),'int', is_bold)
+                + _tdiff(d.get('영업이익_전년차이'), is_bold)
+                + _td(d.get('판매단가_계획'),'int', is_bold, False)
+                + _td(d.get('판매단가_실적'),'int', is_bold, False)
+                + _td(d.get('판매단가_전년'),'int', is_bold, False)
+                + _td(d.get('변동비_계획'),  'int', is_bold, False)
+                + _td(d.get('변동비_실적'),  'int', is_bold, False)
+                + _td(d.get('변동비_전년'),  'int', is_bold, False)
+                + _td(d.get('공헌이익_계획'),'int', is_bold)
+                + _td(d.get('공헌이익_실적'),'int', is_bold)
+                + '</tr>'
+            )
+
+        # 섹션 셀 (rowspan)
+        remicon_count = len(REMICON_FACTORIES) + len(REGION_ROWS) + 1  # +1 for 레미콘 계
+        golchae_count = len([r for r in _sjb_rows if r['구분'] in set(GOLCHAE_ROWS) or r['구분'] == '골재 계'])
+        gita_count    = len([r for r in _sjb_rows if r['구분'] in set(GITA_ROWS) | {'기타 계'}])
+
+        rows_html = []
+
+        # 레미콘 섹션
+        first = True
+        for i, nm in enumerate(REMICON_FACTORIES):
+            d = _get(nm)
+            if first:
+                sec_td = f'<td class="sjb-sec" rowspan="{remicon_count}" style="background:#eff6ff;color:#1d4ed8;font-weight:700;">레미콘</td>'
+                first = False
+            else:
+                sec_td = ''
+            rows_html.append(_row_html(nm, d, 'normal', sec_td))
+
+        for nm in REGION_ROWS:
+            d = _get(nm)
+            rows_html.append(_row_html(nm, d, 'region', ''))
+
+        d = _get('레미콘 계')
+        rows_html.append(_row_html('레미콘 계', d, 'subtotal', ''))
+
+        # 골재 섹션
+        golchae_names_found = [r['구분'] for r in _sjb_rows if r['구분'] in set(GOLCHAE_ROWS) | {'골재 계'}]
+        for i, nm in enumerate(golchae_names_found):
+            d = _get(nm)
+            sec_td = f'<td class="sjb-sec" rowspan="{len(golchae_names_found)}" style="background:#f0fdf4;color:#16a34a;font-weight:700;">골재</td>' if i == 0 else ''
+            style = 'subtotal' if nm == '골재 계' else 'normal'
+            rows_html.append(_row_html(nm, d, style, sec_td))
+
+        if not golchae_names_found:
+            d = _get('골재 계')
+            rows_html.append(_row_html('골재 계', d, 'subtotal',
+                '<td class="sjb-sec" style="background:#f0fdf4;color:#16a34a;font-weight:700;">골재</td>'))
+
+        # 기타 섹션
+        gita_names_found = [r['구분'] for r in _sjb_rows if r['구분'] in set(GITA_ROWS) | {'기타 계'}]
+        for i, nm in enumerate(gita_names_found):
+            d = _get(nm)
+            sec_td = f'<td class="sjb-sec" rowspan="{len(gita_names_found)}" style="background:#fdf4ff;color:#7c3aed;font-weight:700;">기타</td>' if i == 0 else ''
+            style = 'subtotal' if nm == '기타 계' else 'normal'
+            rows_html.append(_row_html(nm, d, style, sec_td))
+
+        # 합계 (레미콘+골재+기타)
+        d_tot = _sjb_by_name.get('합계') or {}
+        rows_html.append(_row_html('합계', d_tot, 'total',
+            '<td class="sjb-sec" style="background:#fef9c3;font-weight:700;"></td>'))
+
+        # 건자재
+        d_jc = _get('건자재')
+        rows_html.append(_row_html('건자재', d_jc, 'normal',
+            '<td class="sjb-sec" style="background:#fff7ed;color:#c2410c;font-weight:700;">건자재</td>'))
+
+        # 전체 합계
+        d_all = _sjb_by_name.get('합계_전체') or _sjb_by_name.get('합계') or {}
+        rows_html.append(_row_html('합계', d_all, 'grand_total',
+            '<td class="sjb-sec" style="background:#fef9c3;font-weight:700;"></td>'))
+
+        _unit = "누계" if _sjb_period == "누계" else "당월"
+        html = f"""
+<style>
+.sjb-wrap {{ overflow-x: auto; }}
+.sjb-tbl {{
+    border-collapse: collapse;
+    font-size: 0.75em;
+    width: 100%;
+    white-space: nowrap;
+}}
+.sjb-tbl th {{
+    background: #1e3a5f;
+    color: white;
+    text-align: center;
+    padding: 4px 6px;
+    border: 1px solid #374151;
+    font-weight: 600;
+}}
+.sjb-tbl th.th-sub {{
+    background: #2d4f7c;
+}}
+.sjb-tbl td {{
+    border: 1px solid #e5e7eb;
+    padding: 3px 6px;
+}}
+.sjb-sec {{
+    text-align: center;
+    font-size: 0.85em;
+    min-width: 36px;
+}}
+.sjb-label {{
+    text-align: left;
+    padding-left: 8px;
+    min-width: 64px;
+}}
+.sjb-num {{
+    text-align: right;
+    min-width: 52px;
+}}
+.sjb-tbl tr:hover td {{ background: #f0f9ff !important; }}
+.sjb-unit {{ text-align:right; color:#6b7280; font-size:0.8em; margin-bottom:4px; }}
+</style>
+<div class="sjb-unit">[단위: 천㎥, 백만원]</div>
+<div class="sjb-wrap">
+<table class="sjb-tbl">
+<thead>
+<tr>
+  <th rowspan="2" colspan="2" style="min-width:100px;">구분</th>
+  <th colspan="5">물량</th>
+  <th colspan="5">매출</th>
+  <th colspan="5">영업이익(공통비 배부전)</th>
+  <th colspan="3">판매단가</th>
+  <th colspan="3">변동비</th>
+  <th colspan="2">공헌이익</th>
+</tr>
+<tr>
+  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">차이</th><th class="th-sub">전년</th><th class="th-sub">차이</th>
+  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">차이</th><th class="th-sub">전년</th><th class="th-sub">차이</th>
+  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">차이</th><th class="th-sub">전년</th><th class="th-sub">차이</th>
+  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">전년</th>
+  <th class="th-sub">계획</th><th class="th-sub">실적</th><th class="th-sub">전년</th>
+  <th class="th-sub">계획</th><th class="th-sub">실적</th>
+</tr>
+</thead>
+<tbody>
+{''.join(rows_html)}
+</tbody>
+</table>
+</div>
+"""
+        st.markdown(html, unsafe_allow_html=True)
+
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif current_page == "건재손익_공장별":

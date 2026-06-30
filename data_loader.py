@@ -108,6 +108,93 @@ def load_summary_data(year, month):
     return df[df['공장명'].isin(summary_names)].copy()
 
 
+def load_sijangbyul_raw(year, month, period="당월"):
+    """사업장별 시트에서 모든 데이터 행을 순서대로 반환 (중복 제거 없이)."""
+    filepath = find_report_file(year, month)
+    if not filepath:
+        return []
+
+    wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
+    sheet_name = f'사업장별({period})'
+    if sheet_name not in wb.sheetnames:
+        wb.close()
+        return []
+
+    ws = wb[sheet_name]
+    rows_data = []
+    prev_section = ''
+
+    # 섹션 식별용 앞쪽 컬럼 범위
+    SECTION_MAP = {
+        '레미콘': '레미콘', '직영': '레미콘', '골재': '골재',
+        '기타': '기타', '건자재': '건자재',
+    }
+
+    for row in ws.iter_rows(min_row=7, max_row=50, values_only=True):
+        if len(row) < 20:
+            continue
+
+        # 이름 찾기 (col I=8, col H=7, col J=9 순서)
+        name = None
+        for ci in [8, 7, 9]:
+            v = row[ci] if ci < len(row) else None
+            if v and isinstance(v, str) and v.strip():
+                name = v.strip()
+                break
+        if not name:
+            continue
+
+        # 섹션 레이블 (앞쪽 컬럼들에서 찾기)
+        section = prev_section
+        for ci in range(0, 7):
+            v = row[ci] if ci < len(row) else None
+            if v and isinstance(v, str):
+                s = v.strip()
+                if s in SECTION_MAP:
+                    section = SECTION_MAP[s]
+                    break
+        prev_section = section
+
+        def n(v):
+            if v is None:
+                return None
+            try:
+                return float(v)
+            except Exception:
+                return None
+
+        rows_data.append({
+            '구분': name,
+            '섹션': section,
+            '물량_계획':        n(row[9]),
+            '물량_실적':        n(row[10]),
+            '물량_차이':        n(row[11]),
+            '물량_전년':        n(row[12]),
+            '물량_전년차이':    n(row[13]),
+            '매출_계획':        n(row[14]),
+            '매출_실적':        n(row[15]),
+            '매출_차이':        n(row[16]),
+            '매출_전년':        n(row[17]),
+            '매출_전년차이':    n(row[18]),
+            '영업이익_계획':    n(row[19]),
+            '영업이익_실적':    n(row[20]),
+            '영업이익_차이':    n(row[21]),
+            '영업이익_전년':    n(row[22]),
+            '영업이익_전년차이':n(row[23]),
+            '판매단가_계획':    n(row[24]),
+            '판매단가_실적':    n(row[25]),
+            '판매단가_전년':    n(row[26]),
+            '변동비_계획':      n(row[27]),
+            '변동비_실적':      n(row[28]),
+            '변동비_전년':      n(row[29]),
+            '공헌이익_계획':    n(row[30]),
+            '공헌이익_실적':    n(row[31]),
+        })
+
+    wb.close()
+    return rows_data
+
+
 def load_overview(year, month):
     """손익총괄 시트에서 레미콘/건자재/골재/기타/합계 당월+누계 데이터를 읽어 반환."""
     filepath = find_report_file(year, month)
