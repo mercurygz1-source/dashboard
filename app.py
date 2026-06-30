@@ -1394,8 +1394,9 @@ elif current_page == "건재손익_사업장별":
 
 /* 데이터 셀 공통 */
 .sjb-tbl td {{
-    border: none;
-    border-right: 1px solid #e2e8f0;
+    border: none !important;
+    border-right: 1px solid #e2e8f0 !important;
+    border-bottom: none !important;
     padding: 3px 7px;
     background: #fff;
     color: #1e293b;
