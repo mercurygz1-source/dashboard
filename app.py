@@ -1270,8 +1270,6 @@ elif current_page == "건재손익_요약2":
                     _s_actuals.append(_sr3)
                     _o_actuals.append(_or3 if _or3 is not None else 0)
                     _valid_divs.append(_dn)
-                    if _dn == '건자재':
-                        st.caption(f"[디버그] 건자재 영업이익 — 계획: {_op3}, 실적: {_or3}, 달성률: {_pct_safe(_or3, _op3):.1f}%")
 
                 def _make_hbar(divs, pcts, diffs, actuals, title):
                     # 음수 pct(계획이익→실제손실)는 시각화 불가 → 0으로 클램프 후 라벨에 표기
