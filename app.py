@@ -1076,10 +1076,61 @@ elif current_page == "건재손익_요약2":
 
         st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
-        # ══ 2. 차트 2개 나란히 ══════════════════════════════════
+        # ══ 2. 부문별 달성률 게이지 바 ══════════════════════════
         _DIVS = ['레미콘','골재','건자재','기타']
         _DIV_COLORS = {'레미콘':'#1d4ed8','골재':'#0891b2','건자재':'#059669','기타':'#7c3aed'}
         df_div2 = df_ov2[df_ov2['구분'].isin(_DIVS)].set_index('구분')
+
+        st.markdown("""
+        <div style="font-size:0.92em;font-weight:700;color:#1f2937;margin-bottom:10px;
+                    display:flex;align-items:center;gap:8px;">
+            <div style="width:4px;height:15px;background:#1d4ed8;border-radius:2px;"></div>
+            부문별 매출 계획 달성률
+        </div>
+        """, unsafe_allow_html=True)
+        _gauge_cols = st.columns(4, gap="small")
+        for _gi, _dn in enumerate(_DIVS):
+            if _dn not in df_div2.index: continue
+            _sp2 = df_div2.loc[_dn, _p2('매출')]
+            _sr2 = df_div2.loc[_dn, _r2c('매출')]
+            _op2 = df_div2.loc[_dn, _p2('영업이익')]
+            _or2 = df_div2.loc[_dn, _r2c('영업이익')]
+            _매출달성 = (_sr2/_sp2*100) if _sp2 and _sr2 and _sp2!=0 else 0
+            _oi달성   = (_or2/_op2*100) if _op2 and _or2 and _op2!=0 else 0
+            _clr2 = _DIV_COLORS[_dn]
+            _매출달성_clamp = min(max(_매출달성,0),100)
+            _oi달성_clamp   = min(max(_oi달성,0),100)
+            _oi_bar_clr = "#16a34a" if _or2 and _or2>=0 else "#dc2626"
+            with _gauge_cols[_gi]:
+                st.markdown(f"""
+                <div style="background:white;border-radius:12px;padding:16px 18px;
+                            box-shadow:0 2px 10px rgba(0,0,0,0.07);border-top:3px solid {_clr2};">
+                  <div style="font-size:1.0em;font-weight:800;color:{_clr2};margin-bottom:12px;">{_dn}</div>
+                  <div style="font-size:0.72em;color:#6b7280;margin-bottom:3px;">매출 달성률</div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <div style="flex:1;background:#f3f4f6;border-radius:99px;height:8px;">
+                      <div style="width:{_매출달성_clamp:.0f}%;height:100%;background:{_clr2};border-radius:99px;"></div>
+                    </div>
+                    <span style="font-size:0.85em;font-weight:700;color:{'#16a34a' if _매출달성>=100 else '#dc2626'};">{_매출달성:.1f}%</span>
+                  </div>
+                  <div style="font-size:0.72em;color:#6b7280;margin-bottom:3px;">영업이익 달성률</div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="flex:1;background:#f3f4f6;border-radius:99px;height:8px;">
+                      <div style="width:{_oi달성_clamp:.0f}%;height:100%;background:{_oi_bar_clr};border-radius:99px;"></div>
+                    </div>
+                    <span style="font-size:0.85em;font-weight:700;color:{'#16a34a' if _oi달성>=100 else '#dc2626'};">{_oi달성:.1f}%</span>
+                  </div>
+                  <div style="margin-top:10px;border-top:1px solid #f3f4f6;padding-top:8px;">
+                    <div style="font-size:0.7em;color:#9ca3af;">매출 실적</div>
+                    <div style="font-size:1.05em;font-weight:700;color:#1f2937;">{f"{int(_sr2):,}" if _sr2 else "-"}<span style="font-size:0.6em;color:#9ca3af;"> 백만원</span></div>
+                    <div style="font-size:0.7em;color:#9ca3af;margin-top:4px;">영업이익 실적</div>
+                    <div style="font-size:1.05em;font-weight:700;color:{'#16a34a' if _or2 and _or2>=0 else '#dc2626'};">{f"{int(_or2):,}" if _or2 is not None else "-"}<span style="font-size:0.6em;color:#9ca3af;"> 백만원</span></div>
+                  </div>
+                </div>""", unsafe_allow_html=True)
+
+        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+        # ══ 3. 차트 2개 나란히 ══════════════════════════════════
 
         ch_left, ch_right = st.columns([1,1], gap="small")
 
@@ -1274,55 +1325,6 @@ elif current_page == "건재손익_요약2":
 
         tbl_html += "</tbody></table></div>"
         st.markdown(f'<div style="background:white;border-radius:12px;padding:16px 20px;box-shadow:0 2px 10px rgba(0,0,0,0.07);">{tbl_html}</div>', unsafe_allow_html=True)
-
-        # ══ 5. 부문별 달성률 게이지 바 ═══════════════════════════
-        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-        st.markdown("""
-        <div style="font-size:0.92em;font-weight:700;color:#1f2937;margin-bottom:10px;
-                    display:flex;align-items:center;gap:8px;">
-            <div style="width:4px;height:15px;background:#1d4ed8;border-radius:2px;"></div>
-            부문별 매출 계획 달성률
-        </div>
-        """, unsafe_allow_html=True)
-        _gauge_cols = st.columns(4, gap="small")
-        for _gi, _dn in enumerate(_DIVS):
-            if _dn not in df_div2.index: continue
-            _sp2 = df_div2.loc[_dn, _p2('매출')]
-            _sr2 = df_div2.loc[_dn, _r2c('매출')]
-            _op2 = df_div2.loc[_dn, _p2('영업이익')]
-            _or2 = df_div2.loc[_dn, _r2c('영업이익')]
-            _매출달성 = (_sr2/_sp2*100) if _sp2 and _sr2 and _sp2!=0 else 0
-            _oi달성   = (_or2/_op2*100) if _op2 and _or2 and _op2!=0 else 0
-            _clr2 = _DIV_COLORS[_dn]
-            _매출달성_clamp = min(max(_매출달성,0),100)
-            _oi달성_clamp   = min(max(_oi달성,0),100)
-            _oi_bar_clr = "#16a34a" if _or2 and _or2>=0 else "#dc2626"
-            with _gauge_cols[_gi]:
-                st.markdown(f"""
-                <div style="background:white;border-radius:12px;padding:16px 18px;
-                            box-shadow:0 2px 10px rgba(0,0,0,0.07);border-top:3px solid {_clr2};">
-                  <div style="font-size:1.0em;font-weight:800;color:{_clr2};margin-bottom:12px;">{_dn}</div>
-                  <div style="font-size:0.72em;color:#6b7280;margin-bottom:3px;">매출 달성률</div>
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                    <div style="flex:1;background:#f3f4f6;border-radius:99px;height:8px;">
-                      <div style="width:{_매출달성_clamp:.0f}%;height:100%;background:{_clr2};border-radius:99px;"></div>
-                    </div>
-                    <span style="font-size:0.85em;font-weight:700;color:{'#16a34a' if _매출달성>=100 else '#dc2626'};">{_매출달성:.1f}%</span>
-                  </div>
-                  <div style="font-size:0.72em;color:#6b7280;margin-bottom:3px;">영업이익 달성률</div>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div style="flex:1;background:#f3f4f6;border-radius:99px;height:8px;">
-                      <div style="width:{_oi달성_clamp:.0f}%;height:100%;background:{_oi_bar_clr};border-radius:99px;"></div>
-                    </div>
-                    <span style="font-size:0.85em;font-weight:700;color:{'#16a34a' if _oi달성>=100 else '#dc2626'};">{_oi달성:.1f}%</span>
-                  </div>
-                  <div style="margin-top:10px;border-top:1px solid #f3f4f6;padding-top:8px;">
-                    <div style="font-size:0.7em;color:#9ca3af;">매출 실적</div>
-                    <div style="font-size:1.05em;font-weight:700;color:#1f2937;">{f"{int(_sr2):,}" if _sr2 else "-"}<span style="font-size:0.6em;color:#9ca3af;"> 백만원</span></div>
-                    <div style="font-size:0.7em;color:#9ca3af;margin-top:4px;">영업이익 실적</div>
-                    <div style="font-size:1.05em;font-weight:700;color:{'#16a34a' if _or2 and _or2>=0 else '#dc2626'};">{f"{int(_or2):,}" if _or2 is not None else "-"}<span style="font-size:0.6em;color:#9ca3af;"> 백만원</span></div>
-                  </div>
-                </div>""", unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
