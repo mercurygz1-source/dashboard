@@ -1177,14 +1177,14 @@ elif current_page == "건재손익_요약2":
                 name='계획', x=_REGIONS, y=_rg_plans,
                 marker_color='#bfdbfe', marker_line_width=0,
                 text=[f"{v:,.1f}" for v in _rg_plans],
-                textposition='outside', textfont=dict(size=12, color='#6b7280'),
+                textposition='outside', textfont=dict(size=15, color='#6b7280'),
                 hovertemplate='계획: <b>%{y:,.1f}</b> 천㎥<extra></extra>',
             ))
             _fig_rg.add_trace(go.Bar(
                 name='실적', x=_REGIONS, y=_rg_actuals,
                 marker_color=_actual_colors, marker_line_width=0,
                 text=[f"{v:,.1f}" for v in _rg_actuals],
-                textposition='outside', textfont=dict(size=13, color='#111827', family='Noto Sans KR'),
+                textposition='outside', textfont=dict(size=16, color='#111827', family='Noto Sans KR'),
                 customdata=_diff_texts,
                 hovertemplate='실적: <b>%{y:,.1f}</b> 천㎥<br>%{customdata}<extra></extra>',
             ))
