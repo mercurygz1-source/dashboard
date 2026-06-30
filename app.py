@@ -1102,10 +1102,10 @@ elif current_page == "건재손익_요약2":
                     '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
                     'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
                     '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
-                    'padding:14px 32px;text-align:center;">'
+                    'padding:14px 20px;text-align:center;">'
                     '<span style="font-size:1.25em;font-weight:700;color:#374151;">' + label + '</span>'
                     '</div>'
-                    '<div style="padding:18px 32px 18px;text-align:left;">'
+                    '<div style="padding:18px 20px 18px;text-align:left;">'
                     '<div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;">'
                     '<span style="font-size:2.3em;font-weight:900;color:' + _val_color + ';line-height:1.1;">' + _disp
                     + '<span style="font-size:0.32em;font-weight:500;color:#9ca3af;margin-left:6px;">' + unit + '</span></span>'
@@ -1123,7 +1123,7 @@ elif current_page == "건재손익_요약2":
             gap: 2px !important;
         }
         </style>""", unsafe_allow_html=True)
-        _kc1, _kc2, _kc3, _kc4, _kc5 = st.columns([1.1, 1.1, 1.1, 1.1, 1.3], gap="small")
+        _kc1, _kc2, _kc3, _kc4, _kc5 = st.columns([1.25, 1.1, 1.1, 1.1, 1.15], gap="small")
         _kpi_card(_kc1, "레미콘 판매량",
                   f"{rc물량실적:,.0f}" if rc물량실적 else "-", "천㎥",
                   _dv(rc물량차이, "천㎥"), rc달성)
