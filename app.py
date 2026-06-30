@@ -1062,14 +1062,14 @@ elif current_page == "건재손익_요약2":
             with col:
                 st.markdown(
                     '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
-                    'box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:18px 20px 14px;height:100%;">'
-                    '<div style="font-size:0.72em;font-weight:600;color:#6b7280;margin-bottom:6px;">' + label + '</div>'
-                    '<div style="font-size:2em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
-                    + '<span style="font-size:0.3em;font-weight:400;color:#9ca3af;margin-left:5px;">' + unit + '</span></div>'
-                    '<div style="margin-top:5px;">' + diff_html + ' <span style="font-size:0.72em;color:#9ca3af;">vs 계획</span></div>'
-                    '<div style="margin-top:10px;background:#f3f4f6;border-radius:99px;height:3px;">'
+                    'box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:20px 20px 16px;text-align:center;">'
+                    '<div style="font-size:1.05em;font-weight:700;color:#374151;margin-bottom:10px;letter-spacing:-0.2px;">' + label + '</div>'
+                    '<div style="font-size:2.2em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
+                    + '<span style="font-size:0.3em;font-weight:500;color:#9ca3af;margin-left:5px;">' + unit + '</span></div>'
+                    '<div style="margin-top:6px;font-size:0.82em;">' + diff_html + ' <span style="color:#9ca3af;">vs 계획</span></div>'
+                    '<div style="margin-top:10px;background:#f3f4f6;border-radius:99px;height:4px;">'
                     '<div style="width:' + bw + '%;height:100%;background:' + ac + ';border-radius:99px;"></div></div>'
-                    '<div style="font-size:0.7em;color:' + ac + ';font-weight:600;margin-top:3px;">달성률 ' + f'{pct:.1f}%' + '</div>'
+                    '<div style="font-size:0.72em;color:' + ac + ';font-weight:600;margin-top:4px;">달성률 ' + f'{pct:.1f}%' + '</div>'
                     '</div>',
                     unsafe_allow_html=True
                 )
@@ -1078,7 +1078,7 @@ elif current_page == "건재손익_요약2":
         _kpi_card(_kc1, "레미콘 판매량",
                   f"{rc물량실적:,.1f}" if rc물량실적 else "-", "천㎥",
                   _dv(rc물량차이, "천㎥", per=True), rc달성)
-        _kpi_card(_kc2, "총 매출액",
+        _kpi_card(_kc2, "매출액",
                   f"{_to억(매출실적):,.1f}" if 매출실적 else "-", "억원",
                   _dv(_to억(매출차이), "억원", per=True), 매출달성 or 0)
         _kpi_card(_kc3, "영업이익",
