@@ -1049,7 +1049,7 @@ elif current_page == "건재손익_요약2":
         rc달성  = (rc물량실적/rc물량계획*100) if rc물량실적 and rc물량계획 else 0
 
         def _ac(pct):
-            return "#1d4ed8" if pct >= 100 else ("#3b82f6" if pct >= 90 else "#dc2626")
+            return "#1d4ed8" if pct >= 100 else "#dc2626"
 
         def _bw(pct): return str(int(min(max(pct, 0), 100)))
 
@@ -1449,7 +1449,7 @@ elif current_page == "건재손익_부문별":
 
             _ach_val = (_sr / _sp * 100) if (_sp and _sr and _sp != 0) else None
             _ach_str = f"{_ach_val:.0f}%" if _ach_val is not None else "-"
-            _ach_clr = "#16a34a" if (_ach_val and _ach_val >= 100) else "#dc2626"
+            _ach_clr = "#1d4ed8" if (_ach_val and _ach_val >= 100) else "#dc2626"
 
             _oi_rate = f"{_or/_sr*100:.1f}%" if (_sr and _or and _sr != 0) else "-"
             _oi_diff = (_or - _op) if (_or is not None and _op is not None) else None
@@ -2084,9 +2084,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
 
     def _달성색(pct):
         if pct is None: return '#6b7280'
-        if pct >= 100: return '#1d4ed8'
-        if pct >= 85: return '#3b82f6'
-        return '#dc2626'
+        return '#1d4ed8' if pct >= 100 else '#dc2626'
 
     def _delta_html(val, unit='백만원', positive_good=True):
         if val is None or (isinstance(val, float) and pd.isna(val)): return ''
