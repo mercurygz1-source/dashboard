@@ -986,6 +986,17 @@ elif current_page == "건재손익_요약2":
             v = row.get(col)
             return None if v is None or (isinstance(v, float) and pd.isna(v)) else v
 
+        # ══ 공헌이익 데이터 (레미콘 계) ══
+        @st.cache_data(ttl=600)
+        def _get_sij_r2(year, month, period):
+            return load_sijangbyul_raw(year, month, period)
+        _sij_rows = _get_sij_r2(selected_year, selected_month, _r2_period if _r2_period else "당월")
+        _rc_sij = next((r for r in _sij_rows if r.get('구분') == '레미콘 계'), None)
+        공헌이익실적 = _rc_sij.get('공헌이익_실적') if _rc_sij else None
+        공헌이익계획 = _rc_sij.get('공헌이익_계획') if _rc_sij else None
+        공헌이익차이 = (공헌이익실적 - 공헌이익계획) if 공헌이익실적 is not None and 공헌이익계획 is not None else None
+        공헌이익달성 = (공헌이익실적/공헌이익계획*100) if 공헌이익실적 and 공헌이익계획 else 0
+
         # ══ 1. 상단 KPI 4개 ══════════════════════════════════════
         매출실적  = _v2(tot2, _r2c('매출'))
         매출계획  = _v2(tot2, _p2('매출'))
@@ -1078,9 +1089,7 @@ elif current_page == "건재손익_요약2":
                     unsafe_allow_html=True
                 )
 
-        _kmain, _kpad_r = st.columns([0.76, 0.24])
-        with _kmain:
-            _kc1, _kc2, _kc3, _kc4 = st.columns(4, gap="small")
+        _kc1, _kc2, _kc3, _kc4, _kc5 = st.columns(5, gap="small")
         _kpi_card(_kc1, "레미콘 판매량",
                   f"{rc물량실적:,.1f}" if rc물량실적 else "-", "천㎥",
                   _dv(rc물량차이, "천㎥", per=True), rc달성)
@@ -1093,6 +1102,9 @@ elif current_page == "건재손익_요약2":
         _kpi_card(_kc4, "영업이익률",
                   f"{oi율실적:.1f}" if oi율실적 is not None else "-", "%",
                   _dv(oi율차이, "%p", per=True), _oir_pct)
+        _kpi_card(_kc5, "공헌이익 (레미콘)",
+                  f"{공헌이익실적:,.0f}" if 공헌이익실적 is not None else "-", "원/㎥",
+                  _dv(공헌이익차이, "원/㎥", per=True), 공헌이익달성)
         st.markdown('<div style="margin-bottom:12px;"></div>', unsafe_allow_html=True)
 
         # ══ 1-B. 부문별 현황 테이블 ══════════════════════════════
