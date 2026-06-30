@@ -1203,7 +1203,7 @@ elif current_page == "건재손익_요약2":
                 _fc = '#dc2626' if _ac == '#dc2626' else '#1d4ed8'
                 _fig_rg.add_annotation(
                     x=_rg, y=_rr, xref='x', yref='y',
-                    xshift=22, yshift=14,
+                    xshift=46, yshift=14,
                     text=f"<b>{_rr:,.1f}</b>",
                     showarrow=False,
                     font=dict(size=15, color=_fc, family='Noto Sans KR'),
