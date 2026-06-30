@@ -1105,7 +1105,7 @@ elif current_page == "건재손익_요약2":
         _kpi_card(_kc5, "공헌이익 (레미콘)",
                   f"{공헌이익실적:,.0f}" if 공헌이익실적 is not None else "-", "원/㎥",
                   _dv(공헌이익차이, "원/㎥", per=True), 공헌이익달성)
-        st.markdown('<div style="margin-bottom:56px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-bottom:40px;"></div>', unsafe_allow_html=True)
 
         # ══ 1-B. 부문별 현황 테이블 ══════════════════════════════
         _tbl = (
