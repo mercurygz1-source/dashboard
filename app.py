@@ -1233,10 +1233,12 @@ elif current_page == "건재손익_요약2":
         # ── 우: 부문별 매출액 / 영업이익 차이 ────────────────────────────
         with right_col:
             st.markdown(
-                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">'
+                '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
+                '<div style="display:flex;align-items:center;gap:8px;">'
                 '<div style="width:4px;height:16px;background:#7c3aed;border-radius:2px;"></div>'
                 '<span style="font-size:1.3em;font-weight:700;color:#1f2937;">부문별 매출액 · 영업이익 계획대비</span>'
-                '<span style="font-size:0.8em;color:#9ca3af;margin-left:4px;">백만원</span>'
+                '</div>'
+                '<span style="font-size:0.85em;color:#9ca3af;">(단위 : 백만원)</span>'
                 '</div>', unsafe_allow_html=True)
 
             _DIVS2 = ['레미콘', '건자재', '골재', '임대', '기타']
