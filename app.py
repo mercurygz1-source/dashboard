@@ -1226,7 +1226,7 @@ elif current_page == "건재손익_요약2":
                     bgcolor=_bg, borderpad=4, borderwidth=0,
                     opacity=1,
                 )
-            st.markdown('<div style="background:white;border-radius:10px;border:1px solid #e8eaed;box-shadow:0 1px 4px rgba(0,0,0,0.05);padding:4px 0 0;height:360px;display:flex;align-items:center;">', unsafe_allow_html=True)
+            st.markdown('<div style="background:white;border-radius:10px;border:1px solid #e8eaed;box-shadow:0 1px 4px rgba(0,0,0,0.05);padding:4px 0 0;">', unsafe_allow_html=True)
             st.plotly_chart(_fig_rg, use_container_width=True, config={'displayModeBar': False})
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1247,7 +1247,6 @@ elif current_page == "건재손익_요약2":
             _df_div3 = df_ov2[df_ov2['구분'].isin(_DIVS2)].set_index('구분') if df_ov2 is not None else None
 
             if _df_div3 is not None:
-                st.markdown('<div style="height:360px;overflow-y:auto;">', unsafe_allow_html=True)
                 # 헤더
                 st.markdown(
                     '<div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:0;'
@@ -1295,7 +1294,6 @@ elif current_page == "건재손익_요약2":
                         f'<div style="padding:0 8px;">{_bar_cell(_od3 or 0, _opct3, _op3) if _od3 is not None else _bar_cell(0,0,0)}</div>'
                         f'</div>',
                         unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div style="margin-bottom:40px;"></div>', unsafe_allow_html=True)
 
