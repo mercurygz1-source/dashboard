@@ -1247,53 +1247,57 @@ elif current_page == "건재손익_요약2":
             _df_div3 = df_ov2[df_ov2['구분'].isin(_DIVS2)].set_index('구분') if df_ov2 is not None else None
 
             if _df_div3 is not None:
-                # 헤더
-                st.markdown(
-                    '<div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:0;'
-                    'background:#f9fafb;border:1px solid #e8eaed;border-radius:8px 8px 0 0;'
-                    'padding:8px 14px;font-size:0.8em;font-weight:700;color:#6b7280;">'
-                    '<span>구분</span><span style="text-align:center;">매출액 계획대비</span>'
-                    '<span style="text-align:center;">영업이익 계획대비</span></div>',
-                    unsafe_allow_html=True)
-
-                for i, _dn in enumerate(_DIVS2):
+                _s_pcts, _o_pcts, _s_diffs, _o_diffs = [], [], [], []
+                _valid_divs = []
+                for _dn in _DIVS2:
                     if _dn not in _df_div3.index:
                         continue
                     _row3 = _df_div3.loc[_dn]
                     _sp3 = _row3.get(_p2('매출')) or 0
                     _sr3 = _row3.get(_r2c('매출')) or 0
-                    _sd3 = _sr3 - _sp3
                     _op3 = _row3.get(_p2('영업이익')) or 0
                     _or3 = _row3.get(_r2c('영업이익'))
-                    _od3 = (_or3 - _op3) if _or3 is not None else None
-                    _spct3 = (_sr3/_sp3*100) if _sp3 else 0
-                    _opct3 = (_or3/_op3*100) if _op3 and _or3 is not None else 0
-                    _color3 = _DIV_C2[_dn]
+                    _s_pcts.append((_sr3/_sp3*100) if _sp3 else 0)
+                    _s_diffs.append(_sr3 - _sp3)
+                    _o_pcts.append((_or3/_op3*100) if _op3 and _or3 is not None else 0)
+                    _o_diffs.append((_or3 - _op3) if _or3 is not None else 0)
+                    _valid_divs.append(_dn)
 
-                    def _bar_cell(diff, pct, plan):
-                        if plan == 0: return '<div style="color:#9ca3af;font-size:0.8em;text-align:center;">-</div>'
-                        bw = min(max(abs(pct), 0), 200) / 200 * 100
-                        bc = '#1d4ed8' if pct >= 100 else '#dc2626'
-                        dc = '#1d4ed8' if diff >= 0 else '#dc2626'
-                        da = '▲' if diff >= 0 else '▼'
-                        return (
-                            f'<div style="font-size:0.82em;font-weight:700;color:{dc};margin-bottom:3px;">'
-                            f'{da} {abs(int(round(diff))):,}</div>'
-                            f'<div style="background:#f3f4f6;border-radius:99px;height:5px;">'
-                            f'<div style="width:{bw:.0f}%;height:100%;background:{bc};border-radius:99px;"></div></div>'
-                            f'<div style="font-size:0.75em;color:{bc};font-weight:700;margin-top:2px;">{pct:.1f}% 달성</div>'
-                        )
+                def _make_hbar(divs, pcts, diffs, title):
+                    colors = ['#1d4ed8' if p >= 100 else '#dc2626' for p in pcts]
+                    diff_texts = [
+                        f"{'▲' if d>=0 else '▼'} {abs(int(round(d))):,}  <b>{p:.0f}%</b>"
+                        for d, p in zip(diffs, pcts)
+                    ]
+                    fig = go.Figure()
+                    fig.add_trace(go.Bar(
+                        x=pcts, y=divs, orientation='h',
+                        marker_color=colors, marker_line_width=0,
+                        text=[f"  {p:.0f}%" for p in pcts],
+                        textposition='outside',
+                        textfont=dict(size=13, family='Noto Sans KR'),
+                        customdata=diff_texts,
+                        hovertemplate='%{customdata}<extra></extra>',
+                    ))
+                    fig.add_vline(x=100, line_color='#9ca3af', line_width=1.5, line_dash='dash')
+                    fig.update_layout(
+                        title=dict(text=title, font=dict(size=13, color='#6b7280', family='Noto Sans KR'), x=0.5, xanchor='center'),
+                        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0, max(max(pcts)*1.25, 120)]),
+                        yaxis=dict(showgrid=False, tickfont=dict(size=13, family='Noto Sans KR', color='#374151'), autorange='reversed'),
+                        margin=dict(t=36, b=8, l=8, r=48), height=220,
+                        paper_bgcolor='white', plot_bgcolor='white',
+                        showlegend=False,
+                        font=dict(family='Noto Sans KR'),
+                    )
+                    return fig
 
-                    _border_b = '' if i < len(_DIVS2)-1 else 'border-radius:0 0 8px 8px;'
-                    st.markdown(
-                        f'<div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:0;'
-                        f'background:white;border:1px solid #e8eaed;border-top:0;{_border_b}'
-                        f'padding:10px 14px;align-items:center;">'
-                        f'<span style="font-size:0.9em;font-weight:700;color:{_color3};">{_dn}</span>'
-                        f'<div style="padding:0 8px;">{_bar_cell(_sd3, _spct3, _sp3)}</div>'
-                        f'<div style="padding:0 8px;">{_bar_cell(_od3 or 0, _opct3, _op3) if _od3 is not None else _bar_cell(0,0,0)}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True)
+                _ch1, _ch2 = st.columns(2, gap="small")
+                with _ch1:
+                    st.plotly_chart(_make_hbar(_valid_divs, _s_pcts, _s_diffs, '매출액 달성률 (%)'),
+                                    use_container_width=True, config={'displayModeBar': False})
+                with _ch2:
+                    st.plotly_chart(_make_hbar(_valid_divs, _o_pcts, _o_diffs, '영업이익 달성률 (%)'),
+                                    use_container_width=True, config={'displayModeBar': False})
 
         st.markdown('<div style="margin-bottom:40px;"></div>', unsafe_allow_html=True)
 
