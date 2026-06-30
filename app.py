@@ -1177,14 +1177,14 @@ elif current_page == "건재손익_요약2":
                 name='계획', x=_REGIONS, y=_rg_plans,
                 marker_color='#bfdbfe', marker_line_width=0,
                 text=[f"{v:,.1f}" for v in _rg_plans],
-                textposition='outside', textfont=dict(size=15, color='#6b7280'),
+                textposition='outside', textfont=dict(size=14, color='#6b7280'),
                 hovertemplate='계획: <b>%{y:,.1f}</b> 천㎥<extra></extra>',
             ))
             _fig_rg.add_trace(go.Bar(
                 name='실적', x=_REGIONS, y=_rg_actuals,
                 marker_color=_actual_colors, marker_line_width=0,
                 text=[f"{v:,.1f}" for v in _rg_actuals],
-                textposition='outside', textfont=dict(size=16, color='#111827', family='Noto Sans KR'),
+                textposition='outside', textfont=dict(size=14, color='#111827', family='Noto Sans KR'),
                 customdata=_diff_texts,
                 hovertemplate='실적: <b>%{y:,.1f}</b> 천㎥<br>%{customdata}<extra></extra>',
             ))
@@ -1192,8 +1192,8 @@ elif current_page == "건재손익_요약2":
                 barmode='group', bargap=0.35, bargroupgap=0.08,
                 yaxis=dict(showgrid=True, gridcolor='#f3f4f6', zeroline=False,
                            tickfont=dict(size=11), title='', showticklabels=False),
-                xaxis=dict(showgrid=False, tickfont=dict(size=13, family='Noto Sans KR')),
-                legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, font=dict(size=12)),
+                xaxis=dict(showgrid=False, tickfont=dict(size=14, family='Noto Sans KR')),
+                legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, font=dict(size=14)),
                 margin=dict(t=36, b=8, l=8, r=8), height=300,
                 paper_bgcolor='white', plot_bgcolor='white',
                 font=dict(family='Noto Sans KR'),
