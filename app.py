@@ -1183,8 +1183,7 @@ elif current_page == "건재손익_요약2":
             _fig_rg.add_trace(go.Bar(
                 name='실적', x=_REGIONS, y=_rg_actuals,
                 marker_color=_actual_colors, marker_line_width=0,
-                text=[f"{v:,.1f}" for v in _rg_actuals],
-                textposition='outside', textfont=dict(size=16, color='#111827', family='Noto Sans KR', weight='bold'),
+                text=["" for _ in _rg_actuals],
                 customdata=_diff_texts,
                 hovertemplate='실적: <b>%{y:,.1f}</b> 천㎥<br>%{customdata}<extra></extra>',
             ))
@@ -1198,15 +1197,17 @@ elif current_page == "건재손익_요약2":
                 paper_bgcolor='white', plot_bgcolor='white',
                 font=dict(family='Noto Sans KR'),
             )
-            # 계획대비 차이 annotation
-            for i, (_rg, _d, _p) in enumerate(zip(_REGIONS, _rg_diffs, _rg_pcts)):
-                _dc = '#dc2626' if _d < 0 else '#1d4ed8'
-                _da = '▼' if _d < 0 else '▲'
+            # 실적 숫자 배경 annotation
+            _ymax = max(_rg_plans + _rg_actuals) if (_rg_plans + _rg_actuals) else 1
+            for _rg, _rr, _ac in zip(_REGIONS, _rg_actuals, _actual_colors):
                 _fig_rg.add_annotation(
-                    x=_rg, y=0, yref='paper', yanchor='top', yshift=-28,
-                    text=f"<b style='color:{_dc}'>{_da} {abs(_d):,.1f}</b>",
-                    showarrow=False, font=dict(size=11, color=_dc),
-                    xref='x',
+                    x=_rg, y=_rr, xref='x', yref='y',
+                    xshift=22, yshift=12,
+                    text=f"<b>{_rr:,.1f}</b>",
+                    showarrow=False,
+                    font=dict(size=15, color='white', family='Noto Sans KR'),
+                    bgcolor=_ac, borderpad=5, borderwidth=0,
+                    opacity=1,
                 )
             st.markdown('<div style="background:white;border-radius:10px;border:1px solid #e8eaed;box-shadow:0 1px 4px rgba(0,0,0,0.05);padding:4px 0 0;">', unsafe_allow_html=True)
             st.plotly_chart(_fig_rg, use_container_width=True, config={'displayModeBar': False})
