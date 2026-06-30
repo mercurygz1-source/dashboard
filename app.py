@@ -1293,11 +1293,27 @@ elif current_page == "건재손익_요약2":
 
                 _ch1, _ch2 = st.columns(2, gap="small")
                 with _ch1:
-                    st.plotly_chart(_make_hbar(_valid_divs, _s_pcts, _s_diffs, '매출액 달성률 (%)'),
+                    st.markdown(
+                        '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
+                        'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
+                        '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
+                        'padding:12px 20px;text-align:center;">'
+                        '<span style="font-size:1.1em;font-weight:700;color:#374151;">매출액 달성률</span>'
+                        '</div>', unsafe_allow_html=True)
+                    st.plotly_chart(_make_hbar(_valid_divs, _s_pcts, _s_diffs, ''),
                                     use_container_width=True, config={'displayModeBar': False})
+                    st.markdown('</div>', unsafe_allow_html=True)
                 with _ch2:
-                    st.plotly_chart(_make_hbar(_valid_divs, _o_pcts, _o_diffs, '영업이익 달성률 (%)'),
+                    st.markdown(
+                        '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
+                        'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
+                        '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
+                        'padding:12px 20px;text-align:center;">'
+                        '<span style="font-size:1.1em;font-weight:700;color:#374151;">영업이익 달성률</span>'
+                        '</div>', unsafe_allow_html=True)
+                    st.plotly_chart(_make_hbar(_valid_divs, _o_pcts, _o_diffs, ''),
                                     use_container_width=True, config={'displayModeBar': False})
+                    st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div style="margin-bottom:40px;"></div>', unsafe_allow_html=True)
 
