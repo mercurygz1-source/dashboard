@@ -1204,13 +1204,25 @@ elif current_page == "건재손익_요약2":
             for _xi, _rr, _ac, _pct in zip(_actual_x_offsets, _rg_actuals, _actual_colors, _rg_pcts):
                 _bg = '#fecaca' if _ac == '#dc2626' else '#bfdbfe'
                 _fc = '#dc2626' if _ac == '#dc2626' else '#1d4ed8'
+                # % 라벨 — 배경 없음
                 _fig_rg.add_annotation(
                     x=_xi, y=_rr, xref='x', yref='y',
-                    xshift=0, yshift=14,
+                    xshift=0, yshift=44,
                     xanchor='center',
-                    text=f"({_pct:.0f}%)<br><b>{int(round(_rr)):,}</b>",
+                    text=f"({_pct:.0f}%)",
                     showarrow=False,
-                    font=dict(size=13, color=_fc, family='Noto Sans KR'),
+                    font=dict(size=12, color=_fc, family='Noto Sans KR'),
+                    bgcolor='rgba(0,0,0,0)', borderpad=2, borderwidth=0,
+                    opacity=1,
+                )
+                # 실적 숫자 — 연한 배경
+                _fig_rg.add_annotation(
+                    x=_xi, y=_rr, xref='x', yref='y',
+                    xshift=0, yshift=16,
+                    xanchor='center',
+                    text=f"<b>{int(round(_rr)):,}</b>",
+                    showarrow=False,
+                    font=dict(size=14, color=_fc, family='Noto Sans KR'),
                     bgcolor=_bg, borderpad=4, borderwidth=0,
                     opacity=1,
                 )
