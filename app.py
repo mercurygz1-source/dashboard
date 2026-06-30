@@ -1108,7 +1108,7 @@ elif current_page == "건재손익_요약2":
         st.markdown('<div style="margin-bottom:40px;"></div>', unsafe_allow_html=True)
 
         # ══ 1-B. 부문별 현황 테이블 ══════════════════════════════
-        _tbl_wrap, _ = st.columns([0.72, 0.28])
+        _, _tbl_wrap, _ = st.columns([0.14, 0.72, 0.14])
         with _tbl_wrap:
             _tbl = (
                 '<div style="background:white;border-radius:10px;border:1px solid #e8eaed;'
