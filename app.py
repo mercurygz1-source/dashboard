@@ -1201,16 +1201,16 @@ elif current_page == "건재손익_요약2":
             # grouped bar(2개)에서 실적(오른쪽) 막대 중심 = 카테고리 index + ~0.175
             # bargap=0.35, bargroupgap=0.08 기준 계산값
             _actual_x_offsets = [i + 0.175 for i in range(len(_REGIONS))]
-            for _xi, _rr, _ac in zip(_actual_x_offsets, _rg_actuals, _actual_colors):
+            for _xi, _rr, _ac, _pct in zip(_actual_x_offsets, _rg_actuals, _actual_colors, _rg_pcts):
                 _bg = '#fecaca' if _ac == '#dc2626' else '#bfdbfe'
                 _fc = '#dc2626' if _ac == '#dc2626' else '#1d4ed8'
                 _fig_rg.add_annotation(
                     x=_xi, y=_rr, xref='x', yref='y',
                     xshift=0, yshift=14,
                     xanchor='center',
-                    text=f"<b>{int(round(_rr)):,}</b>",
+                    text=f"({_pct:.0f}%)<br><b>{int(round(_rr)):,}</b>",
                     showarrow=False,
-                    font=dict(size=15, color=_fc, family='Noto Sans KR'),
+                    font=dict(size=13, color=_fc, family='Noto Sans KR'),
                     bgcolor=_bg, borderpad=4, borderwidth=0,
                     opacity=1,
                 )
