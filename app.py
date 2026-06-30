@@ -1154,36 +1154,61 @@ elif current_page == "건재손익_요약2":
                 '</div>', unsafe_allow_html=True)
 
             _REGIONS = ['수도권', '영남권', '중부권']
-            _reg_colors = {'수도권': '#1d4ed8', '영남권': '#0891b2', '중부권': '#059669'}
-
+            _rg_plans, _rg_actuals, _rg_diffs, _rg_pcts = [], [], [], []
             for _rg in _REGIONS:
                 _rg_row = next((r for r in _sij_rows if r.get('구분') == _rg), None)
-                if _rg_row is None:
-                    continue
-                _rp = _rg_row.get('물량_계획') or 0
-                _rr = _rg_row.get('물량_실적') or 0
-                _rd = _rr - _rp
-                _rpct = (_rr / _rp * 100) if _rp else 0
-                _bar_w = min(max(_rpct, 0), 150) / 150 * 100
-                _bar_c = '#1d4ed8' if _rpct >= 100 else '#dc2626'
-                _diff_c = '#1d4ed8' if _rd >= 0 else '#dc2626'
-                _diff_a = '▲' if _rd >= 0 else '▼'
-                _color = _reg_colors[_rg]
-                st.markdown(f"""
-                <div style="background:white;border-radius:10px;border:1px solid #e8eaed;
-                            padding:14px 18px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                    <span style="font-size:0.95em;font-weight:700;color:{_color};">{_rg}</span>
-                    <span style="font-size:0.82em;color:#6b7280;">계획 <b style="color:#374151;">{f(_rp,1)}</b> · 실적 <b style="color:#111827;">{f(_rr,1)}</b></span>
-                  </div>
-                  <div style="background:#f3f4f6;border-radius:99px;height:8px;margin-bottom:6px;">
-                    <div style="width:{_bar_w:.1f}%;height:100%;background:{_bar_c};border-radius:99px;"></div>
-                  </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <span style="font-size:0.82em;font-weight:700;color:{_diff_c};">{_diff_a} {f(abs(_rd),1)} 천㎥</span>
-                    <span style="font-size:0.82em;font-weight:700;color:{_bar_c};">{_rpct:.1f}% 달성</span>
-                  </div>
-                </div>""", unsafe_allow_html=True)
+                _rp = (_rg_row.get('물량_계획') or 0) if _rg_row else 0
+                _rr = (_rg_row.get('물량_실적') or 0) if _rg_row else 0
+                _rg_plans.append(_rp)
+                _rg_actuals.append(_rr)
+                _rg_diffs.append(_rr - _rp)
+                _rg_pcts.append((_rr/_rp*100) if _rp else 0)
+
+            _actual_colors = ['#dc2626' if p < 100 else '#1d4ed8' for p in _rg_pcts]
+            _diff_texts = [
+                f"{'▲' if d>=0 else '▼'} {abs(d):,.1f} 천㎥  ({p:.1f}%)"
+                for d, p in zip(_rg_diffs, _rg_pcts)
+            ]
+
+            _fig_rg = go.Figure()
+            _fig_rg.add_trace(go.Bar(
+                name='계획', x=_REGIONS, y=_rg_plans,
+                marker_color='#bfdbfe', marker_line_width=0,
+                text=[f"{v:,.1f}" for v in _rg_plans],
+                textposition='outside', textfont=dict(size=12, color='#6b7280'),
+                hovertemplate='계획: <b>%{y:,.1f}</b> 천㎥<extra></extra>',
+            ))
+            _fig_rg.add_trace(go.Bar(
+                name='실적', x=_REGIONS, y=_rg_actuals,
+                marker_color=_actual_colors, marker_line_width=0,
+                text=[f"{v:,.1f}" for v in _rg_actuals],
+                textposition='outside', textfont=dict(size=13, color='#111827', family='Noto Sans KR'),
+                customdata=_diff_texts,
+                hovertemplate='실적: <b>%{y:,.1f}</b> 천㎥<br>%{customdata}<extra></extra>',
+            ))
+            _fig_rg.update_layout(
+                barmode='group', bargap=0.35, bargroupgap=0.08,
+                yaxis=dict(showgrid=True, gridcolor='#f3f4f6', zeroline=False,
+                           tickfont=dict(size=11), title='천㎥', title_font=dict(size=11, color='#9ca3af')),
+                xaxis=dict(showgrid=False, tickfont=dict(size=13, family='Noto Sans KR')),
+                legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='left', x=0, font=dict(size=12)),
+                margin=dict(t=36, b=8, l=8, r=8), height=300,
+                paper_bgcolor='white', plot_bgcolor='white',
+                font=dict(family='Noto Sans KR'),
+            )
+            # 계획대비 차이 annotation
+            for i, (_rg, _d, _p) in enumerate(zip(_REGIONS, _rg_diffs, _rg_pcts)):
+                _dc = '#dc2626' if _d < 0 else '#1d4ed8'
+                _da = '▼' if _d < 0 else '▲'
+                _fig_rg.add_annotation(
+                    x=_rg, y=0, yref='paper', yanchor='top', yshift=-28,
+                    text=f"<b style='color:{_dc}'>{_da} {abs(_d):,.1f}</b>",
+                    showarrow=False, font=dict(size=11, color=_dc),
+                    xref='x',
+                )
+            st.markdown('<div style="background:white;border-radius:10px;border:1px solid #e8eaed;box-shadow:0 1px 4px rgba(0,0,0,0.05);padding:4px 0 0;">', unsafe_allow_html=True)
+            st.plotly_chart(_fig_rg, use_container_width=True, config={'displayModeBar': False})
+            st.markdown('</div>', unsafe_allow_html=True)
 
         # ── 우: 부문별 매출액 / 영업이익 차이 ────────────────────────────
         with right_col:
