@@ -1139,7 +1139,7 @@ elif current_page == "건재손익_요약2":
         _kpi_card(_kc5, "공헌이익 (레미콘)",
                   f"{공헌이익실적:,.0f}" if 공헌이익실적 is not None else "-", "원/㎥",
                   _dv(공헌이익차이, "원/㎥"), 공헌이익달성)
-        st.markdown('<div style="margin-bottom:32px;border-top:1px solid #e8eaed;padding-top:32px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-bottom:40px;border-top:3px solid #d1d5db;padding-top:40px;"></div>', unsafe_allow_html=True)
 
         # ══ 2. 레미콘 판매량 (권역별) + 부문별 매출/영업이익 ══════════
         left_col, right_col = st.columns([1, 1.6], gap="medium")
