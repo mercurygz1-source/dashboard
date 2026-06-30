@@ -579,7 +579,7 @@ def kpi(label, value, unit, delta=None, dl="계획대비", color=""):
         ds = f'<div class="kpi-delta {cls}">{arrow} {f(abs(delta))}<span class="kpi-delta-sub"> vs {dl}</span></div>'
     return f'<div class="kpi-card {color}"><div class="kpi-label">{label}</div><div class="kpi-value">{value}<span class="kpi-unit"> {unit}</span></div>{ds}</div>'
 
-C = {"계획":"#93c5fd","실적":"#1d4ed8","전년":"#f87171","pos":"#16a34a","neg":"#dc2626"}
+C = {"계획":"#93c5fd","실적":"#1d4ed8","전년":"#f87171","pos":"#1d4ed8","neg":"#dc2626"}
 
 @st.cache_data(ttl=600)
 def get_kpi_trend(year, up_to_month):
@@ -1014,7 +1014,7 @@ elif current_page == "건재손익_요약2":
         def _pct(a, b): return f"{a/b*100:.1f}%" if a and b and b!=0 else "-"
         def _diff_badge(val, unit="백만원", per=False):
             if val is None: return ""
-            color = "#16a34a" if val >= 0 else "#dc2626"
+            color = "#1d4ed8" if val >= 0 else "#dc2626"
             arrow = "▲" if val >= 0 else "▼"
             disp = f"{abs(val):,.1f}" if per else f"{abs(int(val)):,}"
             return f'<span style="font-size:0.75em;color:{color};font-weight:700;">{arrow} {disp} {unit}</span>'
@@ -1056,7 +1056,7 @@ elif current_page == "건재손익_요약2":
         def _dv(val, unit, per=False):
             """차이 문자열 (HTML)"""
             if val is None: return ""
-            c = "#dc2626" if val < 0 else "#16a34a"
+            c = "#dc2626" if val < 0 else "#1d4ed8"
             a = "▲" if val >= 0 else "▼"
             s = (f"{abs(val):,.1f}" if per else f"{abs(int(round(val))):,}") + " " + unit
             return '<span style="font-size:0.78em;font-weight:600;color:' + c + ';">' + a + " " + s + '</span>'
@@ -1454,7 +1454,7 @@ elif current_page == "건재손익_부문별":
             _oi_rate = f"{_or/_sr*100:.1f}%" if (_sr and _or and _sr != 0) else "-"
             _oi_diff = (_or - _op) if (_or is not None and _op is not None) else None
             _oi_diff_str = (f"+{int(_oi_diff):,}" if _oi_diff >= 0 else f"{int(_oi_diff):,}") if _oi_diff is not None else "-"
-            _oi_diff_clr = "#16a34a" if (_oi_diff is not None and _oi_diff >= 0) else "#dc2626"
+            _oi_diff_clr = "#1d4ed8" if (_oi_diff is not None and _oi_diff >= 0) else "#dc2626"
 
             with _kpi_cols[_i]:
                 st.markdown(f"""
@@ -2091,7 +2091,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
     def _delta_html(val, unit='백만원', positive_good=True):
         if val is None or (isinstance(val, float) and pd.isna(val)): return ''
         good = val >= 0 if positive_good else val <= 0
-        color = '#16a34a' if good else '#dc2626'
+        color = '#1d4ed8' if good else '#dc2626'
         arrow = '▲' if val >= 0 else '▼'
         return f'<span style="color:{color};font-size:0.85em;font-weight:700;">{arrow} {f(abs(val))} {unit}</span>'
 
@@ -2216,7 +2216,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
                 diff_html = ''
                 if diff_억 is not None:
                     good = diff_억 >= 0
-                    c = '#16a34a' if good else '#dc2626'
+                    c = '#1d4ed8' if good else '#dc2626'
                     arrow = '▲' if diff_억 >= 0 else '▼'
                     diff_html = f'<span style="color:{c};font-weight:700;">{arrow} {f(abs(diff_억),1)} {unit} vs 계획</span>'
                 return f"""
@@ -2308,7 +2308,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
             diff_str = ''
             if diff is not None:
                 arrow = '▲' if diff >= 0 else '▼'
-                diff_color = '#16a34a' if diff >= 0 else '#dc2626'
+                diff_color = '#1d4ed8' if diff >= 0 else '#dc2626'
                 diff_str = f'<span style="color:{diff_color};font-weight:700;margin-left:8px;">{arrow} {f(abs(diff),1)}</span>'
             disp = actual_display if actual_display is not None else (f(actual,1) if actual is not None else '-')
             return f"""
@@ -2397,7 +2397,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
             diff_html = ''
             if diff is not None:
                 arrow = '▲' if diff >= 0 else '▼'
-                c = '#16a34a' if diff >= 0 else '#dc2626'
+                c = '#1d4ed8' if diff >= 0 else '#dc2626'
                 diff_html = f'<span style="color:{c};font-size:0.9em;font-weight:700;">{arrow} {f(abs(diff),1)} {unit} vs 계획</span>'
             col.markdown(f"""
             <div style="background:white;border-radius:14px;padding:28px 30px;border:1px solid #e5e7eb;
