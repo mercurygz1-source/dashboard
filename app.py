@@ -1057,41 +1057,37 @@ elif current_page == "건재손익_요약2":
 
         _oir_pct = min((oi율실적/(oi율계획)*100) if oi율실적 and oi율계획 else 0, 150)
 
-        def _kpi_cell(label, val_str, unit, diff_html, pct, border_right=True):
+        def _kpi_card(col, label, val_str, unit, diff_html, pct):
             ac = _ac(pct); bw = _bw(pct)
-            br = "border-right:1px solid #f1f5f9;" if border_right else ""
-            return (
-                '<td style="padding:14px 18px;vertical-align:top;' + br + 'width:25%;">'
-                '<div style="font-size:0.7em;font-weight:600;color:#6b7280;margin-bottom:5px;">' + label + '</div>'
-                '<div style="font-size:1.9em;font-weight:900;color:#111827;line-height:1;">' + val_str
-                + '<span style="font-size:0.32em;font-weight:400;color:#9ca3af;margin-left:4px;">' + unit + '</span></div>'
-                '<div style="margin-top:3px;">' + diff_html + ' <span style="font-size:0.72em;color:#9ca3af;">vs 계획</span></div>'
-                '<div style="margin-top:8px;background:#f3f4f6;border-radius:99px;height:3px;">'
-                '<div style="width:' + bw + '%;height:100%;background:' + ac + ';border-radius:99px;"></div></div>'
-                '<div style="font-size:0.68em;color:' + ac + ';font-weight:600;margin-top:2px;">달성률 ' + f'{pct:.1f}%' + '</div>'
-                '</td>'
-            )
+            with col:
+                st.markdown(
+                    '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
+                    'box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:18px 20px 14px;height:100%;">'
+                    '<div style="font-size:0.72em;font-weight:600;color:#6b7280;margin-bottom:6px;">' + label + '</div>'
+                    '<div style="font-size:2em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
+                    + '<span style="font-size:0.3em;font-weight:400;color:#9ca3af;margin-left:5px;">' + unit + '</span></div>'
+                    '<div style="margin-top:5px;">' + diff_html + ' <span style="font-size:0.72em;color:#9ca3af;">vs 계획</span></div>'
+                    '<div style="margin-top:10px;background:#f3f4f6;border-radius:99px;height:3px;">'
+                    '<div style="width:' + bw + '%;height:100%;background:' + ac + ';border-radius:99px;"></div></div>'
+                    '<div style="font-size:0.7em;color:' + ac + ';font-weight:600;margin-top:3px;">달성률 ' + f'{pct:.1f}%' + '</div>'
+                    '</div>',
+                    unsafe_allow_html=True
+                )
 
-        _kpi_block = (
-            '<div style="background:white;border-radius:10px;border:1px solid #e8eaed;'
-            'box-shadow:0 1px 3px rgba(0,0,0,0.05);margin-bottom:12px;overflow:hidden;">'
-            '<table style="width:100%;border-collapse:collapse;">'
-            '<tr>'
-            + _kpi_cell("레미콘 판매량",
-                        f"{rc물량실적:,.1f}" if rc물량실적 else "-", "천㎥",
-                        _dv(rc물량차이, "천㎥", per=True), rc달성)
-            + _kpi_cell("총 매출액",
-                        f"{_to억(매출실적):,.1f}" if 매출실적 else "-", "억원",
-                        _dv(_to억(매출차이), "억원", per=True), 매출달성 or 0)
-            + _kpi_cell("영업이익",
-                        f"{_to억(oi실적):,.1f}" if oi실적 is not None else "-", "억원",
-                        _dv(_to억(oi차이), "억원", per=True), oi달성 or 0)
-            + _kpi_cell("영업이익률",
-                        f"{oi율실적:.1f}" if oi율실적 is not None else "-", "%",
-                        _dv(oi율차이, "%p", per=True), _oir_pct, border_right=False)
-            + '</tr></table></div>'
-        )
-        st.markdown(_kpi_block, unsafe_allow_html=True)
+        _kc1, _kc2, _kc3, _kc4 = st.columns(4, gap="small")
+        _kpi_card(_kc1, "레미콘 판매량",
+                  f"{rc물량실적:,.1f}" if rc물량실적 else "-", "천㎥",
+                  _dv(rc물량차이, "천㎥", per=True), rc달성)
+        _kpi_card(_kc2, "총 매출액",
+                  f"{_to억(매출실적):,.1f}" if 매출실적 else "-", "억원",
+                  _dv(_to억(매출차이), "억원", per=True), 매출달성 or 0)
+        _kpi_card(_kc3, "영업이익",
+                  f"{_to억(oi실적):,.1f}" if oi실적 is not None else "-", "억원",
+                  _dv(_to억(oi차이), "억원", per=True), oi달성 or 0)
+        _kpi_card(_kc4, "영업이익률",
+                  f"{oi율실적:.1f}" if oi율실적 is not None else "-", "%",
+                  _dv(oi율차이, "%p", per=True), _oir_pct)
+        st.markdown('<div style="margin-bottom:12px;"></div>', unsafe_allow_html=True)
 
         # ══ 1-B. 부문별 현황 테이블 ══════════════════════════════
         _tbl = (
