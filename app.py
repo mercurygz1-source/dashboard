@@ -1068,14 +1068,14 @@ elif current_page == "건재손익_요약2":
             ac = _ac(pct); bw = _bw(pct)
             br = "border-right:1px solid #f1f5f9;" if border_right else ""
             return (
-                '<td style="padding:16px 20px;vertical-align:top;' + br + 'width:25%;text-align:center;">'
-                '<div style="font-size:0.7em;font-weight:600;color:#6b7280;margin-bottom:6px;letter-spacing:0.03em;">' + label + '</div>'
-                '<div style="font-size:2.2em;font-weight:900;color:#111827;line-height:1;">' + val_str
-                + '<span style="font-size:0.3em;font-weight:400;color:#9ca3af;margin-left:4px;">' + unit + '</span></div>'
-                '<div style="margin-top:5px;min-height:18px;">' + diff_html + ' <span style="font-size:0.72em;color:#9ca3af;">vs 계획</span></div>'
-                '<div style="margin-top:8px;background:#f3f4f6;border-radius:99px;height:3px;max-width:140px;margin-left:auto;margin-right:auto;">'
+                '<td style="padding:14px 18px;vertical-align:top;' + br + 'width:25%;">'
+                '<div style="font-size:0.7em;font-weight:600;color:#6b7280;margin-bottom:5px;">' + label + '</div>'
+                '<div style="font-size:1.9em;font-weight:900;color:#111827;line-height:1;">' + val_str
+                + '<span style="font-size:0.32em;font-weight:400;color:#9ca3af;margin-left:4px;">' + unit + '</span></div>'
+                '<div style="margin-top:3px;">' + diff_html + ' <span style="font-size:0.72em;color:#9ca3af;">vs 계획</span></div>'
+                '<div style="margin-top:8px;background:#f3f4f6;border-radius:99px;height:3px;">'
                 '<div style="width:' + bw + '%;height:100%;background:' + ac + ';border-radius:99px;"></div></div>'
-                '<div style="font-size:0.68em;color:' + ac + ';font-weight:600;margin-top:3px;">달성 ' + f'{pct:.1f}%' + '</div>'
+                '<div style="font-size:0.68em;color:' + ac + ';font-weight:600;margin-top:2px;">달성률 ' + f'{pct:.1f}%' + '</div>'
                 '</td>'
             )
 
@@ -1165,73 +1165,67 @@ elif current_page == "건재손익_요약2":
                     if _v and _v > 0:
                         _pv.append(_v); _pl.append(_dn); _pc.append(_DIV_COLORS[_dn])
             if _pv:
-                _총매출 = sum(_pv)
                 _fig_d2 = go.Figure(go.Pie(
-                    labels=_pl, values=_pv, hole=0.62,
-                    marker=dict(colors=_pc, line=dict(color='white', width=2)),
-                    textinfo='percent',
-                    textposition='inside',
-                    textfont=dict(size=12, color='white'),
-                    hovertemplate='<b>%{label}</b><br>%{value:,.0f} 백만원 (%{percent})<extra></extra>',
-                    direction='clockwise',
-                    sort=False,
+                    labels=_pl, values=_pv, hole=0.6,
+                    marker=dict(colors=_pc, line=dict(color='white', width=3)),
+                    textinfo='label+percent', textfont=dict(size=13),
+                    hovertemplate='<b>%{label}</b><br>%{value:,.0f} 백만원<br>%{percent}<extra></extra>',
+                    pull=[0.04 if l=='레미콘' else 0 for l in _pl],
                 ))
+                _총매출 = sum(_pv)
                 _fig_d2.update_layout(
                     title=dict(text="매출 구성 비중", font=dict(size=13,color='#374151'), x=0.5, xanchor='center'),
                     showlegend=True,
-                    legend=dict(orientation='v', yanchor='middle', y=0.5, xanchor='left', x=1.02,
-                                font=dict(size=12), itemsizing='constant'),
-                    margin=dict(t=36,b=16,l=16,r=100), height=260,
+                    legend=dict(orientation='h', yanchor='bottom', y=-0.08, xanchor='center', x=0.5, font=dict(size=11)),
+                    margin=dict(t=36,b=36,l=0,r=0), height=280,
                     paper_bgcolor='white', plot_bgcolor='white',
-                    annotations=[dict(text='<b>' + f'{int(_총매출):,}' + '</b><br><span style="font-size:10px">백만원</span>',
-                        x=0.45, y=0.5, font_size=13, showarrow=False, font_color='#374151')]
+                    annotations=[dict(text=f"<b>{int(_총매출):,}</b><br>백만원",
+                        x=0.5, y=0.5, font_size=13, showarrow=False, font_color='#374151')]
                 )
                 st.markdown('<div style="background:white;border-radius:10px;border:1px solid #e8eaed;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:4px 0 0;">', unsafe_allow_html=True)
                 st.plotly_chart(_fig_d2, use_container_width=True, config={"displayModeBar":False})
                 st.markdown('</div>', unsafe_allow_html=True)
 
-        # 영업이익 실적 바 + 계획 마커
+        # 영업이익 계획 vs 실적 grouped bar
         with ch_right:
-            _bn, _bp, _br = [], [], []
+            _bn, _bp, _br, _bpct = [], [], [], []
             for _dn in _DIVS:
                 if _dn in df_div2.index:
                     _op3 = df_div2.loc[_dn, _p2('영업이익')]
                     _or3 = df_div2.loc[_dn, _r2c('영업이익')]
-                    _bn.append(_dn)
-                    _bp.append(_op3 or 0)
-                    _br.append(_or3 or 0)
+                    if _op3 is not None or _or3 is not None:
+                        _bn.append(_dn)
+                        _bp.append(_op3 or 0)
+                        _br.append(_or3 or 0)
+                        _pct_v = (_or3/_op3*100) if _op3 and _op3!=0 else 0
+                        _bpct.append(f"{_pct_v:.0f}%")
             if _bn:
-                _bar_colors = ['#16a34a' if v >= 0 else '#dc2626' for v in _br]
                 _fig_b2 = go.Figure()
-                # 실적 가로 바
                 _fig_b2.add_trace(go.Bar(
-                    name='실적', y=_bn, x=_br, orientation='h',
-                    marker_color=_bar_colors, marker_line_width=0,
-                    text=[f"{int(v):,}" for v in _br],
-                    textposition='outside',
-                    textfont=dict(size=11, color='#374151'),
-                    hovertemplate='실적: <b>%{x:,.0f}</b> 백만원<extra></extra>',
-                ))
-                # 계획을 다이아몬드 마커로 표시
-                _fig_b2.add_trace(go.Scatter(
-                    name='계획', y=_bn, x=_bp, mode='markers',
-                    marker=dict(symbol='diamond', size=10, color='#1d4ed8',
-                                line=dict(color='white', width=1)),
+                    name='계획', y=_bn, x=_bp, orientation='h',
+                    marker_color='#bfdbfe', marker_line_width=0,
+                    text=[f"{int(v):,}" for v in _bp], textposition='inside',
+                    textfont=dict(color='#1e40af', size=11),
                     hovertemplate='계획: <b>%{x:,.0f}</b> 백만원<extra></extra>',
                 ))
-                _xvals = [abs(v) for v in _br + _bp if v is not None]
-                _xmax = max(_xvals) if _xvals else 100
+                _fig_b2.add_trace(go.Bar(
+                    name='실적', y=_bn, x=_br, orientation='h',
+                    marker_color=[_DIV_COLORS[n] for n in _bn],
+                    marker_line_width=0,
+                    text=[f"{int(v):,}" for v in _br], textposition='inside',
+                    textfont=dict(color='white', size=11),
+                    hovertemplate='실적: <b>%{x:,.0f}</b> 백만원<extra></extra>',
+                ))
+                # x축 범위: 실적/계획 중 절댓값 최대에 맞춤
+                _xmax = max(abs(v) for v in _bp + _br) if (_bp + _br) else 100
                 _fig_b2.update_layout(
-                    title=dict(text="부문별 영업이익 실적 (백만원)", font=dict(size=13,color='#374151'), x=0.5, xanchor='center'),
-                    barmode='overlay', bargap=0.4,
-                    xaxis=dict(showgrid=True, gridcolor='#f3f4f6', zeroline=True,
-                               zerolinecolor='#9ca3af', zerolinewidth=1.5,
-                               range=[-_xmax*1.5, _xmax*1.8],
-                               tickfont=dict(size=10)),
-                    yaxis=dict(showgrid=False, tickfont=dict(size=12)),
-                    legend=dict(orientation='h', yanchor='bottom', y=-0.12,
-                                xanchor='center', x=0.5, font=dict(size=11)),
-                    margin=dict(t=36,b=36,l=8,r=40), height=260,
+                    title=dict(text="부문별 영업이익 계획 vs 실적 (백만원)", font=dict(size=13,color='#374151'), x=0.5, xanchor='center'),
+                    barmode='group', bargap=0.3, bargroupgap=0.06,
+                    xaxis=dict(showgrid=True, gridcolor='#f3f4f6', zeroline=True, zerolinecolor='#9ca3af',
+                               range=[-_xmax*0.1, _xmax*1.25]),
+                    yaxis=dict(showgrid=False),
+                    legend=dict(orientation='h', yanchor='bottom', y=-0.1, xanchor='center', x=0.5, font=dict(size=11)),
+                    margin=dict(t=36,b=36,l=0,r=8), height=280,
                     paper_bgcolor='white', plot_bgcolor='white',
                     font=dict(family='Noto Sans KR'),
                 )
