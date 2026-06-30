@@ -324,7 +324,7 @@ if not st.session_state["logged_in"]:
 # 네비게이션 구조
 # ══════════════════════════════════════════════════════════════
 NAV_STRUCTURE = {
-    "건재손익": ["건재손익_요약", "건재손익_부문별", "건재손익_사업장별"],
+    "건재손익": ["건재손익_요약", "건재손익_요약2", "건재손익_부문별", "건재손익_사업장별"],
     "레미콘":   ["레미콘_손익요약", "레미콘_공장별", "레미콘_공헌이익"],
     "건자재":   ["건자재_손익요약", "건자재_손익"],
     "골재":     ["골재_손익요약", "골재_손익"],
@@ -332,6 +332,7 @@ NAV_STRUCTURE = {
 }
 PAGE_LABELS = {
     "건재손익_요약":   "요약",
+    "건재손익_요약2":  "요약",
     "건재손익_부문별":  "사업부문별",
     "건재손익_사업장별": "사업장별",
     "건재손익_총괄":   "손익 총괄",
@@ -535,7 +536,7 @@ else:
         st.session_state["sel_month"] = _init_months[-1] if _init_months else 1
     selected_month = st.session_state["sel_month"]
 
-    _pages_with_own_header = ("건재손익_요약", "건재손익_부문별", "건재손익_사업장별", "ADMIN_PAGE",
+    _pages_with_own_header = ("건재손익_요약", "건재손익_요약2", "건재손익_부문별", "건재손익_사업장별", "ADMIN_PAGE",
                                "레미콘_손익요약", "건자재_손익요약", "골재_손익요약", "임대_손익요약")
     if current_page not in _pages_with_own_header:
         _s, _y, _m = st.columns([0.82, 0.09, 0.09])
@@ -925,6 +926,37 @@ if current_page == "건재손익_요약":
     else:
         st.error("손익총괄 데이터를 불러올 수 없습니다.")
 
+    st.markdown('</div>', unsafe_allow_html=True)
+
+elif current_page == "건재손익_요약2":
+    st.markdown("""<style>
+    [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
+    </style>""", unsafe_allow_html=True)
+    _tc, _rc = st.columns([0.76, 0.24], gap="small")
+    with _tc:
+        st.markdown(f"""
+        <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
+            <div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
+            <span style="font-size:1.7em;font-weight:900;color:#1f2937;">건재사업본부 손익 요약</span>
+            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.7em;font-weight:600;">{selected_year}년 {selected_month}월</span>
+        </div>""", unsafe_allow_html=True)
+    with _rc:
+        _cy_r2, _cm_r2 = st.columns([1, 1], gap="small")
+        with _cy_r2:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+        with _cm_r2:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            _months_r2 = get_available_months(selected_year)
+            st.selectbox("월", _months_r2, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
+    st.markdown("""
+    <div style="margin-top:40px;text-align:center;color:#9ca3af;font-size:1.1em;">
+        준비 중인 페이지입니다.
+    </div>
+    """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif current_page == "건재손익_부문별":
