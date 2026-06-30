@@ -1188,7 +1188,7 @@ elif current_page == "건재손익_요약2":
                 hovertemplate='실적: <b>%{y:,}</b> 천㎥<br>%{customdata}<extra></extra>',
             ))
             _fig_rg.update_layout(
-                barmode='group', bargap=0.35, bargroupgap=0.08,
+                barmode='group', bargap=0.5, bargroupgap=0.15,
                 yaxis=dict(showgrid=True, gridcolor='#f3f4f6', zeroline=False,
                            tickfont=dict(size=11), title='', showticklabels=False),
                 xaxis=dict(showgrid=False, tickfont=dict(size=14, family='Noto Sans KR')),
