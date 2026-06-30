@@ -1059,7 +1059,7 @@ elif current_page == "건재손익_요약2":
             c = "#dc2626" if val < 0 else "#1d4ed8"
             a = "▲" if val >= 0 else "▼"
             s = f"{abs(int(round(val))):,}" + " " + unit
-            return '<span style="font-size:0.78em;font-weight:600;color:' + c + ';">' + a + " " + s + '</span>'
+            return '<span style="font-size:0.78em;font-weight:600;color:#9ca3af;">계획대비 </span><span style="font-size:0.78em;font-weight:600;color:' + c + ';">' + a + " " + s + '</span>'
 
         # ══ 1-A. KPI 4개 — 한 줄 HTML 블록 ══════════════════════
         _DIVS = ['레미콘','골재','건자재','기타']
@@ -1079,9 +1079,11 @@ elif current_page == "건재손익_요약2":
                     '<span style="font-size:1.25em;font-weight:700;color:#374151;">' + label + '</span>'
                     '</div>'
                     '<div style="padding:18px 24px 18px;text-align:left;">'
-                    '<div style="font-size:2.8em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
-                    + '<span style="font-size:0.32em;font-weight:500;color:#9ca3af;margin-left:6px;">' + unit + '</span></div>'
-                    '<div style="margin-top:7px;font-size:1em;"><span style="color:#9ca3af;font-size:0.85em;">계획대비 </span>' + diff_html + '</div>'
+                    '<div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;">'
+                    '<span style="font-size:2.8em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
+                    + '<span style="font-size:0.32em;font-weight:500;color:#9ca3af;margin-left:6px;">' + unit + '</span></span>'
+                    + ('<span style="font-size:0.85em;font-weight:600;color:#6b7280;">(' + diff_html + ')</span>' if diff_html else '')
+                    + '</div>'
                     '<div style="margin-top:12px;background:#f3f4f6;border-radius:99px;height:5px;">'
                     '<div style="width:' + bw + '%;height:100%;background:' + ac + ';border-radius:99px;"></div></div>'
                     '<div style="font-size:0.9em;color:' + ac + ';font-weight:600;margin-top:5px;">달성률 ' + f'{pct:.1f}%' + '</div>'
