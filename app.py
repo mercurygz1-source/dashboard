@@ -1184,7 +1184,7 @@ elif current_page == "건재손익_요약2":
                 name='실적', x=_REGIONS, y=_rg_actuals,
                 marker_color=_actual_colors, marker_line_width=0,
                 text=[f"{v:,.1f}" for v in _rg_actuals],
-                textposition='outside', textfont=dict(size=14, color='#111827', family='Noto Sans KR'),
+                textposition='outside', textfont=dict(size=16, color='#111827', family='Noto Sans KR', weight='bold'),
                 customdata=_diff_texts,
                 hovertemplate='실적: <b>%{y:,.1f}</b> 천㎥<br>%{customdata}<extra></extra>',
             ))
