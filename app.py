@@ -1263,7 +1263,7 @@ elif current_page == "건재손익_요약2":
                     with _kpi_cols2[_i2]:
                         # 위: 부문명 카드
                         st.markdown(f"""
-                        <div style="background:{_clr2};border-radius:12px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,0.08);text-align:center;margin-bottom:8px;">
+                        <div style="background:{_clr2};border-radius:12px;padding:8px 16px;box-shadow:0 1px 6px rgba(0,0,0,0.08);text-align:center;margin-bottom:8px;">
                           <div style="font-size:1.1em;font-weight:800;color:white;">{_dn2}</div>
                         </div>
                         <div style="height:6px;"></div>""", unsafe_allow_html=True)
