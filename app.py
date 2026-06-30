@@ -1270,19 +1270,22 @@ elif current_page == "건재손익_요약2":
                     _s_actuals.append(_sr3)
                     _o_actuals.append(_or3 if _or3 is not None else 0)
                     _valid_divs.append(_dn)
-                    if _dn == '건자재':
-                        st.caption(f"[디버그] 건자재 영업이익 — 계획: {_op3}, 실적: {_or3}, 컬럼: {_p2('영업이익')} / {_r2c('영업이익')}")
 
                 def _make_hbar(divs, pcts, diffs, actuals, title):
+                    # 음수 pct(계획이익→실제손실)는 시각화 불가 → 0으로 클램프 후 라벨에 표기
+                    display_pcts = [max(p, 0) for p in pcts]
                     colors = ['#1d4ed8' if p >= 100 else '#dc2626' for p in pcts]
                     diff_texts = [
                         f"{'▲' if d>=0 else '▼'} {abs(int(round(d))):,}  <b>{p:.0f}%</b>"
                         for d, p in zip(diffs, pcts)
                     ]
-                    bar_labels = [f"  {int(round(a)):,} ({p:.0f}%)" for a, p in zip(actuals, pcts)]
+                    def _bar_label(a, p):
+                        if p < 0: return f"  {int(round(a)):,} (손실전환)"
+                        return f"  {int(round(a)):,} ({p:.0f}%)"
+                    bar_labels = [_bar_label(a, p) for a, p in zip(actuals, pcts)]
                     fig = go.Figure()
                     fig.add_trace(go.Bar(
-                        x=pcts, y=divs, orientation='h',
+                        x=display_pcts, y=divs, orientation='h',
                         width=0.4,
                         marker_color=colors, marker_line_width=0,
                         text=bar_labels,
