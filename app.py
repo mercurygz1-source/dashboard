@@ -1193,7 +1193,7 @@ elif current_page == "건재손익_요약2":
                            tickfont=dict(size=11), title='', showticklabels=False),
                 xaxis=dict(showgrid=False, tickfont=dict(size=14, family='Noto Sans KR')),
                 legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5, font=dict(size=14)),
-                margin=dict(t=36, b=8, l=8, r=8), height=300,
+                margin=dict(t=36, b=8, l=8, r=8), height=380,
                 paper_bgcolor='white', plot_bgcolor='white',
                 font=dict(family='Noto Sans KR'),
             )
