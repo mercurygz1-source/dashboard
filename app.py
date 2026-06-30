@@ -1108,56 +1108,58 @@ elif current_page == "건재손익_요약2":
         st.markdown('<div style="margin-bottom:40px;"></div>', unsafe_allow_html=True)
 
         # ══ 1-B. 부문별 현황 테이블 ══════════════════════════════
-        _tbl = (
-            '<div style="background:white;border-radius:10px;border:1px solid #e8eaed;'
-            'box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;margin-bottom:12px;">'
-            '<table style="width:100%;border-collapse:collapse;font-size:0.85em;">'
-            '<thead><tr style="background:#f9fafb;border-bottom:1px solid #e8eaed;">'
-            '<th style="padding:8px 18px;text-align:left;font-weight:600;color:#6b7280;font-size:0.85em;">구분</th>'
-            '<th style="padding:8px 14px;text-align:right;font-weight:600;color:#6b7280;font-size:0.85em;">매출 실적</th>'
-            '<th style="padding:8px 14px;text-align:center;font-weight:600;color:#6b7280;font-size:0.85em;">매출 달성률</th>'
-            '<th style="padding:8px 14px;text-align:right;font-weight:600;color:#6b7280;font-size:0.85em;">영업이익</th>'
-            '<th style="padding:8px 14px;text-align:center;font-weight:600;color:#6b7280;font-size:0.85em;">이익 달성률</th>'
-            '<th style="padding:8px 18px;text-align:right;font-weight:600;color:#6b7280;font-size:0.85em;">이익률</th>'
-            '</tr></thead><tbody>'
-        )
-        for _dn in _DIVS:
-            if _dn not in df_div2.index: continue
-            _sp2 = df_div2.loc[_dn, _p2('매출')] or 0
-            _sr2 = df_div2.loc[_dn, _r2c('매출')] or 0
-            _op2 = df_div2.loc[_dn, _p2('영업이익')] or 0
-            _or2 = df_div2.loc[_dn, _r2c('영업이익')]
-            _md  = (_sr2/_sp2*100) if _sp2 else 0
-            _od  = (_or2/_op2*100) if _op2 and _or2 is not None else 0
-            _mc  = _ac(_md); _oc = "#16a34a" if _or2 is not None and _or2>=0 else "#dc2626"; _odc = _ac(_od)
-            _mw  = _bw(_md); _ow = _bw(abs(_od))
-            _oir2 = (f"{_or2/_sr2*100:.1f}%" if _sr2 and _or2 is not None and _sr2!=0 else "-")
-            _tbl += (
-                '<tr style="border-bottom:1px solid #f3f4f6;">'
-                '<td style="padding:9px 18px;font-weight:700;color:#1f2937;font-size:0.9em;">' + _dn + '</td>'
-                '<td style="padding:9px 14px;text-align:right;color:#374151;font-weight:600;">'
-                + (f"{int(_sr2):,}" if _sr2 else "-")
-                + '<span style="font-size:0.72em;color:#9ca3af;margin-left:3px;">백만원</span></td>'
-                '<td style="padding:9px 14px;">'
-                '<div style="display:flex;align-items:center;gap:6px;">'
-                '<div style="flex:1;background:#f3f4f6;border-radius:99px;height:5px;">'
-                '<div style="width:' + _mw + '%;height:100%;background:' + _mc + ';border-radius:99px;"></div></div>'
-                '<span style="font-size:0.82em;font-weight:700;color:' + _mc + ';white-space:nowrap;">' + f'{_md:.1f}%' + '</span>'
-                '</div></td>'
-                '<td style="padding:9px 14px;text-align:right;font-weight:600;color:' + _oc + ';">'
-                + (f"{int(_or2):,}" if _or2 is not None else "-")
-                + '<span style="font-size:0.72em;color:#9ca3af;margin-left:3px;">백만원</span></td>'
-                '<td style="padding:9px 14px;">'
-                '<div style="display:flex;align-items:center;gap:6px;">'
-                '<div style="flex:1;background:#f3f4f6;border-radius:99px;height:5px;">'
-                '<div style="width:' + _ow + '%;height:100%;background:' + _odc + ';border-radius:99px;"></div></div>'
-                '<span style="font-size:0.82em;font-weight:700;color:' + _odc + ';white-space:nowrap;">' + f'{_od:.1f}%' + '</span>'
-                '</div></td>'
-                '<td style="padding:9px 18px;text-align:right;font-weight:700;color:' + _oc + ';">' + _oir2 + '</td>'
-                '</tr>'
+        _tbl_wrap, _ = st.columns([0.72, 0.28])
+        with _tbl_wrap:
+            _tbl = (
+                '<div style="background:white;border-radius:10px;border:1px solid #e8eaed;'
+                'box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;margin-bottom:12px;">'
+                '<table style="width:100%;border-collapse:collapse;font-size:1em;">'
+                '<thead><tr style="background:#f9fafb;border-bottom:1px solid #e8eaed;">'
+                '<th style="padding:10px 16px;text-align:left;font-weight:600;color:#6b7280;">구분</th>'
+                '<th style="padding:10px 12px;text-align:right;font-weight:600;color:#6b7280;">매출 실적</th>'
+                '<th style="padding:10px 12px;text-align:center;font-weight:600;color:#6b7280;">매출 달성률</th>'
+                '<th style="padding:10px 12px;text-align:right;font-weight:600;color:#6b7280;">영업이익</th>'
+                '<th style="padding:10px 12px;text-align:center;font-weight:600;color:#6b7280;">이익 달성률</th>'
+                '<th style="padding:10px 16px;text-align:right;font-weight:600;color:#6b7280;">이익률</th>'
+                '</tr></thead><tbody>'
             )
-        _tbl += '</tbody></table></div>'
-        st.markdown(_tbl, unsafe_allow_html=True)
+            for _dn in _DIVS:
+                if _dn not in df_div2.index: continue
+                _sp2 = df_div2.loc[_dn, _p2('매출')] or 0
+                _sr2 = df_div2.loc[_dn, _r2c('매출')] or 0
+                _op2 = df_div2.loc[_dn, _p2('영업이익')] or 0
+                _or2 = df_div2.loc[_dn, _r2c('영업이익')]
+                _md  = (_sr2/_sp2*100) if _sp2 else 0
+                _od  = (_or2/_op2*100) if _op2 and _or2 is not None else 0
+                _mc  = _ac(_md); _oc = "#16a34a" if _or2 is not None and _or2>=0 else "#dc2626"; _odc = _ac(_od)
+                _mw  = _bw(_md); _ow = _bw(abs(_od))
+                _oir2 = (f"{_or2/_sr2*100:.1f}%" if _sr2 and _or2 is not None and _sr2!=0 else "-")
+                _tbl += (
+                    '<tr style="border-bottom:1px solid #f3f4f6;">'
+                    '<td style="padding:10px 16px;font-weight:700;color:#1f2937;">' + _dn + '</td>'
+                    '<td style="padding:10px 12px;text-align:right;color:#374151;font-weight:600;">'
+                    + (f"{int(_sr2):,}" if _sr2 else "-")
+                    + '<span style="font-size:0.75em;color:#9ca3af;margin-left:3px;">백만원</span></td>'
+                    '<td style="padding:10px 12px;">'
+                    '<div style="display:flex;align-items:center;gap:6px;">'
+                    '<div style="flex:1;background:#f3f4f6;border-radius:99px;height:5px;">'
+                    '<div style="width:' + _mw + '%;height:100%;background:' + _mc + ';border-radius:99px;"></div></div>'
+                    '<span style="font-weight:700;color:' + _mc + ';white-space:nowrap;">' + f'{_md:.1f}%' + '</span>'
+                    '</div></td>'
+                    '<td style="padding:10px 12px;text-align:right;font-weight:600;color:' + _oc + ';">'
+                    + (f"{int(_or2):,}" if _or2 is not None else "-")
+                    + '<span style="font-size:0.75em;color:#9ca3af;margin-left:3px;">백만원</span></td>'
+                    '<td style="padding:10px 12px;">'
+                    '<div style="display:flex;align-items:center;gap:6px;">'
+                    '<div style="flex:1;background:#f3f4f6;border-radius:99px;height:5px;">'
+                    '<div style="width:' + _ow + '%;height:100%;background:' + _odc + ';border-radius:99px;"></div></div>'
+                    '<span style="font-weight:700;color:' + _odc + ';white-space:nowrap;">' + f'{_od:.1f}%' + '</span>'
+                    '</div></td>'
+                    '<td style="padding:10px 16px;text-align:right;font-weight:700;color:' + _oc + ';">' + _oir2 + '</td>'
+                    '</tr>'
+                )
+            _tbl += '</tbody></table></div>'
+            st.markdown(_tbl, unsafe_allow_html=True)
 
         # ══ 3. 차트 2개 나란히 ══════════════════════════════════
 
