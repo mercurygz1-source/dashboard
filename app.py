@@ -494,7 +494,7 @@ st.markdown(f"""
 table.pl-table {{ width:100%; border-collapse:collapse; font-size:0.86em; }}
 table.pl-table thead tr th {{ background:#0f2044; color:white; padding:10px 13px; text-align:center; font-weight:600; white-space:nowrap; }}
 table.pl-table thead tr:nth-child(2) th {{ background:#1a3a6c; font-size:0.9em; }}
-table.pl-table tbody td {{ padding:9px 13px; text-align:right; border-bottom:1px solid #f3f4f6; color:#374151; white-space:nowrap; }}
+table.pl-table tbody td {{ padding:9px 13px; text-align:right; border-bottom:none; color:#374151; white-space:nowrap; }}
 table.pl-table tbody td:first-child {{ text-align:center; font-weight:700; color:#1f2937; }}
 table.pl-table tbody tr:hover td {{ background:#fafbff; }}
 table.pl-table tbody tr.total td {{ background:#eff6ff; font-weight:900; color:#1d4ed8; }}
@@ -1356,39 +1356,41 @@ elif current_page == "건재손익_사업장별":
 
 /* 헤더 1행 – 그룹명 */
 .sjb-tbl thead tr:first-child th {{
+    background: #1e293b;
     padding: 7px 8px 6px;
     text-align: center;
     font-weight: 700;
     font-size: 1.0em;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
-    border-right: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    border-right: 1px solid rgba(255,255,255,0.12);
     color: #fff;
     letter-spacing: 0.03em;
 }}
-/* 헤더 그룹 색상 */
-.sjb-tbl th.th-hdr  {{ background: #1e293b; }}
-.sjb-tbl th.th-vol  {{ background: #475569; }}
-.sjb-tbl th.th-sale {{ background: #1d4ed8; }}
-.sjb-tbl th.th-oi   {{ background: #4338ca; }}
-.sjb-tbl th.th-uprc {{ background: #0f766e; }}
-.sjb-tbl th.th-vc   {{ background: #15803d; }}
-.sjb-tbl th.th-cm   {{ background: #7c3aed; }}
+/* 헤더 그룹 색상 – 모두 동일 다크 */
+.sjb-tbl th.th-hdr,
+.sjb-tbl th.th-vol,
+.sjb-tbl th.th-sale,
+.sjb-tbl th.th-oi,
+.sjb-tbl th.th-uprc,
+.sjb-tbl th.th-vc,
+.sjb-tbl th.th-cm {{ background: #1e293b; }}
 
 /* 헤더 2행 – 서브 컬럼 */
 .sjb-tbl thead tr:last-child th {{
+    background: #334155;
     padding: 4px 6px;
     text-align: center;
     font-size: 0.88em;
     font-weight: 500;
-    color: rgba(255,255,255,0.88);
-    border-right: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.82);
+    border-right: 1px solid rgba(255,255,255,0.1);
 }}
-.sjb-tbl th.ts-vol  {{ background: #64748b; }}
-.sjb-tbl th.ts-sale {{ background: #2563eb; }}
-.sjb-tbl th.ts-oi   {{ background: #4f46e5; }}
-.sjb-tbl th.ts-uprc {{ background: #0d9488; }}
-.sjb-tbl th.ts-vc   {{ background: #16a34a; }}
-.sjb-tbl th.ts-cm   {{ background: #7c3aed; }}
+.sjb-tbl th.ts-vol,
+.sjb-tbl th.ts-sale,
+.sjb-tbl th.ts-oi,
+.sjb-tbl th.ts-uprc,
+.sjb-tbl th.ts-vc,
+.sjb-tbl th.ts-cm  {{ background: #334155; }}
 
 /* 데이터 셀 공통 */
 .sjb-tbl td {{
@@ -1430,28 +1432,27 @@ elif current_page == "건재손익_사업장별":
 .sjb-tbl tr.sjb-region td {{
     background: #f1f5f9 !important;
     color: #475569;
-    font-style: italic;
 }}
 .sjb-tbl tr.sjb-subtotal td {{
-    background: #fef9c3 !important;
+    background: #f1f5f9 !important;
     font-weight: 700;
-    border-top: 1px solid #fde047;
-    border-bottom: 1px solid #fde047;
-    color: #713f12;
+    border-top: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+    color: #1e293b;
 }}
 .sjb-tbl tr.sjb-total td {{
-    background: #fef08a !important;
+    background: #e2e8f0 !important;
     font-weight: 700;
-    border-top: 2px solid #ca8a04;
-    border-bottom: 2px solid #ca8a04;
-    color: #713f12;
+    border-top: 1.5px solid #94a3b8;
+    border-bottom: 1.5px solid #94a3b8;
+    color: #0f172a;
 }}
 .sjb-tbl tr.sjb-grand td {{
-    background: #fde047 !important;
+    background: #cbd5e1 !important;
     font-weight: 800;
-    border-top: 2px solid #a16207;
-    border-bottom: 2px solid #a16207;
-    color: #1c1917;
+    border-top: 2px solid #64748b;
+    border-bottom: 2px solid #64748b;
+    color: #0f172a;
 }}
 /* 권역 구분선 */
 .sjb-tbl tr.sjb-divider td {{ border-bottom: 2px solid #475569 !important; }}
