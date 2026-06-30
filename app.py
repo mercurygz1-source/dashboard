@@ -1080,7 +1080,7 @@ elif current_page == "건재손익_요약2":
                     '</div>'
                     '<div style="padding:18px 24px 18px;text-align:left;">'
                     '<div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;">'
-                    '<span style="font-size:2.0em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
+                    '<span style="font-size:2.2em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
                     + '<span style="font-size:0.32em;font-weight:500;color:#9ca3af;margin-left:6px;">' + unit + '</span></span>'
                     + ('<span style="font-size:0.85em;font-weight:600;color:#6b7280;">(' + diff_html + ')</span>' if diff_html else '')
                     + '</div>'
