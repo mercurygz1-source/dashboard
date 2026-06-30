@@ -1226,7 +1226,7 @@ elif current_page == "건재손익_요약2":
                     bgcolor=_bg, borderpad=4, borderwidth=0,
                     opacity=1,
                 )
-            st.markdown('<div style="background:white;border-radius:10px;border:1px solid #e8eaed;box-shadow:0 1px 4px rgba(0,0,0,0.05);padding:4px 0 0;">', unsafe_allow_html=True)
+            st.markdown('<div style="background:white;border-radius:10px;border:1px solid #e8eaed;box-shadow:0 1px 4px rgba(0,0,0,0.05);padding:4px 0 0;height:340px;">', unsafe_allow_html=True)
             st.plotly_chart(_fig_rg, use_container_width=True, config={'displayModeBar': False})
             st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1284,7 +1284,7 @@ elif current_page == "건재손익_요약2":
                         title=dict(text=title, font=dict(size=13, color='#6b7280', family='Noto Sans KR'), x=0.5, xanchor='center'),
                         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[0, max(max(pcts)*1.25, 120)]),
                         yaxis=dict(showgrid=False, tickfont=dict(size=13, family='Noto Sans KR', color='#374151'), autorange='reversed'),
-                        margin=dict(t=36, b=8, l=8, r=48), height=220,
+                        margin=dict(t=8, b=8, l=8, r=48), height=285,
                         paper_bgcolor='white', plot_bgcolor='white',
                         showlegend=False,
                         font=dict(family='Noto Sans KR'),
@@ -1295,7 +1295,7 @@ elif current_page == "건재손익_요약2":
                 with _ch1:
                     st.markdown(
                         '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
-                        'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
+                        'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;height:340px;">'
                         '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
                         'padding:12px 20px;text-align:center;">'
                         '<span style="font-size:1.1em;font-weight:700;color:#374151;">매출액 달성률</span>'
@@ -1306,7 +1306,7 @@ elif current_page == "건재손익_요약2":
                 with _ch2:
                     st.markdown(
                         '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
-                        'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
+                        'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;height:340px;">'
                         '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
                         'padding:12px 20px;text-align:center;">'
                         '<span style="font-size:1.1em;font-weight:700;color:#374151;">영업이익 달성률</span>'
