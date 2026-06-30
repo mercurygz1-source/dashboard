@@ -1043,13 +1043,21 @@ elif current_page == "건재손익_요약2":
 
         k1, k2, k3, k4 = st.columns(4, gap="small")
         with k1:
+            rc달성 = (rc물량실적/rc물량계획*100) if rc물량실적 and rc물량계획 else 0
+            st.markdown(_kpi2(
+                "레미콘 판매량",
+                f"{rc물량실적:,.1f}" if rc물량실적 else "-", "천㎥",
+                _diff_badge(rc물량차이, unit="천㎥", per=True) + '<span style="color:#9ca3af;font-size:0.75em;margin-left:6px;">vs 계획</span>' if rc물량차이 else "",
+                rc달성, "#f59e0b", "🏗️"
+            ), unsafe_allow_html=True)
+        with k2:
             st.markdown(_kpi2(
                 "총 매출액",
                 f"{_to억(매출실적):,.1f}" if 매출실적 else "-", "억원",
                 _diff_badge(매출차이) + f'<span style="color:#9ca3af;font-size:0.75em;margin-left:6px;">vs 계획</span>' if 매출차이 else "",
                 매출달성 or 0, "#1d4ed8", "💰"
             ), unsafe_allow_html=True)
-        with k2:
+        with k3:
             oi_color = "#16a34a" if (oi실적 or 0) >= 0 else "#dc2626"
             st.markdown(_kpi2(
                 "영업이익",
@@ -1057,21 +1065,13 @@ elif current_page == "건재손익_요약2":
                 _diff_badge(oi차이) + f'<span style="color:#9ca3af;font-size:0.75em;margin-left:6px;">vs 계획</span>' if oi차이 is not None else "",
                 oi달성 or 0, oi_color, "📈"
             ), unsafe_allow_html=True)
-        with k3:
+        with k4:
             oi율color = "#16a34a" if (oi율차이 or 0) >= 0 else "#dc2626"
             st.markdown(_kpi2(
                 "영업이익률",
                 f"{oi율실적:.1f}" if oi율실적 is not None else "-", "%",
                 (_diff_badge(oi율차이, unit="%p", per=True) + '<span style="color:#9ca3af;font-size:0.75em;margin-left:6px;">vs 계획</span>') if oi율차이 is not None else "",
                 min((oi율실적/(oi율계획 or 1)*100) if oi율실적 and oi율계획 else 0, 100), oi율color, "📊"
-            ), unsafe_allow_html=True)
-        with k4:
-            rc달성 = (rc물량실적/rc물량계획*100) if rc물량실적 and rc물량계획 else 0
-            st.markdown(_kpi2(
-                "레미콘 판매량",
-                f"{rc물량실적:,.1f}" if rc물량실적 else "-", "천㎥",
-                _diff_badge(rc물량차이, unit="천㎥", per=True) + '<span style="color:#9ca3af;font-size:0.75em;margin-left:6px;">vs 계획</span>' if rc물량차이 else "",
-                rc달성, "#f59e0b", "🏗️"
             ), unsafe_allow_html=True)
 
         st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
