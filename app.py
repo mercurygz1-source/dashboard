@@ -1263,7 +1263,7 @@ elif current_page == "건재손익_요약2":
                     _oi_rate2 = f"{_or3/_sr3*100:.1f}%" if (_sr3 and _or3 and _sr3 != 0) else "-"
                     with _kpi_cols2[_i2]:
                         st.markdown(f"""
-                        <div style="background:white;border-radius:12px;padding:18px 16px 14px;border-top:4px solid {_clr2};box-shadow:0 1px 6px rgba(0,0,0,0.08);height:100%;">
+                        <div style="background:white;border-radius:12px;padding:28px 16px 24px;border-top:4px solid {_clr2};box-shadow:0 1px 6px rgba(0,0,0,0.08);height:100%;">
                           <div style="font-size:1.05em;font-weight:800;color:{_clr2};margin-bottom:10px;">{_dn2}</div>
                           <div style="font-size:0.72em;color:#9ca3af;margin-bottom:2px;">매출 실적</div>
                           <div style="font-size:1.45em;font-weight:800;color:#1f2937;line-height:1.2;">{f"{int(_sr3):,}" if _sr3 else "-"}<span style="font-size:0.45em;font-weight:400;color:#9ca3af;"> 백만원</span></div>
