@@ -1111,7 +1111,10 @@ elif current_page == "건재손익_요약2":
         _tbl_wrap, _ = st.columns([0.72, 0.28])
         with _tbl_wrap:
             st.markdown(
-                '<div style="font-size:1.1em;font-weight:700;color:#1f2937;margin-bottom:8px;">사업부문별</div>',
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+                '<div style="width:4px;height:18px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>'
+                '<span style="font-size:1.1em;font-weight:700;color:#1f2937;">사업부문별</span>'
+                '</div>',
                 unsafe_allow_html=True
             )
             _tbl = (
