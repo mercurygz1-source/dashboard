@@ -1110,6 +1110,10 @@ elif current_page == "건재손익_요약2":
         # ══ 1-B. 부문별 현황 테이블 ══════════════════════════════
         _tbl_wrap, _ = st.columns([0.72, 0.28])
         with _tbl_wrap:
+            st.markdown(
+                '<div style="font-size:1.1em;font-weight:700;color:#1f2937;margin-bottom:8px;">사업부문별</div>',
+                unsafe_allow_html=True
+            )
             _tbl = (
                 '<div style="background:white;border-radius:10px;border:1px solid #e8eaed;'
                 'box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;margin-bottom:12px;">'
