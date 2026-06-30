@@ -739,6 +739,44 @@ def stitle(title):
         <span style="background:#eff6ff;color:#1d4ed8;padding:3px 12px;border-radius:20px;font-size:0.78em;font-weight:600;">{selected_year}년 {selected_month}월</span>
     </div>""", unsafe_allow_html=True)
 
+def _page_header(title, show_period=False, period_key="sel_period"):
+    """모든 페이지 공통 헤더: 제목(좌) + 연/월(/기간) 필터(우)"""
+    _period_sfx = ""
+    if show_period:
+        _p = st.session_state.get(period_key, "당월")
+        _period_sfx = "" if _p == "당월" else " 누계"
+    _tc, _rc = st.columns([0.76, 0.24], gap="small")
+    with _tc:
+        st.markdown(
+            '<div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">'
+            '<div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>'
+            '<span style="font-size:1.7em;font-weight:900;color:#1f2937;">' + title + '</span>'
+            '<span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;'
+            'font-size:1.7em;font-weight:600;">'
+            + str(selected_year) + '년 ' + str(selected_month) + '월' + _period_sfx +
+            '</span></div>',
+            unsafe_allow_html=True
+        )
+    with _rc:
+        if show_period:
+            _cy, _cm, _cp = st.columns([1,1,1], gap="small")
+        else:
+            _cy, _cm = st.columns([1,1], gap="small")
+        with _cy:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+        with _cm:
+            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+            _pm = get_available_months(selected_year)
+            st.selectbox("월", _pm, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
+            st.markdown('</div>', unsafe_allow_html=True)
+        if show_period:
+            with _cp:
+                st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
+                st.selectbox("기간", ["당월", "누계"], key=period_key, label_visibility="collapsed")
+                st.markdown('</div>', unsafe_allow_html=True)
+
 # ══════════════════════════════════════════════════════════════
 # 건재손익 요약
 # ══════════════════════════════════════════════════════════════
@@ -758,29 +796,7 @@ if current_page == "건재손익_요약":
     /* 요약 페이지 제목 행~KPI 카드 사이 여백 */
     [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
     </style>""", unsafe_allow_html=True)
-    _tc, _rc = st.columns([0.76, 0.24], gap="small")
-    with _tc:
-        st.markdown(f"""
-        <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
-            <div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
-            <span style="font-size:1.7em;font-weight:900;color:#1f2937;">건재사업본부 손익 요약</span>
-            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.7em;font-weight:600;">{selected_year}년 {selected_month}월{"" if st.session_state.get("sel_period","당월")=="당월" else " 누계"}</span>
-        </div>""", unsafe_allow_html=True)
-    with _rc:
-        _cy, _cm, _cp = st.columns([1,1,1], gap="small")
-        with _cy:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cm:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            _months = get_available_months(selected_year)
-            st.selectbox("월", _months, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cp:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
+    _page_header("건재사업본부 손익 요약", show_period=True)
     selected_period = st.session_state["sel_period"]
     _sfx = "누계" if selected_period == "누계" else ""
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
@@ -942,30 +958,7 @@ elif current_page == "건재손익_요약2":
     </style>""", unsafe_allow_html=True)
 
     # ── 헤더 ──
-    _tc2, _rc2 = st.columns([0.76, 0.24], gap="small")
-    with _tc2:
-        st.markdown(f"""
-        <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
-            <div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
-            <span style="font-size:1.7em;font-weight:900;color:#1f2937;">건재사업본부 손익 요약</span>
-            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.7em;font-weight:600;">{selected_year}년 {selected_month}월{"" if st.session_state.get("sel_period","당월")=="당월" else " 누계"}</span>
-        </div>""", unsafe_allow_html=True)
-    with _rc2:
-        _cy2, _cm2, _cp2 = st.columns([1,1,1], gap="small")
-        with _cy2:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cm2:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            _months_r2 = get_available_months(selected_year)
-            st.selectbox("월", _months_r2, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cp2:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-
+    _page_header("건재사업본부 손익 요약", show_period=True)
     _r2_period = st.session_state.get("sel_period", "당월")
     _r2_sfx = "누계" if _r2_period == "누계" else ""
 
@@ -1363,30 +1356,7 @@ elif current_page == "건재손익_부문별":
     }
     [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
     </style>""", unsafe_allow_html=True)
-    _tc, _rc = st.columns([0.76, 0.24], gap="small")
-    with _tc:
-        st.markdown(f"""
-        <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
-            <div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
-            <span style="font-size:1.7em;font-weight:900;color:#1f2937;">사업부문별 손익</span>
-            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.7em;font-weight:600;">{selected_year}년 {selected_month}월{"" if st.session_state.get("sel_period","당월")=="당월" else " 누계"}</span>
-        </div>""", unsafe_allow_html=True)
-    with _rc:
-        _cy, _cm, _cp = st.columns([1,1,1], gap="small")
-        with _cy:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cm:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            _months_bm = get_available_months(selected_year)
-            st.selectbox("월", _months_bm, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cp:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-
+    _page_header("사업부문별 손익", show_period=True)
     _bm_period = st.session_state.get("sel_period", "당월")
     _bm_sfx = "누계" if _bm_period == "누계" else ""
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
@@ -1568,31 +1538,7 @@ elif current_page == "건재손익_사업장별":
     st.markdown("""<style>
     [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
     </style>""", unsafe_allow_html=True)
-    _tc, _rc = st.columns([0.76, 0.24], gap="small")
-    with _tc:
-        _sjb_period = st.session_state.get("sel_period", "당월")
-        st.markdown(f"""
-        <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
-            <div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
-            <span style="font-size:1.7em;font-weight:900;color:#1f2937;">사업장별 손익실적</span>
-            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.7em;font-weight:600;">{selected_year}년 {selected_month}월{"" if _sjb_period=="당월" else " 누계"}</span>
-        </div>""", unsafe_allow_html=True)
-    with _rc:
-        _cy2, _cm2, _cp2 = st.columns([1,1,1], gap="small")
-        with _cy2:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cm2:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            _months_sjb = get_available_months(selected_year)
-            st.selectbox("월", _months_sjb, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cp2:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-
+    _page_header("사업장별 손익실적", show_period=True)
     _sjb_period = st.session_state.get("sel_period", "당월")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
 
@@ -1921,7 +1867,7 @@ elif current_page == "건재손익_사업장별":
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif current_page == "건재손익_공장별":
-    stitle("공장별 손익")
+    _page_header("공장별 손익")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
     metric=st.selectbox("지표",['매출','영업이익','물량'],format_func=lambda x:{'매출':'매출액(백만원)','영업이익':'영업이익(백만원)','물량':'판매물량(천㎥)'}[x])
     cc1,cc2=st.columns([2.2,1])
@@ -1945,7 +1891,7 @@ elif current_page == "건재손익_공장별":
     st.markdown(html+"</tbody></table></div></div></div>", unsafe_allow_html=True)
 
 elif current_page == "레미콘_공헌이익":
-    stitle("레미콘 공헌이익 분석")
+    _page_header("레미콘 공헌이익 분석")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
     rc_sum=df_all[df_all['공장명']=='레미콘 계']
     if not rc_sum.empty:
@@ -1974,7 +1920,7 @@ elif current_page == "레미콘_공헌이익":
     st.markdown(html+"</tbody></table></div></div></div>", unsafe_allow_html=True)
 
 elif current_page == "레미콘_공장별":
-    stitle("레미콘 공장별 손익")
+    _page_header("레미콘 공장별 손익")
     st.markdown('<div class="content-wrap">', unsafe_allow_html=True)
     rc_sum=df_all[df_all['공장명']=='레미콘 계']
     if not rc_sum.empty:
@@ -2012,29 +1958,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
     }
     [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
     </style>""", unsafe_allow_html=True)
-    _tc, _rc = st.columns([0.76, 0.24], gap="small")
-    with _tc:
-        st.markdown(f"""
-        <div style="padding:2px 0 0;display:flex;align-items:center;gap:12px;">
-            <div style="width:4px;height:24px;background:#1d4ed8;border-radius:2px;flex-shrink:0;"></div>
-            <span style="font-size:1.7em;font-weight:900;color:#1f2937;">{nm} 손익 요약</span>
-            <span style="background:#eff6ff;color:#1d4ed8;padding:4px 16px;border-radius:20px;font-size:1.7em;font-weight:600;">{selected_year}년 {selected_month}월{"" if st.session_state.get("sel_period","당월")=="당월" else " 누계"}</span>
-        </div>""", unsafe_allow_html=True)
-    with _rc:
-        _cy, _cm, _cp = st.columns([1,1,1], gap="small")
-        with _cy:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("연도", years, key="sel_year", format_func=lambda x: f"{x}년", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cm:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            _months = get_available_months(selected_year)
-            st.selectbox("월", _months, format_func=lambda x: f"{x}월", key="sel_month", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with _cp:
-            st.markdown('<div style="padding-top:14px;">', unsafe_allow_html=True)
-            st.selectbox("기간", ["당월", "누계"], key="sel_period", label_visibility="collapsed")
-            st.markdown('</div>', unsafe_allow_html=True)
+    _page_header(nm + " 손익 요약", show_period=True)
     _sec_period = st.session_state.get("sel_period", "당월")
     _sec_sfx = "누계" if _sec_period == "누계" else ""
 
@@ -2479,7 +2403,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
 
 elif current_page in ["건자재_손익","골재_손익","임대_손익"]:
     nm={"건자재_손익":"건자재","골재_손익":"골재","임대_손익":"임대"}[current_page]
-    stitle(f"{nm} 손익")
+    _page_header(nm + " 손익")
     st.markdown(f'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px;"><div style="font-size:3.5em;margin-bottom:20px;opacity:0.35;">🚧</div><div style="font-size:1.3em;font-weight:700;color:#374151;margin-bottom:8px;">{nm} 손익 페이지</div><div style="color:#9ca3af;">준비 중입니다.</div></div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════
