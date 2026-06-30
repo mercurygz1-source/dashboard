@@ -1070,6 +1070,18 @@ elif current_page == "건재손익_요약2":
 
         def _kpi_card(col, label, val_str, unit, diff_html, pct):
             ac = _ac(pct); bw = _bw(pct)
+            # 마이너스 값 처리: "-3" → "(3)" 빨간색
+            try:
+                _num = float(val_str.replace(",", ""))
+                if _num < 0:
+                    _disp = f"({abs(int(_num)):,})" if _num == int(_num) else f"({abs(_num):,.1f})"
+                    _val_color = "#dc2626"
+                else:
+                    _disp = val_str
+                    _val_color = "#111827"
+            except Exception:
+                _disp = val_str
+                _val_color = "#111827"
             with col:
                 st.markdown(
                     '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
@@ -1080,7 +1092,7 @@ elif current_page == "건재손익_요약2":
                     '</div>'
                     '<div style="padding:18px 24px 18px;text-align:left;">'
                     '<div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;">'
-                    '<span style="font-size:2.3em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
+                    '<span style="font-size:2.3em;font-weight:900;color:' + _val_color + ';line-height:1.1;">' + _disp
                     + '<span style="font-size:0.32em;font-weight:500;color:#9ca3af;margin-left:6px;">' + unit + '</span></span>'
                     + ('<span style="font-size:0.85em;font-weight:600;color:#6b7280;">(' + diff_html + ')</span>' if diff_html else '')
                     + '</div>'
