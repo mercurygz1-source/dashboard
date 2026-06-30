@@ -1062,15 +1062,19 @@ elif current_page == "건재손익_요약2":
             with col:
                 st.markdown(
                     '<div style="background:white;border-radius:12px;border:1px solid #e8eaed;'
-                    'box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:20px 20px 16px;text-align:center;">'
-                    '<div style="font-size:1.05em;font-weight:700;color:#374151;margin-bottom:10px;letter-spacing:-0.2px;">' + label + '</div>'
+                    'box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">'
+                    '<div style="background:#f8fafc;border-bottom:1px solid #e8eaed;'
+                    'padding:10px 20px;text-align:center;">'
+                    '<span style="font-size:1em;font-weight:700;color:#374151;">' + label + '</span>'
+                    '</div>'
+                    '<div style="padding:14px 20px 16px;text-align:left;">'
                     '<div style="font-size:2.2em;font-weight:900;color:#111827;line-height:1.1;">' + val_str
                     + '<span style="font-size:0.3em;font-weight:500;color:#9ca3af;margin-left:5px;">' + unit + '</span></div>'
-                    '<div style="margin-top:6px;font-size:0.82em;">' + diff_html + ' <span style="color:#9ca3af;">vs 계획</span></div>'
+                    '<div style="margin-top:5px;font-size:0.82em;">' + diff_html + ' <span style="color:#9ca3af;">vs 계획</span></div>'
                     '<div style="margin-top:10px;background:#f3f4f6;border-radius:99px;height:4px;">'
                     '<div style="width:' + bw + '%;height:100%;background:' + ac + ';border-radius:99px;"></div></div>'
                     '<div style="font-size:0.72em;color:' + ac + ';font-weight:600;margin-top:4px;">달성률 ' + f'{pct:.1f}%' + '</div>'
-                    '</div>',
+                    '</div></div>',
                     unsafe_allow_html=True
                 )
 
