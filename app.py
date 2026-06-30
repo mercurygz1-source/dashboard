@@ -1049,7 +1049,7 @@ elif current_page == "건재손익_요약2":
         rc달성  = (rc물량실적/rc물량계획*100) if rc물량실적 and rc물량계획 else 0
 
         def _ac(pct):
-            return "#16a34a" if pct >= 100 else ("#f59e0b" if pct >= 90 else "#dc2626")
+            return "#1d4ed8" if pct >= 100 else ("#3b82f6" if pct >= 90 else "#dc2626")
 
         def _bw(pct): return str(int(min(max(pct, 0), 100)))
 
@@ -1138,7 +1138,7 @@ elif current_page == "건재손익_요약2":
                 _or2 = df_div2.loc[_dn, _r2c('영업이익')]
                 _md  = (_sr2/_sp2*100) if _sp2 else 0
                 _od  = (_or2/_op2*100) if _op2 and _or2 is not None else 0
-                _mc  = _ac(_md); _oc = "#16a34a" if _or2 is not None and _or2>=0 else "#dc2626"; _odc = _ac(_od)
+                _mc  = _ac(_md); _oc = "#1d4ed8" if _or2 is not None and _or2>=0 else "#dc2626"; _odc = _ac(_od)
                 _mw  = _bw(_md); _ow = _bw(abs(_od))
                 _oir2 = (f"{_or2/_sr2*100:.1f}%" if _sr2 and _or2 is not None and _sr2!=0 else "-")
                 _tbl += (
@@ -1175,7 +1175,7 @@ elif current_page == "건재손익_요약2":
                 _tor = _tr.get(_r2c('영업이익'))
                 _tmd = (_tsr/_tsp*100) if _tsp else 0
                 _tod = (_tor/_top*100) if _top and _tor is not None else 0
-                _tmc = _ac(_tmd); _toc = "#16a34a" if _tor is not None and _tor>=0 else "#dc2626"; _todc = _ac(_tod)
+                _tmc = _ac(_tmd); _toc = "#1d4ed8" if _tor is not None and _tor>=0 else "#dc2626"; _todc = _ac(_tod)
                 _tmw = _bw(_tmd); _tow = _bw(abs(_tod))
                 _toir = (f"{_tor/_tsr*100:.1f}%" if _tsr and _tor is not None and _tsr!=0 else "-")
                 _tbl += (
@@ -2084,8 +2084,8 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
 
     def _달성색(pct):
         if pct is None: return '#6b7280'
-        if pct >= 100: return '#16a34a'
-        if pct >= 85: return '#d97706'
+        if pct >= 100: return '#1d4ed8'
+        if pct >= 85: return '#3b82f6'
         return '#dc2626'
 
     def _delta_html(val, unit='백만원', positive_good=True):
@@ -2134,7 +2134,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
         col1.markdown(gauge_card("판매량", m_r, m_p, "천㎥", m_pct, "#d97706"), unsafe_allow_html=True)
         col2.markdown(gauge_card("매출액", to억(s_r*100 if s_r else None), to억(s_p*100 if s_p else None), "억원",
                                   s_pct, "#1d4ed8"), unsafe_allow_html=True)
-        _oi_color = "#16a34a" if (o_r or 0) >= 0 else "#dc2626"
+        _oi_color = "#1d4ed8" if (o_r or 0) >= 0 else "#dc2626"
         col3.markdown(gauge_card("영업이익", to억(o_r*100 if o_r else None), to억(o_p*100 if o_p else None), "억원",
                                   o_pct, _oi_color), unsafe_allow_html=True)
 
@@ -2238,11 +2238,11 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
 
             st.markdown(big_kpi("매출액", to억(s_r), to억(s_p), "억원", s_pct, "#059669"), unsafe_allow_html=True)
 
-            _oi_border = "#16a34a" if (o_r or 0) >= 0 else "#dc2626"
+            _oi_border = "#1d4ed8" if (o_r or 0) >= 0 else "#dc2626"
             st.markdown(big_kpi("영업이익", to억(o_r), to억(o_p), "억원", o_pct, _oi_border, True), unsafe_allow_html=True)
 
             ir_diff = (ir_r - ir_p) if (ir_r is not None and ir_p is not None) else None
-            ir_color = '#16a34a' if (ir_r or 0) >= 0 else '#dc2626'
+            ir_color = '#1d4ed8' if (ir_r or 0) >= 0 else '#dc2626'
             ir_arrow = '▲' if (ir_diff or 0) >= 0 else '▼'
             ir_diff_html = f'<span style="color:{ir_color}">{ir_arrow} {abs(ir_diff):.2f}%p vs 계획</span>' if ir_diff is not None else ''
             st.markdown(f"""
@@ -2273,7 +2273,7 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
                 fig_jc.add_trace(go.Scatter(name='매출 계획', x=mlabels, y=s_plan,
                     line=dict(color='#059669', width=2, dash='dot'), mode='lines+markers',
                     marker=dict(size=6), yaxis='y'))
-                oi_colors = ['#16a34a' if (v or 0) >= 0 else '#dc2626' for v in o_vals]
+                oi_colors = ['#1d4ed8' if (v or 0) >= 0 else '#dc2626' for v in o_vals]
                 fig_jc.add_trace(go.Bar(name='영업이익', x=mlabels, y=o_vals,
                     marker_color=oi_colors,
                     text=[f"{v:.1f}" if v else "" for v in o_vals],
@@ -2416,10 +2416,10 @@ elif current_page in ["레미콘_손익요약","건자재_손익요약","골재_
             </div>""", unsafe_allow_html=True)
 
         big_number("매출액", to억(s_r), to억(s_p), "억원", s_pct, "#7c3aed", bn1)
-        _oi_col = "#16a34a" if (o_r or 0) >= 0 else "#dc2626"
+        _oi_col = "#1d4ed8" if (o_r or 0) >= 0 else "#dc2626"
         big_number("영업이익", to억(o_r), to억(o_p), "억원", o_pct, _oi_col, bn2)
 
-        ir_color2 = '#16a34a' if (ir_r or 0) >= 0 else '#dc2626'
+        ir_color2 = '#1d4ed8' if (ir_r or 0) >= 0 else '#dc2626'
         bn3.markdown(f"""
         <div style="background:white;border-radius:14px;padding:28px 24px;border:1px solid #e5e7eb;
                     box-shadow:0 3px 12px rgba(0,0,0,0.07);height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
