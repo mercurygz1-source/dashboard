@@ -1168,7 +1168,7 @@ elif current_page == "건재손익_요약2":
 
             _actual_colors = ['#dc2626' if p < 100 else '#1d4ed8' for p in _rg_pcts]
             _diff_texts = [
-                f"{'▲' if d>=0 else '▼'} {abs(d):,.1f} 천㎥  ({p:.1f}%)"
+                f"{'▲' if d>=0 else '▼'} {abs(int(round(d))):,} 천㎥  ({p:.1f}%)"
                 for d, p in zip(_rg_diffs, _rg_pcts)
             ]
 
@@ -1176,16 +1176,16 @@ elif current_page == "건재손익_요약2":
             _fig_rg.add_trace(go.Bar(
                 name='계획', x=_REGIONS, y=_rg_plans,
                 marker_color='#bfdbfe', marker_line_width=0,
-                text=[f"{v:,.1f}" for v in _rg_plans],
+                text=[f"{int(round(v)):,}" for v in _rg_plans],
                 textposition='outside', textfont=dict(size=14, color='#6b7280'),
-                hovertemplate='계획: <b>%{y:,.1f}</b> 천㎥<extra></extra>',
+                hovertemplate='계획: <b>%{y:,}</b> 천㎥<extra></extra>',
             ))
             _fig_rg.add_trace(go.Bar(
                 name='실적', x=_REGIONS, y=_rg_actuals,
                 marker_color=_actual_colors, marker_line_width=0,
                 text=["" for _ in _rg_actuals],
                 customdata=_diff_texts,
-                hovertemplate='실적: <b>%{y:,.1f}</b> 천㎥<br>%{customdata}<extra></extra>',
+                hovertemplate='실적: <b>%{y:,}</b> 천㎥<br>%{customdata}<extra></extra>',
             ))
             _fig_rg.update_layout(
                 barmode='group', bargap=0.35, bargroupgap=0.08,
@@ -1208,7 +1208,7 @@ elif current_page == "건재손익_요약2":
                     x=_xi, y=_rr, xref='x', yref='y',
                     xshift=0, yshift=14,
                     xanchor='center',
-                    text=f"<b>{_rr:,.1f}</b>",
+                    text=f"<b>{int(round(_rr)):,}</b>",
                     showarrow=False,
                     font=dict(size=15, color=_fc, family='Noto Sans KR'),
                     bgcolor=_bg, borderpad=4, borderwidth=0,
