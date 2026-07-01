@@ -481,10 +481,10 @@ st.markdown(f"""
 .kpi-card.red    {{ border-top-color:#dc2626; }}
 .kpi-card.amber  {{ border-top-color:#d97706; }}
 .kpi-card.purple {{ border-top-color:#7c3aed; }}
-.kpi-label {{ color:#374151; font-size:1.05em; font-weight:700; letter-spacing:0.3px; margin-bottom:10px; }}
-.kpi-value {{ color:#111827; font-size:2.4em; font-weight:900; line-height:1; margin-bottom:0; }}
+.kpi-label {{ color:#374151; font-size:1.2em; font-weight:700; letter-spacing:0.3px; margin-bottom:10px; }}
+.kpi-value {{ color:#111827; font-size:3.0em; font-weight:900; line-height:1; margin-bottom:0; }}
 .kpi-unit  {{ font-size:0.42em; color:#6b7280; font-weight:500; vertical-align:middle; }}
-.kpi-delta {{ font-size:0.82em; font-weight:600; }}
+.kpi-delta {{ font-size:1.0em; font-weight:600; }}
 .kpi-delta.pos {{ color:#16a34a; }}
 .kpi-delta.neg {{ color:#dc2626; }}
 .kpi-delta-sub {{ color:#d1d5db; font-size:0.85em; font-weight:400; margin-left:3px; }}
